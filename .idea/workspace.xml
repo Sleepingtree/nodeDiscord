@@ -10,23 +10,7 @@
     <select />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8aa52f24-9845-4cec-90fc-b2e46644e79b" name="Default Changelist" comment="Inital commit">
-      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/modules.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/nodeDiscord.iml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/app.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/bin/www" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/public/stylesheets/style.css" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/routes/index.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/routes/users.js" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/views/error.pug" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/views/index.pug" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/views/layout.pug" afterDir="false" />
-    </list>
+    <list default="true" id="8aa52f24-9845-4cec-90fc-b2e46644e79b" name="Default Changelist" comment="Inital commit" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -76,6 +60,14 @@
       <updated>1592962427861</updated>
       <workItem from="1592963930035" duration="819000" />
     </task>
+    <task id="LOCAL-00001" summary="Inital commit">
+      <created>1592964912694</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1592964912694</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -91,12 +83,21 @@
         </entry>
       </map>
     </option>
+    <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Inital commit" />
+    <option name="LAST_COMMIT_MESSAGE" value="Inital commit" />
   </component>
   <component name="WindowStateProjectService">
     <state x="734" y="374" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1592964153766">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
     <state x="734" y="374" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1592964153766" />
+    <state x="1104" y="639" key="Github.CreateGistDialog" timestamp="1592965005476">
+      <screen x="0" y="0" width="2560" height="1440" />
+    </state>
+    <state x="1104" y="639" key="Github.CreateGistDialog/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1592965005476" />
     <state width="2517" height="413" key="GridCell.Tab.0.bottom" timestamp="1592964749333">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
