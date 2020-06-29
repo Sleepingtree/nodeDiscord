@@ -19,8 +19,15 @@ bot.on('message', msg => {
   } else if (msg.content.startsWith('test')) {
     bot.channels.fetch(VOICE_CHANNEL_ID)
     .then(channel => {
-    console.log('Channel name ');
-     console.log(channel.members)
+        console.log('Channel name ');
+        bot.users.fetch(msg.author.id)
+        .then(user => {
+            for(let activityId in user.presence.activities){
+                let activity = user.presence.activities[activityId];
+                msg.channel.send(`You are ${activity.type} on ${activity.name}`);
+             }
+        });
+        console.log(channel.members)
     });
   }else if (msg.content.startsWith('!kick')) {
     if (msg.mentions.users.size) {
@@ -35,8 +42,15 @@ bot.on('message', msg => {
 function whosOnline(channelId){
     bot.channels.fetch(channelId)
         .then(channel => {
-        console.log('Channel name ');
-         console.log(channel.members)
+            channel.members
+            .each(member => bot.users.fetch(member.id)
+                .then(user => {
+                    console.log(user.presence);
+                    for(let activityId in user.presence.activities){
+                        console.log(user.presence.activities[activityId]);
+                     }
+                })
+            );
         });
 }
 
