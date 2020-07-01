@@ -36,7 +36,6 @@ bot.on('message', msg => {
     msg.channel.send(`It's !startGame ... バカ...`);
   }else if (msg.content.startsWith('!endGame')) {
     gameServices.endGame(bot, msg);
-    msg.channel.send(`Ended game`);
   }else if (msg.content.startsWith('!kick')) {
     if (msg.mentions.users.size) {
       const taggedUser = msg.mentions.users.first();
