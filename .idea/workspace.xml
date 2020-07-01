@@ -6,11 +6,27 @@
         <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
         <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
       </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="REMOTE_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="GROUP_NODE:origin" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
     </expand>
-    <select />
+    <select>
+      <path>
+        <item name="ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="LOCAL_ROOT" type="e8cecc67:BranchNodeDescriptor" />
+        <item name="BRANCH:master" type="e8cecc67:BranchNodeDescriptor" />
+      </path>
+    </select>
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8aa52f24-9845-4cec-90fc-b2e46644e79b" name="Default Changelist" comment="Added logic for seeing who's online">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/services/discordLogIn.js" beforeDir="false" afterPath="$PROJECT_DIR$/services/discordLogIn.js" afterDir="false" />
     </list>
@@ -75,7 +91,9 @@
       <workItem from="1592963930035" duration="819000" />
       <workItem from="1593309480107" duration="2757000" />
       <workItem from="1593374954643" duration="7690000" />
-      <workItem from="1593388198121" duration="3616000" />
+      <workItem from="1593388198121" duration="4365000" />
+      <workItem from="1593476713798" duration="6026000" />
+      <workItem from="1593562120421" duration="7830000" />
     </task>
     <task id="LOCAL-00001" summary="Inital commit">
       <created>1592964912694</created>
@@ -98,7 +116,21 @@
       <option name="project" value="LOCAL" />
       <updated>1593384358729</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="Added logic for seeing who's online">
+      <created>1593391877607</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1593391877607</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Added logic for seeing who's online">
+      <created>1593391930057</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1593391930057</updated>
+    </task>
+    <option name="localTasksCounter" value="6" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -109,7 +141,19 @@
       <map>
         <entry key="MAIN">
           <value>
-            <State />
+            <State>
+              <option name="FILTERS">
+                <map>
+                  <entry key="branch">
+                    <value>
+                      <list>
+                        <option value="master" />
+                      </list>
+                    </value>
+                  </entry>
+                </map>
+              </option>
+            </State>
           </value>
         </entry>
       </map>
@@ -118,6 +162,7 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="Inital commit" />
+    <MESSAGE value="Added logic to see what user is doing" />
     <MESSAGE value="Added logic for seeing who's online" />
     <option name="LAST_COMMIT_MESSAGE" value="Added logic for seeing who's online" />
   </component>
@@ -126,10 +171,10 @@
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
     <state x="734" y="374" key="#com.intellij.execution.impl.EditConfigurationsDialog/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1592964153766" />
-    <state x="1030" y="521" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1593375141677">
+    <state x="1030" y="521" key="#com.intellij.fileTypes.FileTypeChooser" timestamp="1593477858503">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
-    <state x="1030" y="521" key="#com.intellij.fileTypes.FileTypeChooser/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1593375141677" />
+    <state x="1030" y="521" key="#com.intellij.fileTypes.FileTypeChooser/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1593477858503" />
     <state x="1104" y="639" key="Github.CreateGistDialog" timestamp="1592967789383">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
@@ -154,10 +199,10 @@
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
     <state x="781" y="364" key="SettingsEditor/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1592964729000" />
-    <state x="872" y="452" key="Vcs.Push.Dialog.v2" timestamp="1593384362719">
+    <state x="872" y="452" key="Vcs.Push.Dialog.v2" timestamp="1593391963812">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
-    <state x="872" y="452" key="Vcs.Push.Dialog.v2/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1593384362719" />
+    <state x="872" y="452" key="Vcs.Push.Dialog.v2/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1593391963812" />
     <state x="1066" y="453" key="com.intellij.openapi.vcs.changes.SpecificFilesViewDialog" timestamp="1592964450293">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
@@ -166,10 +211,10 @@
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
     <state x="1089" y="633" key="com.intellij.openapi.vcs.update.UpdateOrStatusOptionsDialogupdate-v2/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1593389422429" />
-    <state x="987" y="319" width="585" height="801" key="find.popup" timestamp="1593383902930">
+    <state x="987" y="319" width="585" height="801" key="find.popup" timestamp="1593478941997">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
-    <state x="987" y="319" width="585" height="801" key="find.popup/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1593383902930" />
+    <state x="987" y="319" width="585" height="801" key="find.popup/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1593478941997" />
     <state x="662" y="340" key="new project wizard" timestamp="1592962461412">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>

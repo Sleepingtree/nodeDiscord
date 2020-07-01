@@ -1,5 +1,6 @@
 const Discord = require('discord.js');
 const bot = new Discord.Client();
+const gameServices = require('./gameService');
 const TOKEN = process.env.DISCORD_BOT_KEY;
 const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
 const VOICE_CHANNEL_ALT_ID = process.env.ALT_GENERAL_VOICE_CHANNEL;
@@ -29,6 +30,13 @@ bot.on('message', msg => {
         });
         console.log(channel.members)
     });
+  } else if (msg.content.startsWith('!startGame')) {
+    gameServices.startGame(bot, msg);
+  } else if (msg.content.startsWith('!gameStart')) {
+    msg.channel.send(`It's !startGame ... バカ...`);
+  }else if (msg.content.startsWith('!endGame')) {
+    gameServices.endGame(bot, msg);
+    msg.channel.send(`Ended game`);
   }else if (msg.content.startsWith('!kick')) {
     if (msg.mentions.users.size) {
       const taggedUser = msg.mentions.users.first();
@@ -39,19 +47,22 @@ bot.on('message', msg => {
   }
 });
 
+
+
 function whosOnline(channelId){
     bot.channels.fetch(channelId)
         .then(channel => {
             channel.members
             .each(member => bot.users.fetch(member.id)
                 .then(user => {
-                    console.log(user.presence);
+                    //console.log(user.presence);
                     for(let activityId in user.presence.activities){
-                        console.log(user.presence.activities[activityId]);
+                        //console.log(user.presence.activities[activityId]);
                      }
                 })
             );
-        });
+        })
+        .catch(err => console.log('shit ' + err));
 }
 
 exports.whosOnline = whosOnline;

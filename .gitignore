@@ -84,7 +84,11 @@ node_modules/
 jspm_packages/
 
 #personal configs
+.env
 config/
+
+Intellij
+.idea/
 
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
