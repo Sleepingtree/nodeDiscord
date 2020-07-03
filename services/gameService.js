@@ -118,6 +118,8 @@ async function makeTeamsManual(bot){
                     if(jsonFile[gameName][member.id] == null){
                         jsonFile[gameName][member.id] = DEFAULT_MMR;
                     }
+                    let userMmr =  jsonFile[gameName][usersInGame[i]];
+                    redTeamMmr +=userMmr;
                 });
             console.log(channel.members);
         });
@@ -132,6 +134,8 @@ async function makeTeamsManual(bot){
                     if(jsonFile[gameName][member.id] == null){
                         jsonFile[gameName][member.id] = DEFAULT_MMR;
                     }
+                    let userMmr =  jsonFile[gameName][usersInGame[i]];
+                    blueTeamMmr +=userMmr;
                 });
             console.log(channel.members);
         });
@@ -168,7 +172,6 @@ function updateMmr(redWon){
 function probabilityOfRedWin(){
     const ratingDifferance = blueTeamMmr - redTeamMmr;
     return 1/(1 +(Math.pow(10, ratingDifferance/400)));
-
 }
 
 /*setInterval( () => console.log(redTeam), 3000);
