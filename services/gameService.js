@@ -40,9 +40,10 @@ async function startGame(bot, msg) {
         return;
     }
 
-    if(msg.contains("-manual")){
-
+    if(msg.content.includes("-manual")){
+        await makeTeamsManual(bot);
     }else{
+        console.log("in else");
         await bot.channels.fetch(VOICE_CHANNEL_ID)
             .then(channel => {
                 channel.members
@@ -56,33 +57,37 @@ async function startGame(bot, msg) {
                 console.log(channel.members);
             });
         //Highest mmr First
+        console.log(usersInGame);
         usersInGame.sort((a,b) => jsonFile[gameName][b]-jsonFile[gameName][a]);
 
         makeTeams();
     }
 
-    msg.channel.send(`Started game`);
+    if(usersInGame.length == 0){
+        msg.channel.send(`チャンネルは誰もない`);
+    }else{
+        msg.channel.send(`Started game of ` + gameName);
+        let redTeamPrintUsers = "";
+        redTeam.forEach(id => {
+            console.log(id);
+            if(redTeamPrintUsers != null){
+                redTeamPrintUsers += ", "
+            }
+            redTeamPrintUsers += userNameMap.get(id) + " ";
+        });
 
-    let redTeamPrintUsers = "";
-    redTeam.forEach(id => {
-        console.log(id);
-        if(redTeamPrintUsers != null){
-            redTeamPrintUsers += ", "
-        }
-        redTeamPrintUsers += userNameMap.get(id) + " ";
-    });
+        let blueTeamPrintUsers = "";
+        blueTeam.forEach(id => {
+            console.log(id);
+            if(blueTeamPrintUsers != null){
+                blueTeamPrintUsers += ", "
+            }
+            blueTeamPrintUsers += userNameMap.get(id) + " ";
+        });
 
-    let blueTeamPrintUsers = "";
-    blueTeam.forEach(id => {
-        console.log(id);
-        if(blueTeamPrintUsers != null){
-            blueTeamPrintUsers += ", "
-        }
-        blueTeamPrintUsers += userNameMap.get(id) + " ";
-    });
-
-    msg.channel.send(`Red team` + redTeamPrintUsers);
-    msg.channel.send(`Blue team` + blueTeamPrintUsers);
+        msg.channel.send(`Red team` + redTeamPrintUsers);
+        msg.channel.send(`Blue team` + blueTeamPrintUsers);
+    }
 }
 
 function makeTeams(){
@@ -102,14 +107,14 @@ function makeTeams(){
     }
 }
 
-function makeTeamsManual(){
+async function makeTeamsManual(bot){
      bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID)
         .then(channel => {
             channel.members
                 .each(member => {
                     usersInGame.push(member.id);
                     userNameMap.set(member.id, member.user.username)
-                    redTeam.push(usersInGame[i]);
+                    redTeam.push(member.id);
                     if(jsonFile[gameName][member.id] == null){
                         jsonFile[gameName][member.id] = DEFAULT_MMR;
                     }
@@ -123,7 +128,7 @@ function makeTeamsManual(){
                 .each(member => {
                     usersInGame.push(member.id);
                     userNameMap.set(member.id, member.user.username)
-                    blueTeam.push(usersInGame[i]);
+                    blueTeam.push(member.id);
                     if(jsonFile[gameName][member.id] == null){
                         jsonFile[gameName][member.id] = DEFAULT_MMR;
                     }
