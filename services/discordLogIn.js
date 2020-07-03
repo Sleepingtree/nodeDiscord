@@ -51,17 +51,22 @@ bot.on('message', msg => {
 function whosOnline(channelId){
     bot.channels.fetch(channelId)
         .then(channel => {
-            channel.members
-            .each(member => bot.users.fetch(member.id)
-                .then(user => {
-                    //console.log(user.presence);
-                    for(let activityId in user.presence.activities){
-                        //console.log(user.presence.activities[activityId]);
-                     }
-                })
-            );
+            if(channel != null && channel.members != null){
+                channel.members
+                    .each(member => bot.users.fetch(member.id)
+                        .then(user => {
+                            //console.log(user.presence);
+                            for(let activityId in user.presence.activities){
+                                //console.log(user.presence.activities[activityId]);
+                             }
+                        })
+                    );
+            }
         })
-        .catch(err => console.log('shit ' + err));
+        .catch(err => {
+            console.log('shit ');
+            console.log(err);
+        });
 }
 
 exports.whosOnline = whosOnline;

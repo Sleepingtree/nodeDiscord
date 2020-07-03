@@ -3,10 +3,12 @@ const TREE_USER_ID = process.env.TREE_USER_ID;
 const DEFAULT_MMR = 1000;
 const mmrFileNme = 'mmr.json';
 
-var fs = require('fs');
+const fs = require('fs');
 
-//Map<String,Map<String,long>> or  map<gameName,map<userId,mmr>>
 let usersInGame = [];
+let redTeam = new Array();
+let blueTeam = new Array();
+let userNameMap = new Map();
 let gameName;
 let jsonFile;
 
@@ -29,7 +31,7 @@ async function startGame(bot, msg) {
         });
 
     if(gameName == null){
-        msg.channel.send(`game did not start`);
+        msg.channel.send(`ゲームの中にありません`);
         return;
     }
 
@@ -37,9 +39,8 @@ async function startGame(bot, msg) {
         .then(channel => {
             channel.members
                 .each(member => {
-                    usersInGame.push(member);
-                    console.log('jsonFile');
-                    console.log(jsonFile);
+                    usersInGame.push(member.id);
+                    userNameMap.set(member.id, member.user.username)
                     if(jsonFile[gameName][member.id] == null){
                         jsonFile[gameName][member.id] = DEFAULT_MMR;
                     }
@@ -47,38 +48,66 @@ async function startGame(bot, msg) {
             console.log(channel.members);
         });
     //Highest mmr First
-    usersInGame.sort((a,b) => b-a);
-    //call make teams
+    usersInGame.sort((a,b) => jsonFile[gameName][b]-jsonFile[gameName][a]);
+
+    makeTeams();
+
     msg.channel.send(`Started game`);
+
+    let redTeamPrintUsers = "";
+    redTeam.forEach(id => {
+        console.log(id);
+        if(redTeamPrintUsers != null){
+            redTeamPrintUsers += ", "
+        }
+        redTeamPrintUsers += userNameMap.get(id) + " ";
+    });
+
+    let blueTeamPrintUsers = "";
+    blueTeam.forEach(id => {
+        console.log(id);
+        if(blueTeamPrintUsers != null){
+            blueTeamPrintUsers += ", "
+        }
+        blueTeamPrintUsers += userNameMap.get(id) + " ";
+    });
+
+    msg.channel.send(`Red team` + redTeamPrintUsers);
+    msg.channel.send(`Blue team` + blueTeamPrintUsers);
 }
 
 function makeTeams(){
-    let sum;
-    const eachTeamMmrSum = sum/2;
-    let usersInGameCopy = usersInGame;
+    console.log('usersInGame');
+    console.log(usersInGame);
     let redTeamMmr = 0;
-    let redTeam = [];
-
-    let blueTeam = [];
-    for(let i = 0; i < usersInGame; i++){
+    let blueTeamMmr = 0;
+    for(let i = 0; i < usersInGame.length; i++){
        let userMmr =  jsonFile[gameName][usersInGame[i]];
-       if(redTeamMmr + userMmr > eachTeamMmrSum){
+       console.log(usersInGame[i]);
+       console.log(userMmr);
+       if(redTeamMmr < blueTeamMmr && (blueTeam.length >= usersInGame.length/2)){
+           redTeam.push(usersInGame[i]);
+           redTeamMmr +=userMmr;
+       }else{
            blueTeam.push(usersInGame[i]);
+           blueTeamMmr +=userMmr;
        }
-
     }
 }
 
 function endGame(bot, msg) {
     usersInGame = [];
     gameName = null;
+    redTeam = new Array();
+    blueTeam = new Array();
     const fileString = JSON.stringify(jsonFile, null, 2);
     fs.writeFileSync(mmrFileNme, fileString);
     jsonFile = null;
     msg.channel.send(`Ended game`);
 }
 
-setInterval( () => console.log(jsonFile), 3000);
+/*setInterval( () => console.log(redTeam), 3000);
+setInterval( () => console.log(blueTeam), 3000);*/
 
 exports.startGame = startGame;
 exports.endGame = endGame;

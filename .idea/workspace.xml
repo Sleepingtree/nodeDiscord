@@ -25,9 +25,12 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8aa52f24-9845-4cec-90fc-b2e46644e79b" name="Default Changelist" comment="Added logic to read/write mmr to a file">
+    <list default="true" id="8aa52f24-9845-4cec-90fc-b2e46644e79b" name="Default Changelist" comment="cleaned up end game logic">
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/mmr.json" beforeDir="false" afterPath="$PROJECT_DIR$/mmr.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/services/discordLogIn.js" beforeDir="false" afterPath="$PROJECT_DIR$/services/discordLogIn.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/services/gameService.js" beforeDir="false" afterPath="$PROJECT_DIR$/services/gameService.js" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -92,7 +95,9 @@
       <workItem from="1593374954643" duration="7690000" />
       <workItem from="1593388198121" duration="4365000" />
       <workItem from="1593476713798" duration="6026000" />
-      <workItem from="1593562120421" duration="8149000" />
+      <workItem from="1593562120421" duration="8311000" />
+      <workItem from="1593648783629" duration="6768000" />
+      <workItem from="1593801773199" duration="1529000" />
     </task>
     <task id="LOCAL-00001" summary="Inital commit">
       <created>1592964912694</created>
@@ -136,7 +141,14 @@
       <option name="project" value="LOCAL" />
       <updated>1593570046440</updated>
     </task>
-    <option name="localTasksCounter" value="7" />
+    <task id="LOCAL-00007" summary="cleaned up end game logic">
+      <created>1593570312866</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1593570312866</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -176,7 +188,8 @@
     <MESSAGE value="Added logic to see what user is doing" />
     <MESSAGE value="Added logic for seeing who's online" />
     <MESSAGE value="Added logic to read/write mmr to a file" />
-    <option name="LAST_COMMIT_MESSAGE" value="Added logic to read/write mmr to a file" />
+    <MESSAGE value="cleaned up end game logic" />
+    <option name="LAST_COMMIT_MESSAGE" value="cleaned up end game logic" />
   </component>
   <component name="WindowStateProjectService">
     <state x="734" y="374" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1592964153766">
@@ -211,10 +224,10 @@
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
     <state x="781" y="364" key="SettingsEditor/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1592964729000" />
-    <state x="872" y="452" key="Vcs.Push.Dialog.v2" timestamp="1593570057968">
+    <state x="872" y="452" key="Vcs.Push.Dialog.v2" timestamp="1593570317916">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
-    <state x="872" y="452" key="Vcs.Push.Dialog.v2/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1593570057968" />
+    <state x="872" y="452" key="Vcs.Push.Dialog.v2/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1593570317916" />
     <state x="1066" y="453" key="com.intellij.openapi.vcs.changes.SpecificFilesViewDialog" timestamp="1592964450293">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
