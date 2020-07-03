@@ -17,9 +17,9 @@ var app = express();
 console.log(process.env.DISCORD_BOT_KEY);
 
 
-setInterval( () => discordLogin.whosOnline(VOICE_CHANNEL_ID), 3000);
+//setInterval( () => discordLogin.whosOnline(VOICE_CHANNEL_ID), 3000);
 
-discordLogin.whosOnline(VOICE_CHANNEL_ID);
+//discordLogin.whosOnline(VOICE_CHANNEL_ID);
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));

@@ -34,8 +34,12 @@ bot.on('message', msg => {
     gameServices.startGame(bot, msg);
   } else if (msg.content.startsWith('!gameStart')) {
     msg.channel.send(`It's !startGame ... バカ...`);
-  }else if (msg.content.startsWith('!endGame')) {
+  }else if (msg.content.startsWith('!cancelGame')) {
     gameServices.endGame(bot, msg);
+  }else if (msg.content.startsWith('!redWins')) {
+       gameServices.endGame(bot, msg, true);
+  }else if (msg.content.startsWith('!blueWins')) {
+      gameServices.endGame(bot, msg, false);
   }else if (msg.content.startsWith('!kick')) {
     if (msg.mentions.users.size) {
       const taggedUser = msg.mentions.users.first();
@@ -55,9 +59,9 @@ function whosOnline(channelId){
                 channel.members
                     .each(member => bot.users.fetch(member.id)
                         .then(user => {
-                            //console.log(user.presence);
+                            console.log(user.presence);
                             for(let activityId in user.presence.activities){
-                                //console.log(user.presence.activities[activityId]);
+                                console.log(user.presence.activities[activityId]);
                              }
                         })
                     );
