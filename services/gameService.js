@@ -95,12 +95,16 @@ function makeTeams(){
     console.log(usersInGame);
     for(let i = 0; i < usersInGame.length; i++){
        let userMmr =  jsonFile[gameName][usersInGame[i]];
-       console.log(usersInGame[i]);
-       console.log(userMmr);
-       if(redTeamMmr <= blueTeamMmr && (blueTeam.length >= usersInGame.length/2)){
+       console.log('userMmr' + userMmr);
+       console.log(redTeamMmr);
+       console.log(blueTeamMmr);
+       console.log(redTeam.length);
+       if(redTeamMmr <= blueTeamMmr || (blueTeam.length >= usersInGame.length/2)){
+           console.log('Adding user to red' + usersInGame[i]);
            redTeam.push(usersInGame[i]);
            redTeamMmr +=userMmr;
        }else{
+           console.log('Adding user to blue' + usersInGame[i]);
            blueTeam.push(usersInGame[i]);
            blueTeamMmr +=userMmr;
        }

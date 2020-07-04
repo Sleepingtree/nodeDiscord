@@ -96,7 +96,7 @@
       <workItem from="1593562120421" duration="8311000" />
       <workItem from="1593648783629" duration="6768000" />
       <workItem from="1593801773199" duration="1697000" />
-      <workItem from="1593803952936" duration="7703000" />
+      <workItem from="1593803952936" duration="11676000" />
     </task>
     <task id="LOCAL-00001" summary="Inital commit">
       <created>1592964912694</created>
@@ -161,7 +161,28 @@
       <option name="project" value="LOCAL" />
       <updated>1593816075025</updated>
     </task>
-    <option name="localTasksCounter" value="10" />
+    <task id="LOCAL-00010" summary="added manual team createion">
+      <created>1593818650982</created>
+      <option name="number" value="00010" />
+      <option name="presentableId" value="LOCAL-00010" />
+      <option name="project" value="LOCAL" />
+      <updated>1593818650982</updated>
+    </task>
+    <task id="LOCAL-00011" summary="added manual team createion">
+      <created>1593819661620</created>
+      <option name="number" value="00011" />
+      <option name="presentableId" value="LOCAL-00011" />
+      <option name="project" value="LOCAL" />
+      <updated>1593819661620</updated>
+    </task>
+    <task id="LOCAL-00012" summary="added manual team createion">
+      <created>1593820727174</created>
+      <option name="number" value="00012" />
+      <option name="presentableId" value="LOCAL-00012" />
+      <option name="project" value="LOCAL" />
+      <updated>1593820727174</updated>
+    </task>
+    <option name="localTasksCounter" value="13" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -239,10 +260,10 @@
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
     <state x="781" y="364" key="SettingsEditor/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1592964729000" />
-    <state x="872" y="452" key="Vcs.Push.Dialog.v2" timestamp="1593816080516">
+    <state x="872" y="452" key="Vcs.Push.Dialog.v2" timestamp="1593820730490">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
-    <state x="872" y="452" key="Vcs.Push.Dialog.v2/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1593816080516" />
+    <state x="872" y="452" key="Vcs.Push.Dialog.v2/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1593820730490" />
     <state x="1066" y="453" key="com.intellij.openapi.vcs.changes.SpecificFilesViewDialog" timestamp="1592964450293">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
