@@ -21,6 +21,8 @@ async function startGame(bot, msg) {
     let file = fs.readFileSync(mmrFileNme, 'utf8');
     jsonFile = JSON.parse(file);
 
+    let useMoonRunes = msg.member.id == TREE_USER_ID;
+
     await bot.users
         .fetch(TREE_USER_ID)
         .then(tree => {
@@ -35,8 +37,27 @@ async function startGame(bot, msg) {
             }
         });
 
+    await bot.users
+        .fetch(msg.member.id)
+        .then(user => {
+            useMoonRunes = false;
+            for(let activityId in user.presence.activities){
+                if(user.presence.activities[activityId].type === 'PLAYING'){
+                    gameName = user.presence.activities[activityId].name;
+                    console.log(jsonFile);
+                    if(jsonFile[gameName] == null){
+                        jsonFile[gameName] = new Object();
+                    }
+                }
+            }
+        });
+
     if(gameName == null){
-        msg.channel.send(`ゲームの中にありません`);
+        if(useMoonRunes){
+            msg.channel.send(`ゲームの中にありません`);
+        }else {
+            msg.channel.send(`You are not in a game. Please make sure discord is broadcasting your game`);
+        }
         return;
     }
 
@@ -64,7 +85,11 @@ async function startGame(bot, msg) {
     }
 
     if(usersInGame.length == 0){
-        msg.channel.send(`チャンネルは誰もない`);
+        if(useMoonRunes){
+            msg.channel.send(`Please join the general voice channel first, or use the -manual command while you are in the team channels`);
+        }else{
+            msg.channel.send(`チャンネルは誰もない`);
+        }
     }else{
         msg.channel.send(`Started game of ` + gameName);
         let redTeamPrintUsers = "";
@@ -95,10 +120,6 @@ function makeTeams(){
     console.log(usersInGame);
     for(let i = 0; i < usersInGame.length; i++){
        let userMmr =  jsonFile[gameName][usersInGame[i]];
-       console.log('userMmr' + userMmr);
-       console.log(redTeamMmr);
-       console.log(blueTeamMmr);
-       console.log(redTeam.length);
        if(redTeamMmr <= blueTeamMmr || (blueTeam.length >= usersInGame.length/2)){
            console.log('Adding user to red' + usersInGame[i]);
            redTeam.push(usersInGame[i]);
@@ -122,7 +143,7 @@ async function makeTeamsManual(bot){
                     if(jsonFile[gameName][member.id] == null){
                         jsonFile[gameName][member.id] = DEFAULT_MMR;
                     }
-                    let userMmr =  jsonFile[gameName][usersInGame[i]];
+                    let userMmr =  jsonFile[gameName][member.id];
                     redTeamMmr +=userMmr;
                 });
             console.log(channel.members);
@@ -138,7 +159,7 @@ async function makeTeamsManual(bot){
                     if(jsonFile[gameName][member.id] == null){
                         jsonFile[gameName][member.id] = DEFAULT_MMR;
                     }
-                    let userMmr =  jsonFile[gameName][usersInGame[i]];
+                    let userMmr =  jsonFile[gameName][member.id];
                     blueTeamMmr +=userMmr;
                 });
             console.log(channel.members);

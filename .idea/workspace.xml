@@ -25,7 +25,7 @@
     </select>
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8aa52f24-9845-4cec-90fc-b2e46644e79b" name="Default Changelist" comment="added manual team createion">
+    <list default="true" id="8aa52f24-9845-4cec-90fc-b2e46644e79b" name="Default Changelist" comment="Fixed mmr bug">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/mmr.json" beforeDir="false" afterPath="$PROJECT_DIR$/mmr.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/services/gameService.js" beforeDir="false" afterPath="$PROJECT_DIR$/services/gameService.js" afterDir="false" />
@@ -96,7 +96,11 @@
       <workItem from="1593562120421" duration="8311000" />
       <workItem from="1593648783629" duration="6768000" />
       <workItem from="1593801773199" duration="1697000" />
-      <workItem from="1593803952936" duration="11676000" />
+      <workItem from="1593803952936" duration="12360000" />
+      <workItem from="1593825752387" duration="40000" />
+      <workItem from="1593837674567" duration="681000" />
+      <workItem from="1594947549871" duration="13000" />
+      <workItem from="1594947605479" duration="2425000" />
     </task>
     <task id="LOCAL-00001" summary="Inital commit">
       <created>1592964912694</created>
@@ -182,7 +186,14 @@
       <option name="project" value="LOCAL" />
       <updated>1593820727174</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Fixed mmr bug">
+      <created>1593822689569</created>
+      <option name="number" value="00013" />
+      <option name="presentableId" value="LOCAL-00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1593822689569</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -225,7 +236,8 @@
     <MESSAGE value="cleaned up end game logic" />
     <MESSAGE value="Make teams should work now" />
     <MESSAGE value="added manual team createion" />
-    <option name="LAST_COMMIT_MESSAGE" value="added manual team createion" />
+    <MESSAGE value="Fixed mmr bug" />
+    <option name="LAST_COMMIT_MESSAGE" value="Fixed mmr bug" />
   </component>
   <component name="WindowStateProjectService">
     <state x="734" y="374" key="#com.intellij.execution.impl.EditConfigurationsDialog" timestamp="1592964153766">
@@ -260,10 +272,10 @@
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
     <state x="781" y="364" key="SettingsEditor/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1592964729000" />
-    <state x="872" y="452" key="Vcs.Push.Dialog.v2" timestamp="1593820730490">
+    <state x="872" y="452" key="Vcs.Push.Dialog.v2" timestamp="1593822693643">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
-    <state x="872" y="452" key="Vcs.Push.Dialog.v2/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1593820730490" />
+    <state x="872" y="452" key="Vcs.Push.Dialog.v2/0.0.2560.1440/-1920.142.1920.1080/2560.158.1920.1080@0.0.2560.1440" timestamp="1593822693643" />
     <state x="1066" y="453" key="com.intellij.openapi.vcs.changes.SpecificFilesViewDialog" timestamp="1592964450293">
       <screen x="0" y="0" width="2560" height="1440" />
     </state>
