@@ -37,9 +37,11 @@ bot.on('message', msg => {
   }else if (msg.content.startsWith('!cancelGame')) {
     gameServices.endGame(bot, msg);
   }else if (msg.content.startsWith('!redWins')) {
-       gameServices.endGame(bot, msg, true);
+    gameServices.endGame(bot, msg, true);
   }else if (msg.content.startsWith('!blueWins')) {
-      gameServices.endGame(bot, msg, false);
+    gameServices.endGame(bot, msg, false);
+  }else if (msg.content.startsWith('!mmr')) {
+    gameServices.checkMmr(bot, msg);
   }else if (msg.content.startsWith('!kick')) {
     if (msg.mentions.users.size) {
       const taggedUser = msg.mentions.users.first();

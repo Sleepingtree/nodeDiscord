@@ -115,6 +115,33 @@ async function startGame(bot, msg) {
     }
 }
 
+async function checkMmr(bot, msg){
+    const file = fs.readFileSync(mmrFileNme, 'utf8');
+    const translatedFile = JSON.parse(file);
+    let message = '';
+    await bot.users
+        .fetch(msg.member.id)
+        .then(user => {
+            Object.keys(translatedFile).forEach(key =>{
+                if(key != 'metaData'){
+                    if(translatedFile[key][msg.member.id] != null){
+                        if(message == ''){
+                            message = 'Your mmr ' + msg.member.user.username + ': ';
+                            console.log(message);
+                        }
+                        message += '\r\n' + key +': ' + translatedFile[key][msg.member.id];
+                        console.log(message);
+                    }
+                }
+            });
+        });
+     if(message == ''){
+        msg.channel.send('No MMR on file');
+     }else {
+        msg.channel.send(message);
+     }
+}
+
 function makeTeams(){
     console.log('usersInGame');
     console.log(usersInGame);
@@ -204,3 +231,4 @@ setInterval( () => console.log(blueTeam), 3000);*/
 
 exports.startGame = startGame;
 exports.endGame = endGame;
+exports.checkMmr = checkMmr;
