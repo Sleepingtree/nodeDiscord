@@ -6,6 +6,8 @@ const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
 const VOICE_CHANNEL_ALT_ID = process.env.ALT_GENERAL_VOICE_CHANNEL;
 const TEXT_CHANNEL_ID = process.env.GENERAL_TEXT_CHANNEL;
 
+const commands = ['!startGame', '!cancelGame', '!redWins', '!blueWins', '!mmr'];
+
 bot.login(TOKEN);
 
 bot.on('ready', () => {
@@ -42,6 +44,10 @@ bot.on('message', msg => {
     gameServices.endGame(bot, msg, false);
   }else if (msg.content.startsWith('!mmr')) {
     gameServices.checkMmr(bot, msg);
+  }else if (msg.content.startsWith('!help')) {
+    let message = `use the following commands or ask Tree for help: \r\n\r\n`;
+    commands.forEach(command => message += command + '\r\n');
+    msg.channel.send(message);
   }else if (msg.content.startsWith('!kick')) {
     if (msg.mentions.users.size) {
       const taggedUser = msg.mentions.users.first();

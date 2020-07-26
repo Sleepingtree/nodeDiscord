@@ -110,8 +110,7 @@ async function startGame(bot, msg) {
             blueTeamPrintUsers += userNameMap.get(id) + " ";
         });
 
-        msg.channel.send(`Red team` + redTeamPrintUsers);
-        msg.channel.send(`Blue team` + blueTeamPrintUsers);
+        msg.channel.send(`Red team` + redTeamPrintUsers + '\r\n' + `Blue team` + blueTeamPrintUsers);
     }
 }
 
