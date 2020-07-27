@@ -23,6 +23,11 @@ async function startGame(bot, msg) {
 
     let useMoonRunes = msg.member.id == TREE_USER_ID;
 
+    if(gameName != null){
+        msg.channel.send(`game already started call !cancelGame first or !redWins !blueWins if done`);
+        return;
+    }
+
     await bot.users
         .fetch(TREE_USER_ID)
         .then(tree => {
@@ -82,6 +87,7 @@ async function startGame(bot, msg) {
         usersInGame.sort((a,b) => jsonFile[gameName][b]-jsonFile[gameName][a]);
 
         makeTeams();
+        moveUsers(bot, redTeam, blueTeam);
     }
 
     if(usersInGame.length == 0){
@@ -135,6 +141,37 @@ async function checkMmr(bot, msg){
   }else {
     msg.channel.send(message);
   }
+}
+
+async function moveUsers(bot, redTeamUser, blueteamUsers){
+ bot.channels.fetch(VOICE_CHANNEL_ID)
+    .then(channel => {
+        channel.members
+            .each(member => {
+                if(redTeamUser.filter(id => id == member.id).length >0){
+                    member.voice.setChannel(RED_TEAM_VOICE_CHANNEL_ID);
+                }else{
+                    member.voice.setChannel(BLUE_TEAM_VOICE_CHANNEL_ID);
+                }
+            });
+  });
+}
+
+async function moveUsersBack(bot){
+ bot.channels.fetch(BLUE_TEAM_VOICE_CHANNEL_ID)
+    .then(channel => {
+        channel.members
+            .each(member => {
+                member.voice.setChannel(VOICE_CHANNEL_ID);
+            });
+  });
+  bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID)
+      .then(channel => {
+          channel.members
+              .each(member => {
+                  member.voice.setChannel(VOICE_CHANNEL_ID);
+              });
+    });
 }
 
 function makeTeams(){
@@ -202,6 +239,7 @@ function endGame(bot, msg, redWon) {
     fs.writeFileSync(mmrFileNme, fileString);
     jsonFile = null;
     msg.channel.send(`Ended game`);
+    moveUsersBack(bot);
 }
 
 function updateMmr(redWon){
