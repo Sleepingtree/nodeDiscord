@@ -29,20 +29,6 @@ async function startGame(bot, msg) {
     }
 
     await bot.users
-        .fetch(TREE_USER_ID)
-        .then(tree => {
-            for(let activityId in tree.presence.activities){
-                if(tree.presence.activities[activityId].type === 'PLAYING'){
-                    gameName = tree.presence.activities[activityId].name;
-                    console.log(jsonFile);
-                    if(jsonFile[gameName] == null){
-                        jsonFile[gameName] = new Object();
-                    }
-                }
-            }
-        });
-
-    await bot.users
         .fetch(msg.member.id)
         .then(user => {
             useMoonRunes = false;
