@@ -148,7 +148,7 @@ function convertUserMMRtoDisplayMMR(trueMMR){
         }
         let pointsOverMin = trueMMR - mmrFloorMap.get(lastKey);
         let relativePoints = Math.floor(pointsOverMin / 15 * 100);
-        retVal = lastKey + ' with ' + relativePoints + ' out of 100 to rank up';
+        retVal = lastKey + ' with ' + relativePoints + ' out of 100 points to rank up';
         break;
     }
     return retVal;
