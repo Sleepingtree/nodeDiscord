@@ -132,7 +132,8 @@ async function checkMmr(bot, msg){
 function convertUserMMRtoDisplayMMR(trueMMR){
     let mmrFloorMap = new Map();
     let retVal = '';
-    mmrFloorMap.set('Bronze', 950);
+    mmrFloorMap.set('You are trying ', 945);
+    mmrFloorMap.set('Bronze', 960);
     mmrFloorMap.set('Silver', 975);
     mmrFloorMap.set('Gold', 1000);
     mmrFloorMap.set('Plat', 1015);
