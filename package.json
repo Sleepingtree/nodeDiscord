@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "start": "node ./bin/www",
-    "startBackground": "nohup node ./bin/www > output.log &"
+    "sb": "nohup node ./bin/www > output.log &"
   },
   "dependencies": {
     "cookie-parser": "~1.4.4",
