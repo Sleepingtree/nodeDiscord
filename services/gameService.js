@@ -132,13 +132,16 @@ async function checkMmr(bot, msg){
 function convertUserMMRtoDisplayMMR(trueMMR){
     let mmrFloorMap = new Map();
     let retVal = '';
+    //make list of names then add points
+    const rankNames = ['Bronze', 'Silver', 'Gold', 'Plat', 'Diamond', 'Masters'];
+    const rankGap = 25;
+    const bronzeStartingPoint = 950;
+    let rankfloor = bronzeStartingPoint;
     mmrFloorMap.set('You are trying', 0);
-    mmrFloorMap.set('Bronze', 960);
-    mmrFloorMap.set('Silver', 975);
-    mmrFloorMap.set('Gold', 1000);
-    mmrFloorMap.set('Plat', 1015);
-    mmrFloorMap.set('Diamond', 1030);
-    mmrFloorMap.set('Masters', 1045);
+    rankNames.forEach(name => {
+        mmrFloorMap.set(name, rankfloor);
+        rankfloor += rankGap;
+    });
     //maps in JS keep put order when using string keys
     console.log(Object.keys(mmrFloorMap));
     let lastKey;
@@ -148,9 +151,9 @@ function convertUserMMRtoDisplayMMR(trueMMR){
             continue;
         }
         let pointsOverMin = trueMMR - mmrFloorMap.get(lastKey);
-        let relativePoints = Math.floor(pointsOverMin / 15 * 100);
-        if(key == 'You are trying'){
-          retVal = lastKey + ' with ' + relativePoints + ' out of 666 points to rank up';
+        let relativePoints = Math.floor(pointsOverMin / rankGap * 100);
+        if(lastKey == 'You are trying'){
+          retVal = lastKey + ' with ' + relativePoints + ' out of ' + (100 * (bronzeStartingPoint/rankGap)) + ' points to rank up';
         }else{
           retVal = lastKey + ' with ' + relativePoints + ' out of 100 points to rank up';
         }
