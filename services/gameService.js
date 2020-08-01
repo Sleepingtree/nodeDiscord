@@ -117,7 +117,7 @@ async function checkMmr(bot, msg){
                 message = 'Your mmr ' + msg.member.user.username + ': ';
                 console.log(message);
             }
-            message += '\r\n' + key +': ' + translatedFile[key][msg.member.id];
+            message += '\r\n' + key +': ' + convertUserMMRtoDisplayMMR(translatedFile[key][msg.member.id]);
             console.log(message);
         }
     }
@@ -127,6 +127,31 @@ async function checkMmr(bot, msg){
   }else {
     msg.channel.send(message);
   }
+}
+
+function convertUserMMRtoDisplayMMR(trueMMR){
+    let mmrFloorMap = new Map();
+    let retVal = '';
+    mmrFloorMap.set('Bronze', 950);
+    mmrFloorMap.set('Silver', 975);
+    mmrFloorMap.set('Gold', 1000);
+    mmrFloorMap.set('Plat', 1015);
+    mmrFloorMap.set('Diamond', 1030);
+    //maps in JS keep put order when using string keys
+    console.log(Object.keys(mmrFloorMap));
+    let lastKey;
+    for(let [key, value] of mmrFloorMap){
+        debugger;
+        if(trueMMR > value){
+            lastKey = key;
+            continue;
+        }
+        let pointsOverMin = trueMMR - mmrFloorMap.get(lastKey);
+        let relativePoints = Math.floor(pointsOverMin / 15 * 100);
+        retVal = lastKey + ' with ' + relativePoints + ' out of 100 to rank up';
+        break;
+    }
+    return retVal;
 }
 
 async function moveUsers(bot, redTeamUser, blueteamUsers){
