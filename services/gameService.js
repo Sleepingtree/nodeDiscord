@@ -142,7 +142,7 @@ function convertUserMMRtoDisplayMMR(trueMMR){
     let lastKey;
     for(let [key, value] of mmrFloorMap){
         debugger;
-        if(trueMMR > value){
+        if(trueMMR >= value){
             lastKey = key;
             continue;
         }
