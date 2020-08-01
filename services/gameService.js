@@ -142,13 +142,12 @@ function convertUserMMRtoDisplayMMR(trueMMR){
     console.log(Object.keys(mmrFloorMap));
     let lastKey;
     for(let [key, value] of mmrFloorMap){
-        debugger;
         if(trueMMR >= value){
             lastKey = key;
             continue;
         }
         let pointsOverMin = trueMMR - mmrFloorMap.get(lastKey);
-        let relativePoints = Math.floor(pointsOverMin / (15 * 100));
+        let relativePoints = Math.floor(pointsOverMin / 15 * 100);
         retVal = lastKey + ' with ' + relativePoints + ' out of 100 points to rank up';
         break;
     }
