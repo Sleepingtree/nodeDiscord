@@ -132,7 +132,7 @@ async function checkMmr(bot, msg){
 function convertUserMMRtoDisplayMMR(trueMMR){
     let mmrFloorMap = new Map();
     let retVal = '';
-    mmrFloorMap.set('You are trying ', 945);
+    mmrFloorMap.set('You are trying', 0);
     mmrFloorMap.set('Bronze', 960);
     mmrFloorMap.set('Silver', 975);
     mmrFloorMap.set('Gold', 1000);
@@ -149,7 +149,11 @@ function convertUserMMRtoDisplayMMR(trueMMR){
         }
         let pointsOverMin = trueMMR - mmrFloorMap.get(lastKey);
         let relativePoints = Math.floor(pointsOverMin / 15 * 100);
-        retVal = lastKey + ' with ' + relativePoints + ' out of 100 points to rank up';
+        if(key == 'You are trying'){
+          retVal = lastKey + ' with ' + relativePoints + ' out of 666 points to rank up';
+        }else{
+          retVal = lastKey + ' with ' + relativePoints + ' out of 100 points to rank up';
+        }
         break;
     }
     if(retVal == ''){
