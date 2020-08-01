@@ -137,6 +137,7 @@ function convertUserMMRtoDisplayMMR(trueMMR){
     mmrFloorMap.set('Gold', 1000);
     mmrFloorMap.set('Plat', 1015);
     mmrFloorMap.set('Diamond', 1030);
+    mmrFloorMap.set('Masters', 1045);
     //maps in JS keep put order when using string keys
     console.log(Object.keys(mmrFloorMap));
     let lastKey;
@@ -147,9 +148,14 @@ function convertUserMMRtoDisplayMMR(trueMMR){
             continue;
         }
         let pointsOverMin = trueMMR - mmrFloorMap.get(lastKey);
-        let relativePoints = Math.floor(pointsOverMin / 15 * 100);
+        let relativePoints = Math.floor(pointsOverMin / (15 * 100));
         retVal = lastKey + ' with ' + relativePoints + ' out of 100 points to rank up';
         break;
+    }
+    if(retVal == ''){
+        let pointsOverMin = trueMMR - mmrFloorMap.get(lastKey);
+        let relativePoints = Math.floor(pointsOverMin / 15 * 100);
+        retVal = lastKey + ' with ' + relativePoints + ' points';
     }
     return retVal;
 }
