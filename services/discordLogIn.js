@@ -7,7 +7,7 @@ const VOICE_CHANNEL_ALT_ID = process.env.ALT_GENERAL_VOICE_CHANNEL;
 const TEXT_CHANNEL_ID = process.env.GENERAL_TEXT_CHANNEL;
 
 const BOT_PREFIX = '!'
-const commands = [ BOT_PREFIX + 'startGame', BOT_PREFIX + 'cancelGame', BOT_PREFIX + 'redWins', BOT_PREFIX + 'blueWins', BOT_PREFIX + 'mmr'];
+const commands = [ BOT_PREFIX + 'startGame', BOT_PREFIX + 'cancelGame', BOT_PREFIX + 'redWins', BOT_PREFIX + 'blueWins', BOT_PREFIX + 'mmr', BOT_PREFIX + 'map'];
 
 bot.login(TOKEN);
 
@@ -45,6 +45,8 @@ bot.on('message', msg => {
     gameServices.endGame(bot, msg, false);
   }else if (msg.content.startsWith(BOT_PREFIX + 'mmr')) {
     gameServices.checkMmr(bot, msg);
+  }else if (msg.content.startsWith(BOT_PREFIX + 'map')) {
+      gameServices.pickMap(msg);
   }else if (msg.content.startsWith(BOT_PREFIX + 'help')) {
     let message = `use the following commands or ask Tree for help: \r\n\r\n`;
     commands.forEach(command => message += command + '\r\n');

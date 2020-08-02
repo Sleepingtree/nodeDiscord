@@ -266,6 +266,18 @@ function endGame(bot, msg, redWon) {
     moveUsersBack(bot);
 }
 
+let lastMap = null;
+const maps = ['Bind', 'Haven', 'Split', 'Ascent'];
+
+function pickMap(msg){
+    let pickMapList = maps;
+    if(lastMap != null){
+        pickMapList = pickMapList.filter(map => map != lastMap);
+    }
+    lastMap = maps[Math.floor(Math.random() * (pickMapList.length + 1))];
+    msg.channel.send(lastMap);
+}
+
 function updateMmr(redWon){
     const redWinProbability = probabilityOfRedWin();
     const blueWinProbability = 1 - redWinProbability;
@@ -289,3 +301,4 @@ setInterval( () => console.log(blueTeam), 3000);*/
 exports.startGame = startGame;
 exports.endGame = endGame;
 exports.checkMmr = checkMmr;
+exports.pickMap = pickMap;
