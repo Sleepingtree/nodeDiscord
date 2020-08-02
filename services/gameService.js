@@ -3,7 +3,7 @@ const TREE_USER_ID = process.env.TREE_USER_ID;
 const RED_TEAM_VOICE_CHANNEL_ID =process.env.RED_TEAM_VOICE_CHANNEL;
 const BLUE_TEAM_VOICE_CHANNEL_ID =process.env.BLUE_TEAM_VOICE_CHANNEL;
 const DEFAULT_MMR = 1000;
-const MMR_CHANGE_WEIGHT = 30;
+const MMR_CHANGE_WEIGHT = 100;
 const mmrFileNme = 'mmr.json';
 
 const fs = require('fs');
@@ -254,7 +254,7 @@ async function makeTeamsManual(bot){
 
 function endGame(bot, msg, redWon) {
     if(redWon != null){
-        updateMmr(redWon);
+        updateMmr(redWon, msg);
     }
     usersInGame = [];
     gameName = null;
@@ -284,21 +284,29 @@ function pickMap(msg, supressMessage){
    return lastMap;
 }
 
-function updateMmr(redWon){
+function updateMmr(redWon, msg){
     const redWinProbability = probabilityOfRedWin();
     const blueWinProbability = 1 - redWinProbability;
+    let mmrChangeWeight;
+    if(msg.content.includes("-close")){
+        mmrChangeWeight = MMR_CHANGE_WEIGHT * 0.5;
+    }else if(msg.content.includes("-stomp)){
+        mmrChangeWeight = MMR_CHANGE_WEIGHT * 2;
+    } else{
+        mmrChangeWeight = MMR_CHANGE_WEIGHT;
+    }
     if(redWon){
-        redTeam.forEach(userId => jsonFile[gameName][userId] += MMR_CHANGE_WEIGHT * (1 - redWinProbability));
-        blueTeam.forEach(userId => jsonFile[gameName][userId] += MMR_CHANGE_WEIGHT * (0 - blueWinProbability));
+        redTeam.forEach(userId => jsonFile[gameName][userId] += mmrChangeWeight * (1 - redWinProbability));
+        blueTeam.forEach(userId => jsonFile[gameName][userId] += mmrChangeWeight * (0 - blueWinProbability));
     }else{
-        redTeam.forEach(userId => jsonFile[gameName][userId] += MMR_CHANGE_WEIGHT * (0 - redWinProbability));
-        blueTeam.forEach(userId => jsonFile[gameName][userId] += MMR_CHANGE_WEIGHT * (1 - blueWinProbability));
+        redTeam.forEach(userId => jsonFile[gameName][userId] += mmrChangeWeight * (0 - redWinProbability));
+        blueTeam.forEach(userId => jsonFile[gameName][userId] += mmrChangeWeight * (1 - blueWinProbability));
     }
 }
 
 function probabilityOfRedWin(){
     const ratingDifferance = blueTeamMmr - redTeamMmr;
-    return 1/(1 +(Math.pow(10, ratingDifferance/400)));
+    return 1/(1 +(Math.pow(10, ratingDifferance/100)));
 }
 
 /*setInterval( () => console.log(redTeam), 3000);
