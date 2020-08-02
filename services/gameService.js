@@ -85,7 +85,7 @@ async function startGame(bot, msg) {
     }else{
         let gameMessage = `Started game of ` + gameName;
         if(gameName = 'VALORANT'){
-            gameMessage += ' on map: ' + pickMap();
+            gameMessage += ' on map: ' + pickMap(msg);
         }
         let redTeamPrintUsers = "";
         redTeam.forEach(id => {
