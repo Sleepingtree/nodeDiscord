@@ -290,7 +290,7 @@ function updateMmr(redWon, msg){
     let mmrChangeWeight;
     if(msg.content.includes("-close")){
         mmrChangeWeight = MMR_CHANGE_WEIGHT * 0.5;
-    }else if(msg.content.includes("-stomp)){
+    }else if(msg.content.includes("-stomp")){
         mmrChangeWeight = MMR_CHANGE_WEIGHT * 2;
     } else{
         mmrChangeWeight = MMR_CHANGE_WEIGHT;
