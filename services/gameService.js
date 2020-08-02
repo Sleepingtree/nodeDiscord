@@ -83,7 +83,10 @@ async function startGame(bot, msg) {
             msg.channel.send(`チャンネルは誰もない`);
         }
     }else{
-        msg.channel.send(`Started game of ` + gameName);
+        let gameMessage = `Started game of ` + gameName;
+        if(gameName = 'VALORANT'){
+            gameMessage += ' on map: ' + pickMap();
+        }
         let redTeamPrintUsers = "";
         redTeam.forEach(id => {
             console.log(id);
@@ -102,7 +105,7 @@ async function startGame(bot, msg) {
             blueTeamPrintUsers += userNameMap.get(id) + " ";
         });
 
-        msg.channel.send(`Red team` + redTeamPrintUsers + '\r\n' + `Blue team` + blueTeamPrintUsers);
+        msg.channel.send(gameMessage + '\r\n' + 'Red team' + redTeamPrintUsers + '\r\n' + 'Blue team' + blueTeamPrintUsers);
     }
 }
 
