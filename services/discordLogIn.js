@@ -47,6 +47,8 @@ bot.on('message', msg => {
     gameServices.checkMmr(bot, msg);
   }else if (msg.content.startsWith(BOT_PREFIX + 'map')) {
       gameServices.pickMap(msg);
+  }else if (msg.content.startsWith(BOT_PREFIX + 'whoIs')) {
+        gameServices.whoIs(bot, msg);
   }else if (msg.content.startsWith(BOT_PREFIX + 'help')) {
     let message = `use the following commands or ask Tree for help: \r\n\r\n`;
     commands.forEach(command => message += command + '\r\n');

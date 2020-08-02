@@ -115,12 +115,11 @@ async function checkMmr(bot, msg){
   let message = '';
   Object.keys(translatedFile).forEach(key =>{
     if(key != 'metaData'){
-        if(translatedFile[key][msg.member.id] != null){
+        if(translatedFile[key][msg.author.id] != null){
             if(message == ''){
-                message = 'Your mmr ' + msg.member.user.username + ': ';
-                console.log(message);
+                message = 'Your mmr ' + msg.author.username + ': ';
             }
-            message += '\r\n' + key +': ' + convertUserMMRtoDisplayMMR(translatedFile[key][msg.member.id]);
+            message += '\r\n' + key +': ' + convertUserMMRtoDisplayMMR(translatedFile[key][msg.author.id]);
             console.log(message);
         }
     }
@@ -309,6 +308,20 @@ function probabilityOfRedWin(){
     return 1/(1 +(Math.pow(10, ratingDifferance/100)));
 }
 
+function whoIs(bot, msg){
+    if(msg.author.id == TREE_USER_ID){
+        const id = msg.content.split(" ")[1];
+        const userPromise = bot.users.fetch(id);
+        userPromise.then(user => {
+            if(user != null){
+                msg.channel.send(user.username);
+            }else{
+                msg.channel.send("誰もいない");
+            }
+        });
+    }
+}
+
 /*setInterval( () => console.log(redTeam), 3000);
 setInterval( () => console.log(blueTeam), 3000);*/
 
@@ -316,3 +329,4 @@ exports.startGame = startGame;
 exports.endGame = endGame;
 exports.checkMmr = checkMmr;
 exports.pickMap = pickMap;
+exports.whoIs = whoIs;
