@@ -85,7 +85,7 @@ async function startGame(bot, msg) {
     }else{
         let gameMessage = `Started game of ` + gameName;
         if(gameName = 'VALORANT'){
-            gameMessage += ' on map: ' + pickMap(msg);
+            gameMessage += ' on map: ' + pickMap(msg, true);
         }
         let redTeamPrintUsers = "";
         redTeam.forEach(id => {
@@ -272,13 +272,16 @@ function endGame(bot, msg, redWon) {
 let lastMap = null;
 const maps = ['Bind', 'Haven', 'Split', 'Ascent'];
 
-function pickMap(msg){
+function pickMap(msg, supressMessage){
     let pickMapList = maps;
     if(lastMap != null){
         pickMapList = pickMapList.filter(map => map != lastMap);
     }
     lastMap = maps[Math.floor(Math.random() * (pickMapList.length + 1))];
-    msg.channel.send(lastMap);
+    if(supressMessage == null || !supressMessage){
+     msg.channel.send(lastMap);
+    }
+   return lastMap;
 }
 
 function updateMmr(redWon){
