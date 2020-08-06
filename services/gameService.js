@@ -4,6 +4,9 @@ const RED_TEAM_VOICE_CHANNEL_ID =process.env.RED_TEAM_VOICE_CHANNEL;
 const BLUE_TEAM_VOICE_CHANNEL_ID =process.env.BLUE_TEAM_VOICE_CHANNEL;
 const DEFAULT_MMR = 1000;
 const MMR_CHANGE_WEIGHT = 100;
+const RANK_GAP = 100;
+//This defualts gold to default mmr
+const BRONZE_STARTING_POINT = DEFAULT_MMR - 2 * RANK_GAP;
 const mmrFileNme = 'mmr.json';
 
 const fs = require('fs');
@@ -45,7 +48,7 @@ async function startGame(bot, msg) {
 
     if(gameName == null){
         if(useMoonRunes){
-            msg.channel.send(`ゲームの中にありません`);
+            msg.channel.send('ゲームの中にありません');
         }else {
             msg.channel.send(`You are not in a game. Please make sure discord is broadcasting your game`);
         }
@@ -136,13 +139,11 @@ function convertUserMMRtoDisplayMMR(trueMMR){
     let retVal = '';
     //make list of names then add points
     const rankNames = ['Bronze', 'Silver', 'Gold', 'Plat', 'Diamond', 'Masters'];
-    const rankGap = 25;
-    const bronzeStartingPoint = 950;
-    let rankfloor = bronzeStartingPoint;
+    let rankfloor = BRONZE_STARTING_POINT;
     mmrFloorMap.set('You are trying', 0);
     rankNames.forEach(name => {
         mmrFloorMap.set(name, rankfloor);
-        rankfloor += rankGap;
+        rankfloor += RANK_GAP;
     });
     //maps in JS keep put order when using string keys
     console.log(Object.keys(mmrFloorMap));
@@ -153,9 +154,9 @@ function convertUserMMRtoDisplayMMR(trueMMR){
             continue;
         }
         let pointsOverMin = trueMMR - mmrFloorMap.get(lastKey);
-        let relativePoints = Math.floor(pointsOverMin / rankGap * 100);
+        let relativePoints = Math.floor(pointsOverMin / RANK_GAP * 100);
         if(lastKey == 'You are trying'){
-          retVal = lastKey + ' with ' + relativePoints + ' out of ' + (100 * (bronzeStartingPoint/rankGap)) + ' points to rank up';
+          retVal = lastKey + ' with ' + relativePoints + ' out of ' + (100 * (BRONZE_STARTING_POINT/RANK_GAP)) + ' points to rank up';
         }else{
           retVal = lastKey + ' with ' + relativePoints + ' out of 100 points to rank up';
         }
@@ -252,8 +253,9 @@ async function makeTeamsManual(bot){
 }
 
 function endGame(bot, msg, redWon) {
+    let mmrChange = null;
     if(redWon != null){
-        updateMmr(redWon, msg);
+       mmrChange = updateMmr(redWon, msg);
     }
     usersInGame = [];
     gameName = null;
@@ -264,7 +266,8 @@ function endGame(bot, msg, redWon) {
     const fileString = JSON.stringify(jsonFile, null, 2);
     fs.writeFileSync(mmrFileNme, fileString);
     jsonFile = null;
-    msg.channel.send(`Ended game`);
+    let userMsg = mmrChange == null ? 'Canceled Game' : 'Game ended mmr lost/gained: ' + mmrChange;
+    msg.channel.send(userMsg);
     moveUsersBack(bot);
 }
 
@@ -286,6 +289,7 @@ function pickMap(msg, supressMessage){
 function updateMmr(redWon, msg){
     const redWinProbability = probabilityOfRedWin();
     const blueWinProbability = 1 - redWinProbability;
+    let userRankUpMap = new Map();
     let mmrChangeWeight;
     if(msg.content.includes("-close")){
         mmrChangeWeight = MMR_CHANGE_WEIGHT * 0.5;
@@ -301,6 +305,7 @@ function updateMmr(redWon, msg){
         redTeam.forEach(userId => jsonFile[gameName][userId] += mmrChangeWeight * (0 - redWinProbability));
         blueTeam.forEach(userId => jsonFile[gameName][userId] += mmrChangeWeight * (1 - blueWinProbability));
     }
+    return (mmrChangeWeight * (redWon ? blueWinProbability : redWinProbability)) * 100/RANK_GAP;
 }
 
 function probabilityOfRedWin(){
