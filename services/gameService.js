@@ -327,9 +327,6 @@ function whoIs(bot, msg){
     }
 }
 
-/*setInterval( () => console.log(redTeam), 3000);
-setInterval( () => console.log(blueTeam), 3000);*/
-
 exports.startGame = startGame;
 exports.endGame = endGame;
 exports.checkMmr = checkMmr;

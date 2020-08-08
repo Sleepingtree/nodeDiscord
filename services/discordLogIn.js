@@ -1,6 +1,7 @@
 const Discord = require('discord.js');
 const bot = new Discord.Client();
 const gameServices = require('./gameService');
+const clashService = require('./clashPlaningService');
 const TOKEN = process.env.DISCORD_BOT_KEY;
 const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
 const VOICE_CHANNEL_ALT_ID = process.env.ALT_GENERAL_VOICE_CHANNEL;
@@ -49,6 +50,8 @@ bot.on('message', msg => {
       gameServices.pickMap(msg);
   }else if (msg.content.startsWith(BOT_PREFIX + 'whoIs')) {
         gameServices.whoIs(bot, msg);
+  }else if (msg.content.startsWith(BOT_PREFIX + 'clashMessage')) {
+          clashService.addClashTime(bot, msg);
   }else if (msg.content.startsWith(BOT_PREFIX + 'help')) {
     let message = `use the following commands or ask Tree for help: \r\n\r\n`;
     commands.forEach(command => message += command + '\r\n');
