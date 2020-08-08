@@ -266,7 +266,7 @@ function endGame(bot, msg, redWon) {
     const fileString = JSON.stringify(jsonFile, null, 2);
     fs.writeFileSync(mmrFileNme, fileString);
     jsonFile = null;
-    let userMsg = mmrChange == null ? 'Canceled Game' : 'Game ended mmr lost/gained: ' + mmrChange;
+    let userMsg = mmrChange == null ? 'Canceled Game' : 'Game ended mmr lost/gained: ' + Math.floor(mmrChange);
     msg.channel.send(userMsg);
     moveUsersBack(bot);
 }
@@ -279,7 +279,7 @@ function pickMap(msg, supressMessage){
     if(lastMap != null){
         pickMapList = pickMapList.filter(map => map != lastMap);
     }
-    lastMap = maps[Math.floor(Math.random() * (pickMapList.length + 1))];
+    lastMap = pickMapList[Math.floor(Math.random() * (pickMapList.length))];
     if(supressMessage == null || !supressMessage){
      msg.channel.send(lastMap);
     }
