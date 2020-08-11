@@ -8,6 +8,7 @@ var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 require('dotenv').config();
 const discordLogin = require('./services/discordLogIn');
+const twitchService = require('./services/twitchService');
 const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
 
 console.log(VOICE_CHANNEL_ID);

@@ -37,7 +37,7 @@ bot.on('message', msg => {
   } else if (msg.content.startsWith(BOT_PREFIX + 'startGame')) {
     gameServices.startGame(bot, msg);
   } else if (msg.content.startsWith(BOT_PREFIX + 'gameStart')) {
-    msg.channel.send(`It's ' + BOT_PREFIX + 'startGame ... バカ...`);
+    msg.channel.send("It's " + BOT_PREFIX + 'startGame ... バカ...');
   }else if (msg.content.startsWith(BOT_PREFIX + 'cancelGame')) {
     gameServices.endGame(bot, msg);
   }else if (msg.content.startsWith(BOT_PREFIX + 'redWins')) {

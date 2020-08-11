@@ -9,6 +9,8 @@ const RANK_GAP = 100;
 const BRONZE_STARTING_POINT = DEFAULT_MMR - 2 * RANK_GAP;
 const mmrFileNme = 'mmr.json';
 
+const twitchService = require('./twitchService');
+
 const fs = require('fs');
 
 let usersInGame = [];
@@ -87,7 +89,7 @@ async function startGame(bot, msg) {
         }
     }else{
         let gameMessage = `Started game of ` + gameName;
-        if(gameName = 'VALORANT'){
+        if(gameName == 'VALORANT'){
             gameMessage += ' on map: ' + pickMap(msg, true);
         }
         let redTeamPrintUsers = "";
@@ -107,9 +109,11 @@ async function startGame(bot, msg) {
             }
             blueTeamPrintUsers += userNameMap.get(id) + " ";
         });
-
-        msg.channel.send(gameMessage + '\r\n' + 'Red team' + redTeamPrintUsers + '\r\n' + 'Blue team' + blueTeamPrintUsers);
+        const displayMessage = gameMessage + '\r\n' + 'Red team' + redTeamPrintUsers + '\r\n' + 'Blue team' + blueTeamPrintUsers;
+        msg.channel.send(displayMessage);
+        twitchService.sendMessage(displayMessage);
     }
+
 }
 
 async function checkMmr(bot, msg){
@@ -267,6 +271,9 @@ function endGame(bot, msg, redWon) {
     fs.writeFileSync(mmrFileNme, fileString);
     jsonFile = null;
     let userMsg = mmrChange == null ? 'Canceled Game' : 'Game ended mmr lost/gained: ' + Math.floor(mmrChange);
+    if(mmrChange != null){
+        twitchService.sendMessage(userMsg);
+    }
     msg.channel.send(userMsg);
     moveUsersBack(bot);
 }
