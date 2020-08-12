@@ -1,4 +1,5 @@
 const tmi = require('tmi.js');
+const gameService = require('./gameService');
 const TWITCH_USER_NAME = process.env.TWITCH_USER_NAME;
 const TWITCH_PASSWORD = process.env.TWITCH_PASSWORD;
 const TWITCH_CHANNEL_NAME = process.env.TWITCH_CHANNEL_NAME;
@@ -7,6 +8,9 @@ const botPrefix = '!';
 
 // Define configuration options
 const opts = {
+  connection:{
+    reconnect: true
+  },
   identity: {
     username: TWITCH_USER_NAME,
     password: TWITCH_PASSWORD
@@ -42,7 +46,9 @@ function onMessageHandler (target, context, msg, self) {
     const num = rollDice();
     client.say(target, `You rolled a ${num}`);
     console.log(`* Executed ${commandName} command`);
-  } else {
+  } else if (commandName.startsWith(botPrefix + 'teams')) {
+    sendMessage(gameService.getTeamMessage());
+  }else {
     console.log(`* Unknown command ${commandName}`);
   }
 }
@@ -59,6 +65,5 @@ function onConnectedHandler (addr, port) {
 async function sendMessage(msg){
     client.say(TWITCH_CHANNEL_NAME, msg);
 }
-
 
 exports.sendMessage = sendMessage;

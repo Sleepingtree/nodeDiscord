@@ -17,8 +17,8 @@ let usersInGame = [];
 let redTeam = new Array();
 let blueTeam = new Array();
 let userNameMap = new Map();
-let gameName;
-let jsonFile;
+let gameName = null;
+let jsonFile = null;
 let redTeamMmr = 0;
 let blueTeamMmr = 0;
 
@@ -88,32 +88,44 @@ async function startGame(bot, msg) {
             msg.channel.send(`チャンネルは誰もない`);
         }
     }else{
-        let gameMessage = `Started game of ` + gameName;
-        if(gameName == 'VALORANT'){
-            gameMessage += ' on map: ' + pickMap(msg, true);
-        }
-        let redTeamPrintUsers = "";
-        redTeam.forEach(id => {
-            console.log(id);
-            if(redTeamPrintUsers != null){
-                redTeamPrintUsers += ", "
-            }
-            redTeamPrintUsers += userNameMap.get(id) + " ";
-        });
-
-        let blueTeamPrintUsers = "";
-        blueTeam.forEach(id => {
-            console.log(id);
-            if(blueTeamPrintUsers != null){
-                blueTeamPrintUsers += ", "
-            }
-            blueTeamPrintUsers += userNameMap.get(id) + " ";
-        });
-        const displayMessage = gameMessage + '\r\n' + 'Red team' + redTeamPrintUsers + '\r\n' + 'Blue team' + blueTeamPrintUsers;
+        const displayMessage = getTeamMessage(true);
         msg.channel.send(displayMessage);
         twitchService.sendMessage(displayMessage);
     }
+}
 
+function getTeamMessage(start){
+  if(gameName == null){
+    return 'No in house game started';
+  }
+  let gameMessage;
+  if(start != null && start){
+    gameMessage = `Started game of ` + gameName;
+  }else{
+    gameMessage = `Tree is playing a game of ` + gameName;
+  }
+  if(gameName == 'VALORANT'){
+      gameMessage += ' on map: ' + pickMap(msg, true);
+  }
+  let redTeamPrintUsers = "";
+  redTeam.forEach(id => {
+      console.log(id);
+      if(redTeamPrintUsers != null){
+          redTeamPrintUsers += ", "
+      }
+      redTeamPrintUsers += userNameMap.get(id) + " ";
+  });
+
+  let blueTeamPrintUsers = "";
+  blueTeam.forEach(id => {
+      console.log(id);
+      if(blueTeamPrintUsers != null){
+          blueTeamPrintUsers += ", "
+      }
+      blueTeamPrintUsers += userNameMap.get(id) + " ";
+  });
+  const displayMessage = gameMessage + '\r\n' + 'Red team' + redTeamPrintUsers + '\r\n' + 'Blue team' + blueTeamPrintUsers;
+  return displayMessage;
 }
 
 async function checkMmr(bot, msg){
@@ -339,3 +351,4 @@ exports.endGame = endGame;
 exports.checkMmr = checkMmr;
 exports.pickMap = pickMap;
 exports.whoIs = whoIs;
+exports.getTeamMessage = getTeamMessage;
