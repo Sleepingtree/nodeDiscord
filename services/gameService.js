@@ -329,7 +329,7 @@ function updateMmr(redWon, msg){
 
 function probabilityOfRedWin(){
     const ratingDifferance = blueTeamMmr - redTeamMmr;
-    return 1/(1 +(Math.pow(10, ratingDifferance/200)));
+    return 1/(1 +(Math.pow(10, ratingDifferance/400)));
 }
 
 function whoIs(bot, msg){
