@@ -88,13 +88,13 @@ async function startGame(bot, msg) {
             msg.channel.send(`チャンネルは誰もない`);
         }
     }else{
-        const displayMessage = getTeamMessage(true);
+        const displayMessage = getTeamMessage(true, msg);
         msg.channel.send(displayMessage);
         twitchService.sendMessage(displayMessage);
     }
 }
 
-function getTeamMessage(start){
+function getTeamMessage(start,msg){
   if(gameName == null){
     return 'No in house game started';
   }
@@ -104,7 +104,7 @@ function getTeamMessage(start){
   }else{
     gameMessage = `Tree is playing a game of ` + gameName;
   }
-  if(gameName == 'VALORANT'){
+  if(gameName == 'VALORANT' && msg != null){
       gameMessage += ' on map: ' + pickMap(msg, true);
   }
   let redTeamPrintUsers = "";
