@@ -21,10 +21,15 @@ function checkRolesToAdd(member, server){
 }
 
 function joinRole(bot, msg){
-    const roleName = msg.content.split(" -")[1];;
+    const roleName = msg.content.split(" -")[1];
     if(roles.includes(roleName)){
         bot.guilds.fetch(THE_FOREST_ID)
-                .then(sever => addRolesForMember(msg.member, roleName, sever));
+                .then(sever =>
+                    sever.members.fetch(msg.author.id)
+                        .then(member =>
+                            addRolesForMember(member, roleName, sever))
+                );
+        msg.channel.send("Added role" + roleName);
     }else{
         msg.channel.send("Can't add role " + roleName);
     }
@@ -46,8 +51,15 @@ function checkIfshouldAddRole(member, activityId, server){
 function addRolesForMember(member, roleName, server){
     const role = server.roles.cache.find(role => role.name === roleName);
     member.roles.add(role);
-    console.log('added role: ' + roleName + 'for user: ' + member.nickname);
+    console.log('added role: ' + roleName + ' for user: ' + member.user.username);
+}
+
+function listRoles(bot, msg, joinCommand){
+    let returnMessage = 'Type one of the following to join:'
+    roles.forEach(role => returnMessage += '\r\n' + joinCommand + role);
+    msg.channel.send(returnMessage);
 }
 
 exports.checkUsersInDisc = checkUsersInDisc;
 exports.joinRole = joinRole;
+exports.listRoles = listRoles;

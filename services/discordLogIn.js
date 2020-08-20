@@ -13,7 +13,7 @@ const TEXT_CHANNEL_ID = process.env.GENERAL_TEXT_CHANNEL;
 
 const BOT_PREFIX = '!'
 const commands = [ BOT_PREFIX + 'startGame', BOT_PREFIX + 'cancelGame', BOT_PREFIX + 'redWins', BOT_PREFIX + 'blueWins',
-    BOT_PREFIX + 'mmr', BOT_PREFIX + 'map',  BOT_PREFIX + 'join'];
+    BOT_PREFIX + 'mmr', BOT_PREFIX + 'map',  BOT_PREFIX + 'join', BOT_PREFIX + 'roles'];
 
 bot.login(TOKEN);
 
@@ -52,17 +52,20 @@ bot.on('message', msg => {
   }else if (msg.content.startsWith(BOT_PREFIX + 'mmr')) {
     gameServices.checkMmr(bot, msg);
   }else if (msg.content.startsWith(BOT_PREFIX + 'map')) {
-      gameServices.pickMap(msg);
+    gameServices.pickMap(msg);
   }else if (msg.content.startsWith(BOT_PREFIX + 'whoIs')) {
-        gameServices.whoIs(bot, msg);
+    gameServices.whoIs(bot, msg);
   }else if (msg.content.startsWith(BOT_PREFIX + 'draft')) {
-          draftService.createDraftPost(bot, msg);
+    draftService.createDraftPost(bot, msg);
   }else if (msg.content.startsWith(BOT_PREFIX + 'clashMessage')) {
-          clashService.addClashTime(bot, msg);
-//  }else if (msg.content.startsWith(BOT_PREFIX + 'join')) {
-//            discordRoleService.joinRole(bot, msg);
+    clashService.addClashTime(bot, msg);
+  }else if (msg.content.startsWith(BOT_PREFIX + 'roles')) {
+    const joinCommand = BOT_PREFIX + 'join -';
+    discordRoleService.listRoles(bot, msg, joinCommand);
+  }else if (msg.content.startsWith(BOT_PREFIX + 'join')) {
+    discordRoleService.joinRole(bot, msg);
   }else if (msg.content.startsWith(BOT_PREFIX + 'help')) {
-    let message = `use the following commands or ask Tree for help: \r\n\r\n`;
+    let message = 'use the following commands or ask Tree for help: \r\n\r\n';
     commands.forEach(command => message += command + '\r\n');
     msg.channel.send(message);
   }else if (msg.content.startsWith(BOT_PREFIX + 'kick')) {
