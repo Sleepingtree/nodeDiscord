@@ -11,12 +11,7 @@ const discordLogin = require('./services/discordLogIn');
 const twitchService = require('./services/twitchService');
 const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
 
-console.log(VOICE_CHANNEL_ID);
-
 var app = express();
-
-console.log(process.env.DISCORD_BOT_KEY);
-
 
 //setInterval( () => discordLogin.whosOnline(VOICE_CHANNEL_ID), 3000);
 
