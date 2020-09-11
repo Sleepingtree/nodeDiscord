@@ -3,7 +3,7 @@ const WANIKANI_API_KEY = process.env.WANIKANI_API_KEY;
 const TREE_USER_ID = process.env.TREE_USER_ID;
 let lastSummery = null;
 let reviewMessageSent = false;
-const checkWaniKaniInterval = 1000 * 5;
+const checkWaniKaniInterval = 1000 * 60;
 
 async function getSummery(){
     const url = "https://api.wanikani.com/v2/summary";
@@ -11,7 +11,8 @@ async function getSummery(){
             method: 'get',
             headers: { 'Authorization': `Bearer ${WANIKANI_API_KEY}` },
         })
-          .then(res => res.json());
+          .then(res => res.json())
+          .catch(err => console.log(err));
     lastSummery = response;
 }
 
@@ -23,7 +24,6 @@ function getReviewCount(){
 
 function checkReviewCount(bot){
   let reviewCount = getReviewCount();
-  console.log("in check review")
   if(reviewCount > 0 && !reviewMessageSent && bot != null){
     sendReviewcount(bot);
   }

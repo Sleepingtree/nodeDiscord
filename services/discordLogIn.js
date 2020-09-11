@@ -7,7 +7,7 @@ const discordRoleService = require('./discordRoleService');
 const waniKaniService = require('./waniKaniService');
 
 const checkUserInterval = 1000 * 60 * 5;
-const checkWaniKaniInterval = 1000 * 5;
+const checkWaniKaniInterval = 1000 * 60;
 const TOKEN = process.env.DISCORD_BOT_KEY;
 const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
 const VOICE_CHANNEL_ALT_ID = process.env.ALT_GENERAL_VOICE_CHANNEL;
