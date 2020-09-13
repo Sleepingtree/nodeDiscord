@@ -66,6 +66,8 @@ bot.on('message', msg => {
     discordRoleService.listRoles(bot, msg, joinCommand);
   }else if (msg.content.startsWith(BOT_PREFIX + 'join')) {
     discordRoleService.joinRole(bot, msg);
+ }else if (msg.content.startsWith(BOT_PREFIX + 'wani')) {
+    waniKaniService.sendReviewcount(bot);
   }else if (msg.content.startsWith(BOT_PREFIX + 'help')) {
     let message = 'use the following commands or ask Tree for help: \r\n\r\n';
     commands.forEach(command => message += command + '\r\n');

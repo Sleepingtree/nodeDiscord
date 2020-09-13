@@ -22,6 +22,10 @@ function checkRolesToAdd(member, server){
 
 function joinRole(bot, msg){
     const roleName = msg.content.split(" -")[1];
+    if(roleName == null){
+     msg.channel.send("must be in in the form: ` !join -roleName`");
+     return;
+    }
     if(roles.includes(roleName)){
         bot.guilds.fetch(THE_FOREST_ID)
                 .then(sever =>

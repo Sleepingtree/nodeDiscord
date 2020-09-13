@@ -5,15 +5,16 @@ let lastSummery = null;
 let reviewMessageSent = false;
 const checkWaniKaniInterval = 1000 * 60;
 
-async function getSummery(){
+function getSummery(){
     const url = "https://api.wanikani.com/v2/summary";
-    const response = await fetch(url, {
+    fetch(url, {
             method: 'get',
             headers: { 'Authorization': `Bearer ${WANIKANI_API_KEY}` },
         })
           .then(res => res.json())
+          .then(response => lastSummery = response)
           .catch(err => console.log(err));
-    lastSummery = response;
+
 }
 
 setInterval(() => getSummery(), checkWaniKaniInterval);
@@ -45,5 +46,5 @@ function sendReviewcount(bot){
 }
 
 exports.getSummery = getSummery;
-exports.getReviewCount = getReviewCount;
+exports.sendReviewcount = sendReviewcount;
 exports.checkReviewCount = checkReviewCount;
