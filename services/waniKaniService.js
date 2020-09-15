@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 const WANIKANI_API_KEY = process.env.WANIKANI_API_KEY;
 const TREE_USER_ID = process.env.TREE_USER_ID;
 let lastSummery = null;
-let reviewMessageSent = false;
+let reviewMessageSent = true;
 const checkWaniKaniInterval = 1000 * 60;
 
 function getSummery(){
@@ -27,6 +27,8 @@ function checkReviewCount(bot){
   let reviewCount = getReviewCount();
   if(reviewCount > 0 && !reviewMessageSent && bot != null){
     sendReviewcount(bot);
+  }else if(reviewCount == 0){
+    reviewMessageSent = false;
   }
 
 }
@@ -36,7 +38,7 @@ function sendReviewcount(bot){
  let message = null;
  if(reviewCount > 0){
     reviewMessageSent = true;
-    let addS = reviewCount>1 ? 's' : '';
+    let addS = reviewCount > 1 ? 's' : '';
     message = `You have ${reviewCount} review${addS} to do! がんばって`;
  }else{
     reviewMessageSent = false;

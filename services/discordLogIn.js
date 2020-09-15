@@ -66,7 +66,7 @@ bot.on('message', msg => {
     discordRoleService.listRoles(bot, msg, joinCommand);
   }else if (msg.content.startsWith(BOT_PREFIX + 'join')) {
     discordRoleService.joinRole(bot, msg);
- }else if (msg.content.startsWith(BOT_PREFIX + 'wani')) {
+  }else if (msg.content.startsWith(BOT_PREFIX + 'wani')) {
     waniKaniService.sendReviewcount(bot);
   }else if (msg.content.startsWith(BOT_PREFIX + 'help')) {
     let message = 'use the following commands or ask Tree for help: \r\n\r\n';
@@ -82,17 +82,15 @@ bot.on('message', msg => {
   }
 });
 
-function whosOnline(channelId){
-    bot.channels.fetch(channelId)
+async function whosOnline(channelId){
+    let usersOnline = new Array();
+    await bot.channels.fetch(channelId)
         .then(channel => {
             if(channel != null && channel.members != null){
                 channel.members
                     .each(member => bot.users.fetch(member.id)
                         .then(user => {
-                            console.log(user.presence);
-                            for(let activityId in user.presence.activities){
-                                console.log(user.presence.activities[activityId]);
-                             }
+                            usersOnline.push(user.username);
                         })
                     );
             }
@@ -101,6 +99,7 @@ function whosOnline(channelId){
             console.log('shit ');
             console.log(err);
         });
+        return usersOnline;
 }
 
 

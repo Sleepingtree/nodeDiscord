@@ -85,6 +85,8 @@ jspm_packages/
 
 #personal configs
 .env
+server.cert
+server.key
 config/
 
 Intellij
