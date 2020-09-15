@@ -1,5 +1,5 @@
 const fetch = require('node-fetch');
-const discordLogin = require('./discordLogin');
+const discordLogin = require('./discordLogIn');
 const NOTIFY_ME_KEY = process.env.NOTIFY_ME_KEY;
 const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
 
