@@ -5,6 +5,7 @@ const clashService = require('./clashPlaningService');
 const draftService = require('./draftService');
 const discordRoleService = require('./discordRoleService');
 const waniKaniService = require('./waniKaniService');
+const alexaService = require('./alexaService');
 
 const checkUserInterval = 1000 * 60 * 5;
 const checkWaniKaniInterval = 1000 * 60;
@@ -82,6 +83,30 @@ bot.on('message', msg => {
   }
 });
 
+bot.on('voiceStateUpdate', (oldState, newState) =>{
+    if(newState.channelID == VOICE_CHANNEL_ID){
+        console.log('start state update');
+        setTimeout(() => checkIfSateIsSame(newState), 1000 * 60* 5);
+    }
+});
+
+function checkIfSateIsSame(oldState){
+    console.log('In check state');
+    bot.channels.fetch(oldState.channelID)
+        .then(channel => {
+            if(channel.members.has(oldState.member.id)){
+              console.log('In if for check state');
+              alexaService.checkToSendWhosOnline(oldState.channelID);
+            }
+        });
+}
+
+async function getChannelNameFromId(channelId){
+  return await bot.channels.fetch(oldState.channelID)
+    .then(channel => channel.name);
+
+}
+
 async function whosOnline(channelId){
     let usersOnline = new Array();
     await bot.channels.fetch(channelId)
@@ -106,3 +131,4 @@ async function whosOnline(channelId){
 setInterval(() => waniKaniService.checkReviewCount(bot), checkWaniKaniInterval);
 
 exports.whosOnline = whosOnline;
+exports.getChannelNameFromId = getChannelNameFromId;
