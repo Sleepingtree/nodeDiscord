@@ -34,13 +34,15 @@ async function getAndRespondWhosOnline(channelId){
 }
 
 async function checkToSendWhosOnline(channelId){
- const users = await discordLogin.whosOnline(VOICE_CHANNEL_ID);
+ const users = await discordLogin.whosOnline(channelId != null ? channelId : VOICE_CHANNEL_ID);
+ console.log(!users.includes('sleepingtree'));
  if(!users.includes('sleepingtree') && (lastSent == null || (lastSent.getTime() + maxResendTime<  Date.now().getTime()))){
-    return false;
- }else{
     return getAndRespondWhosOnline(channelId)
-    .then(data => true)
-    .catch(err => console.log(err));
+        .then(data => true)
+        .catch(err => console.log(err));
+ }else{
+    console.log('false');
+    return false;
  }
 }
 

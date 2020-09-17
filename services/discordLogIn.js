@@ -84,25 +84,20 @@ bot.on('message', msg => {
 });
 
 bot.on('voiceStateUpdate', (oldState, newState) =>{
-    if(newState.channelID == VOICE_CHANNEL_ID){
-        console.log('start state update');
-        setTimeout(() => checkIfSateIsSame(newState), 1000 * 60* 5);
-    }
+    setTimeout(() => checkIfSateIsSame(newState), 1000 * 60 * 5);
 });
 
 function checkIfSateIsSame(oldState){
-    console.log('In check state');
     bot.channels.fetch(oldState.channelID)
         .then(channel => {
             if(channel.members.has(oldState.member.id)){
-              console.log('In if for check state');
               alexaService.checkToSendWhosOnline(oldState.channelID);
             }
         });
 }
 
 async function getChannelNameFromId(channelId){
-  return await bot.channels.fetch(oldState.channelID)
+  return await bot.channels.fetch(channelId)
     .then(channel => channel.name);
 
 }
