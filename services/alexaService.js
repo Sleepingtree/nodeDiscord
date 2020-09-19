@@ -2,7 +2,7 @@ const fetch = require('node-fetch');
 const discordLogin = require('./discordLogIn');
 const NOTIFY_ME_KEY = process.env.NOTIFY_ME_KEY;
 const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
-const maxResendTime = 1000 * 60 * 60 * 20; //20 hours
+const maxResendTime = 1000 * 60 * 60 * 6; //6hours
 
 const urlBase = 'https://api.notifymyecho.com/v1/NotifyMe';
 let lastSent = null;
@@ -37,6 +37,7 @@ async function checkToSendWhosOnline(channelId){
  const users = await discordLogin.whosOnline(channelId != null ? channelId : VOICE_CHANNEL_ID);
  console.log(!users.includes('sleepingtree'));
  if(!users.includes('sleepingtree') && (lastSent == null || (lastSent.getTime() + maxResendTime<  Date.now().getTime()))){
+    lastSent = Date.now();
     return getAndRespondWhosOnline(channelId)
         .then(data => true)
         .catch(err => console.log(err));
