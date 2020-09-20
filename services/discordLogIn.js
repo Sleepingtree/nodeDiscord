@@ -87,7 +87,7 @@ bot.on('messageDelete', message => {
 });
 
 function checkIfSateIsSame(oldState){
-    if(oldState.guild.id == THE_FOREST_ID){
+    if(oldState != null && oldState.guild !=null && oldState.guild.id == THE_FOREST_ID){
         bot.channels.fetch(oldState.channelID)
             .then(channel => {
                 if(channel.members.has(oldState.member.id)){
