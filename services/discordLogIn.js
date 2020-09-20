@@ -15,6 +15,7 @@ const TOKEN = process.env.DISCORD_BOT_KEY;
 const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
 const VOICE_CHANNEL_ALT_ID = process.env.ALT_GENERAL_VOICE_CHANNEL;
 const TEXT_CHANNEL_ID = process.env.GENERAL_TEXT_CHANNEL;
+const THE_FOREST_ID = process.env.THE_FOREST_ID;
 
 const BOT_PREFIX = '!'
 const commands = [ BOT_PREFIX + 'startGame', BOT_PREFIX + 'cancelGame', BOT_PREFIX + 'redWins', BOT_PREFIX + 'blueWins',
@@ -86,12 +87,14 @@ bot.on('messageDelete', message => {
 });
 
 function checkIfSateIsSame(oldState){
-    bot.channels.fetch(oldState.channelID)
-        .then(channel => {
-            if(channel.members.has(oldState.member.id)){
-              alexaService.checkToSendWhosOnline(oldState.channelID);
-            }
-        });
+    if(oldState.guild.id == THE_FOREST_ID){
+        bot.channels.fetch(oldState.channelID)
+            .then(channel => {
+                if(channel.members.has(oldState.member.id)){
+                  alexaService.checkToSendWhosOnline(oldState.channelID);
+                }
+            });
+    }
 }
 
 async function getChannelNameFromId(channelId){
