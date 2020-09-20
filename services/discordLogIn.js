@@ -1,4 +1,5 @@
 const Discord = require('discord.js');
+const fs = require('fs');
 const bot = new Discord.Client();
 const gameServices = require('./gameService');
 const clashService = require('./clashPlaningService');
@@ -7,6 +8,7 @@ const discordRoleService = require('./discordRoleService');
 const waniKaniService = require('./waniKaniService');
 const alexaService = require('./alexaService');
 
+const deletedMessageFile = 'deletedMessageFile.json';
 const checkUserInterval = 1000 * 60 * 5;
 const checkWaniKaniInterval = 1000 * 60;
 const TOKEN = process.env.DISCORD_BOT_KEY;
@@ -29,19 +31,6 @@ bot.on('message', msg => {
     msg.reply('pong');
     msg.channel.send('pong');
 
-  } else if (msg.content.startsWith('test')) {
-    bot.channels.fetch(VOICE_CHANNEL_ID)
-    .then(channel => {
-        console.log('Channel name ');
-        bot.users.fetch(msg.author.id)
-        .then(user => {
-            for(let activityId in user.presence.activities){
-                let activity = user.presence.activities[activityId];
-                msg.channel.send(`You are ${activity.type} on ${activity.name}`);
-             }
-        });
-        console.log(channel.members)
-    });
   } else if (msg.content.startsWith(BOT_PREFIX + 'startGame')) {
     gameServices.startGame(bot, msg);
   } else if (msg.content.startsWith(BOT_PREFIX + 'gameStart')) {
@@ -85,6 +74,15 @@ bot.on('message', msg => {
 
 bot.on('voiceStateUpdate', (oldState, newState) =>{
     setTimeout(() => checkIfSateIsSame(newState), 1000 * 60 * 5);
+});
+
+bot.on('messageDelete', message => {
+    console.log('in delete');
+    let file = fs.readFileSync(deletedMessageFile, 'utf8');
+    let jsonFile = JSON.parse(file);
+    jsonFile[message.id] = message
+    const fileString = JSON.stringify(jsonFile, null, 2);
+    fs.writeFileSync(deletedMessageFile, fileString);
 });
 
 function checkIfSateIsSame(oldState){
