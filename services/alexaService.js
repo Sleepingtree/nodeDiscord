@@ -35,7 +35,6 @@ async function getAndRespondWhosOnline(channelId){
 
 async function checkToSendWhosOnline(channelId){
  const users = await discordLogin.whosOnline(channelId != null ? channelId : VOICE_CHANNEL_ID);
- console.log(!users.includes('sleepingtree'));
  if(!users.includes('sleepingtree') && (lastSent == null || (lastSent.getTime() + maxResendTime<  Date.now().getTime()))){
     lastSent = Date.now();
     return getAndRespondWhosOnline(channelId)

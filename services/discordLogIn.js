@@ -117,7 +117,6 @@ async function whosOnline(channelId){
             }
         })
         .catch(err => {
-            console.log('shit ');
             console.log(err);
         });
         return usersOnline;
