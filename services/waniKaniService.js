@@ -27,7 +27,7 @@ function checkReviewCount(bot){
   let reviewCount = getReviewCount();
   if(reviewCount > 0 && !reviewMessageSent && bot != null){
     sendReviewcount(bot);
-  }else if(reviewCount == 0){
+  }else if(reviewCount == 0 && lastSummery != null){
     reviewMessageSent = false;
   }
 
