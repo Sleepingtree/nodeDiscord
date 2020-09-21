@@ -16,6 +16,7 @@ const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
 const VOICE_CHANNEL_ALT_ID = process.env.ALT_GENERAL_VOICE_CHANNEL;
 const TEXT_CHANNEL_ID = process.env.GENERAL_TEXT_CHANNEL;
 const THE_FOREST_ID = process.env.THE_FOREST_ID;
+const WHISS_USER_ID = process.env.WHISS_USER_ID;
 
 const BOT_PREFIX = '!'
 const commands = [ BOT_PREFIX + 'startGame', BOT_PREFIX + 'cancelGame', BOT_PREFIX + 'redWins', BOT_PREFIX + 'blueWins',
@@ -83,6 +84,8 @@ bot.on('messageDelete', message => {
     let jsonFile = JSON.parse(file);
     jsonFile[message.id] = message
     const fileString = JSON.stringify(jsonFile, null, 2);
+    const reply = `Message from ${message.member.user.username} was deleted message was: \`${message.content}\` `;
+    bot.users.fetch(WHISS_USER_ID).then(user => user.send(reply));
     fs.writeFileSync(deletedMessageFile, fileString);
 });
 
