@@ -1,4 +1,4 @@
-const roles = ['VALORANT', 'League of Legends'];
+const roles = ['VALORANT', 'League of Legends', 'Among Us'];
 const THE_FOREST_ID = process.env.THE_FOREST_ID;
 
 function checkUsersInDisc(bot){
