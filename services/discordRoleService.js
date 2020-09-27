@@ -9,7 +9,7 @@ function checkUsersInDisc(bot){
                     members.filter(member => member.presence.status !== "offline")
                     .forEach(member => checkRolesToAdd(member, server));
                 })
-        });
+        }).catch(console.log);
 }
 
 function checkRolesToAdd(member, server){

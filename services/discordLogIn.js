@@ -127,6 +127,7 @@ async function whosOnline(channelId){
 
 
 setInterval(() => waniKaniService.checkReviewCount(bot), checkWaniKaniInterval);
+setInterval(() => discordRoleService.checkUsersInDisc(bot), checkUserInterval);
 
 exports.whosOnline = whosOnline;
 exports.getChannelNameFromId = getChannelNameFromId;
