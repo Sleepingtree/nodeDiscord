@@ -85,7 +85,9 @@ bot.on('messageDelete', message => {
     jsonFile[message.id] = message
     const fileString = JSON.stringify(jsonFile, null, 2);
     const reply = `Message from ${message.member.user.username} was deleted message was: \`${message.content}\` `;
-    bot.users.fetch(WHISS_USER_ID).then(user => user.send(reply));
+    bot.users.fetch(WHISS_USER_ID)
+        .then(user => user.send(reply))
+        .catch(console.log);
     fs.writeFileSync(deletedMessageFile, fileString);
 });
 
@@ -96,13 +98,14 @@ function checkIfSateIsSame(oldState){
                 if(channel.members.has(oldState.member.id)){
                   alexaService.checkToSendWhosOnline(oldState.channelID);
                 }
-            });
+            }).catch(console.log);
     }
 }
 
 async function getChannelNameFromId(channelId){
   return await bot.channels.fetch(channelId)
-    .then(channel => channel.name);
+    .then(channel => channel.name)
+    .catch(console.log);
 
 }
 

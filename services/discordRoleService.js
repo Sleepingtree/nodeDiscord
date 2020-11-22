@@ -1,4 +1,4 @@
-const roles = ['VALORANT', 'League of Legends', 'Among Us'];
+const roles = ['VALORANT', 'League of Legends', 'Among Us', 'Overwatch'];
 const THE_FOREST_ID = process.env.THE_FOREST_ID;
 
 function checkUsersInDisc(bot){
@@ -32,7 +32,7 @@ function joinRole(bot, msg){
                     sever.members.fetch(msg.author.id)
                         .then(member =>
                             addRolesForMember(member, roleName, sever))
-                );
+                ).catch(console.log);
         msg.channel.send("Added role" + roleName);
     }else{
         msg.channel.send("Can't add role " + roleName);
