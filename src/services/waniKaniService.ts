@@ -30,9 +30,9 @@ function getReviewCount(){
 
 async function checkReviewCount(){
   await getSummery();
-  if(getReviewCount() > 0){
+  if(getReviewCount() > 0 && !reviewMessageSent){
     sendReviewcount();
-  }else{
+  }else if(getReviewCount() == 0){
     reviewMessageSent = false;
   }
 }
