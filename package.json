@@ -7,7 +7,7 @@
     "prestart": "npm run build",
     "build": "tsc",
     "presb": "npm run build",
-    "sb": "nohup node start > output.log &"
+    "sb": "nohup node ./dist/app/www > output.log &"
   },
   "dependencies": {
     "@discordjs/opus": "^0.4.0",
