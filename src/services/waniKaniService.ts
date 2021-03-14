@@ -1,8 +1,10 @@
-const fetch = require('node-fetch');
+import { Client } from 'discord.js';
+import fetch from 'node-fetch';
+import {WaniKaniSummary} from '../model/WaniKaniSummary';
 const WANIKANI_API_KEY = process.env.WANIKANI_API_KEY;
 const TREE_USER_ID = process.env.TREE_USER_ID;
-let lastSummery = null;
-let reviewMessageSent = true;
+let lastSummery: WaniKaniSummary = null;
+let reviewMessageSent: boolean = true;
 const checkWaniKaniInterval = 1000 * 60;
 
 function getSummery(){
@@ -12,18 +14,18 @@ function getSummery(){
             headers: { 'Authorization': `Bearer ${WANIKANI_API_KEY}` },
         })
           .then(res => res.json())
-          .then(response => lastSummery = response)
+          .then(response => lastSummery = <WaniKaniSummary>response)
           .catch(err => console.log(err));
 
 }
 
 setInterval(() => getSummery(), checkWaniKaniInterval);
 
-function getReviewCount(){
-  return lastSummery == null ? 0 : lastSummery.data.reviews[0].subject_ids.length;
+export function getReviewCount(){
+  return <number> (lastSummery == null ? 0 : lastSummery.data.reviews[0].subject_ids.length);
 }
 
-function checkReviewCount(bot){
+export function checkReviewCount(bot: Client){
   let reviewCount = getReviewCount();
   if(reviewCount > 0 && !reviewMessageSent && bot != null){
     sendReviewcount(bot);
@@ -33,9 +35,9 @@ function checkReviewCount(bot){
 
 }
 
-function sendReviewcount(bot){
- let reviewCount = getReviewCount();
- let message = null;
+export function sendReviewcount(bot: Client){
+ let reviewCount: number = getReviewCount();
+ let message: string = null;
  if(reviewCount > 0){
     reviewMessageSent = true;
     let addS = reviewCount > 1 ? 's' : '';
@@ -46,7 +48,3 @@ function sendReviewcount(bot){
  }
  bot.users.fetch(TREE_USER_ID).then(user => user.send(message));
 }
-
-exports.getSummery = getSummery;
-exports.sendReviewcount = sendReviewcount;
-exports.checkReviewCount = checkReviewCount;

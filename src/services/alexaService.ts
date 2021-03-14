@@ -1,21 +1,23 @@
-const fetch = require('node-fetch');
-const discordLogin = require('./discordLogIn');
+import { Snowflake } from "discord.js";
+
+import fetch from 'node-fetch';
+import {whosOnline, getChannelNameFromId} from './discordLogIn';
 const NOTIFY_ME_KEY = process.env.NOTIFY_ME_KEY;
 const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
-const maxResendTime = 1000 * 60 * 60 * 6; //6hours
+const maxResendTime: number = 1000 * 60 * 60 * 6; //6hours
 
 const urlBase = 'https://api.notifymyecho.com/v1/NotifyMe';
-let lastSent = null;
+let lastSent: number = null;
 
-async function getAndRespondWhosOnline(channelId){
+export async function getAndRespondWhosOnline(channelId?: Snowflake){
     const channelIdToUse = channelId == null ? VOICE_CHANNEL_ID : channelId;
-    const users =  await discordLogin.whosOnline(channelIdToUse);
+    const users =  await whosOnline(channelIdToUse);
     let notification = `users online are ${users}`;
     if(users.length == 0){
         notification = 'no one is online';
     }
     if(channelId != null){
-        const channelName =  await discordLogin.getChannelNameFromId(channelId);
+        const channelName =  await getChannelNameFromId(channelId);
         notification += ` on channel ${channelName}`;
     }
     const body = {
@@ -33,8 +35,8 @@ async function getAndRespondWhosOnline(channelId){
             console.log(`sent message: ${notification}`);
 }
 
-async function checkToSendWhosOnline(channelId){
- const users = await discordLogin.whosOnline(channelId != null ? channelId : VOICE_CHANNEL_ID);
+export async function checkToSendWhosOnline(channelId: Snowflake){
+ const users = await whosOnline(channelId != null ? channelId : VOICE_CHANNEL_ID);
  if(!users.includes('sleepingtree') && (lastSent == null || lastSent + maxResendTime < Date.now())){
     lastSent = Date.now();
     return getAndRespondWhosOnline(channelId)
@@ -45,6 +47,3 @@ async function checkToSendWhosOnline(channelId){
     return false;
  }
 }
-
-exports.getAndRespondWhosOnline = getAndRespondWhosOnline;
-exports.checkToSendWhosOnline = checkToSendWhosOnline;

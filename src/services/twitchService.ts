@@ -1,5 +1,5 @@
-const tmi = require('tmi.js');
-const gameService = require('./gameService');
+import * as tmi from 'tmi.js';
+import * as gameService from './gameService';
 const TWITCH_USER_NAME = process.env.TWITCH_USER_NAME;
 const TWITCH_PASSWORD = process.env.TWITCH_PASSWORD;
 const TWITCH_CHANNEL_NAME = process.env.TWITCH_CHANNEL_NAME;
@@ -30,7 +30,7 @@ client.on('connected', onConnectedHandler);
 client.connect();
 
 // Called every time a message comes in
-function onMessageHandler (target, context, msg, self) {
+function onMessageHandler (target: any, context: any, msg: any, self: any) {
   if (self) { return; } // Ignore messages from the bot
 
 
@@ -58,12 +58,10 @@ function rollDice () {
   return Math.floor(Math.random() * sides) + 1;
 }
 // Called every time the bot connects to Twitch chat
-function onConnectedHandler (addr, port) {
+function onConnectedHandler (addr: any, port: any) {
   console.log(`* Connected to ${addr}:${port}`);
 }
 
-async function sendMessage(msg){
+export async function sendMessage(msg: string){
     client.say(TWITCH_CHANNEL_NAME, msg);
 }
-
-exports.sendMessage = sendMessage;

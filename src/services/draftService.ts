@@ -1,10 +1,12 @@
-const fetch = require('node-fetch');
+import { Client, Collection, CollectorFilter, Message, MessageReaction, User } from "discord.js";
+
+import fetch, { Response } from 'node-fetch';
 
 const blueTeamEmoji = '🔵';
 const redTeamEmoji = '🔴';
 const draftWait = 60000;
 
-async function createDraftPost(bot, msg){
+export async function createDraftPost(bot: Client, msg: Message){
     const responseMsg = 'Waiting for captains, click which captain you want to be.'
     const post = await msg.channel.send(responseMsg);
     //blue
@@ -13,10 +15,10 @@ async function createDraftPost(bot, msg){
     post.react(redTeamEmoji);
     const urls =  draft(null);
     console.log(urls);
-    const redFilter = (reaction, user) => {
+    const redFilter = (reaction: MessageReaction, user: User) => {
     	return [redTeamEmoji].includes(reaction.emoji.name) && user.id != post.author.id;
     };
-    const blueFilter = (reaction, user) => {
+    const blueFilter = (reaction: MessageReaction, user: User) => {
         return [blueTeamEmoji].includes(reaction.emoji.name) && user.id != post.author.id;
     };
 
@@ -31,17 +33,17 @@ async function createDraftPost(bot, msg){
     post.delete({timeout: draftWait});
 }
 
-function sendLink(post, filter){
+function sendLink(post: Message, filter: CollectorFilter){
   return post.awaitReactions(filter, { max: 1, time: draftWait, errors: ['time'] });
 }
 
-function handleCaptianPromise(collection, post, url, bot){
+function handleCaptianPromise(collection: Collection<string, MessageReaction>, post: Message, url: String, bot: Client){
   const reaction = collection.first();
   const teamCaptaianId = reaction.users.cache.filter(user => user.id != post.author.id).values().next().value.id;
   bot.users.fetch(teamCaptaianId).then(user => user.send("Draft link:" + url));
 }
 
-async function draft(msg){
+async function draft(msg?: Message){
     const body = {"team1Name":"blue","team2Name":"red","matchName":"match"};
     console.log(JSON.stringify(body));
     const response = await fetch('http://prodraft.leagueoflegends.com/draft', {
@@ -52,7 +54,7 @@ async function draft(msg){
         .then(res => res.json());
         console.log(response);
         const ids = [response.auth[0], response.auth[1], response.id];
-        let urls = [];
+        let urls: Array<String> = [];
         //blue team
         urls.push('http://prodraft.leagueoflegends.com/?draft=' + response.id + '&auth=' + response.auth[0] +'&locale=en_US');
         //red team
@@ -64,5 +66,3 @@ async function draft(msg){
         }
     return urls;
 }
-
-exports.createDraftPost = createDraftPost;

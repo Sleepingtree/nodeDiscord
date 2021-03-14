@@ -9,20 +9,21 @@ const RANK_GAP = 100;
 const BRONZE_STARTING_POINT = DEFAULT_MMR - 2 * RANK_GAP;
 const mmrFileNme = 'mmr.json';
 
-const twitchService = require('./twitchService');
+import * as twitchService from './twitchService';
 
-const fs = require('fs');
+import fs from 'fs';
+import { Client, Message, VoiceChannel } from 'discord.js';
 
-let usersInGame = [];
-let redTeam = new Array();
-let blueTeam = new Array();
-let userNameMap = new Map();
-let gameName = null;
-let jsonFile = null;
+let usersInGame: string[] = [];
+let redTeam: string[] = new Array();
+let blueTeam: string[] = new Array();
+let userNameMap: Map<string, string> = new Map();
+let gameName: string = null;
+let jsonFile: Map<string, Map<string, number>> = null;
 let redTeamMmr = 0;
 let blueTeamMmr = 0;
 
-async function startGame(bot, msg) {
+export async function startGame(bot: Client, msg: Message) {
     let file = fs.readFileSync(mmrFileNme, 'utf8');
     jsonFile = JSON.parse(file);
 
@@ -40,9 +41,9 @@ async function startGame(bot, msg) {
             for(let activityId in user.presence.activities){
                 if(user.presence.activities[activityId].type === 'PLAYING'){
                     gameName = user.presence.activities[activityId].name;
-                    console.log(jsonFile);
-                    if(jsonFile[gameName] == null){
-                        jsonFile[gameName] = new Object();
+                    console.log(`${jsonFile}`);
+                    if(jsonFile.get(gameName) == null){
+                        jsonFile.set(gameName, new Map<string, number>());
                     }
                 }
             }
@@ -63,22 +64,22 @@ async function startGame(bot, msg) {
         console.log("in else");
         await bot.channels.fetch(VOICE_CHANNEL_ID)
             .then(channel => {
-                channel.members
+                (<VoiceChannel>channel).members
                     .each(member => {
                         usersInGame.push(member.id);
                         userNameMap.set(member.id, member.user.username)
-                        if(jsonFile[gameName][member.id] == null){
-                            jsonFile[gameName][member.id] = DEFAULT_MMR;
+                        if(jsonFile.get(gameName).get(member.id)== null){
+                            jsonFile.get(gameName).set(member.id, DEFAULT_MMR);
                         }
                     });
-                console.log(channel.members);
+                console.log((<VoiceChannel>channel).members);
             });
         //Highest mmr First
         console.log(usersInGame);
-        usersInGame.sort((a,b) => jsonFile[gameName][b]-jsonFile[gameName][a]);
+        usersInGame.sort((a,b) => jsonFile.get(gameName).get(b)-jsonFile.get(gameName).get(a));
 
         makeTeams();
-        moveUsers(bot, redTeam, blueTeam);
+        moveUsers(bot, redTeam);
     }
 
     if(usersInGame.length == 0){
@@ -94,7 +95,7 @@ async function startGame(bot, msg) {
     }
 }
 
-function getTeamMessage(start,msg){
+export function getTeamMessage(start?: boolean, msg?: Message){
   if(gameName == null){
     return 'No in house game started';
   }
@@ -128,7 +129,7 @@ function getTeamMessage(start,msg){
   return displayMessage;
 }
 
-async function checkMmr(bot, msg){
+export async function checkMmr(msg: Message){
   const file = fs.readFileSync(mmrFileNme, 'utf8');
   const translatedFile = JSON.parse(file);
   let message = '';
@@ -150,7 +151,7 @@ async function checkMmr(bot, msg){
   }
 }
 
-function convertUserMMRtoDisplayMMR(trueMMR){
+function convertUserMMRtoDisplayMMR(trueMMR: number){
     let mmrFloorMap = new Map();
     let retVal = '';
     //make list of names then add points
@@ -186,10 +187,10 @@ function convertUserMMRtoDisplayMMR(trueMMR){
     return retVal;
 }
 
-async function moveUsers(bot, redTeamUser, blueteamUsers){
+async function moveUsers(bot: Client, redTeamUser: string[]){
  bot.channels.fetch(VOICE_CHANNEL_ID)
     .then(channel => {
-        channel.members
+        (<VoiceChannel>channel).members
             .each(member => {
                 if(redTeamUser.filter(id => id == member.id).length >0){
                     member.voice.setChannel(RED_TEAM_VOICE_CHANNEL_ID);
@@ -200,17 +201,17 @@ async function moveUsers(bot, redTeamUser, blueteamUsers){
   });
 }
 
-async function moveUsersBack(bot){
+async function moveUsersBack(bot: Client){
  bot.channels.fetch(BLUE_TEAM_VOICE_CHANNEL_ID)
     .then(channel => {
-        channel.members
+        (<VoiceChannel>channel).members
             .each(member => {
                 member.voice.setChannel(VOICE_CHANNEL_ID);
             });
   });
   bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID)
       .then(channel => {
-          channel.members
+          (<VoiceChannel>channel).members
               .each(member => {
                   member.voice.setChannel(VOICE_CHANNEL_ID);
               });
@@ -221,7 +222,7 @@ function makeTeams(){
     console.log('usersInGame');
     console.log(usersInGame);
     for(let i = 0; i < usersInGame.length; i++){
-       let userMmr =  jsonFile[gameName][usersInGame[i]];
+       let userMmr =  jsonFile.get(gameName).get(usersInGame[i]);
        if(redTeamMmr <= blueTeamMmr || (blueTeam.length >= usersInGame.length/2)){
            console.log('Adding user to red' + usersInGame[i]);
            redTeam.push(usersInGame[i]);
@@ -234,41 +235,41 @@ function makeTeams(){
     }
 }
 
-async function makeTeamsManual(bot){
+async function makeTeamsManual(bot: Client){
      bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID)
         .then(channel => {
-            channel.members
+            (<VoiceChannel>channel).members
                 .each(member => {
                     usersInGame.push(member.id);
                     userNameMap.set(member.id, member.user.username)
                     redTeam.push(member.id);
-                    if(jsonFile[gameName][member.id] == null){
-                        jsonFile[gameName][member.id] = DEFAULT_MMR;
+                    if(jsonFile.get(gameName).get(member.id) == null){
+                        jsonFile.get(gameName).set(member.id, DEFAULT_MMR);
                     }
-                    let userMmr =  jsonFile[gameName][member.id];
+                    let userMmr =  jsonFile.get(gameName).get(member.id);
                     redTeamMmr +=userMmr;
                 });
-            console.log(channel.members);
+            console.log((<VoiceChannel>channel).members);
         });
 
     bot.channels.fetch(BLUE_TEAM_VOICE_CHANNEL_ID)
         .then(channel => {
-            channel.members
+            (<VoiceChannel>channel).members
                 .each(member => {
                     usersInGame.push(member.id);
                     userNameMap.set(member.id, member.user.username)
                     blueTeam.push(member.id);
-                    if(jsonFile[gameName][member.id] == null){
-                        jsonFile[gameName][member.id] = DEFAULT_MMR;
+                    if(jsonFile.get(gameName).get(member.id)== null){
+                        jsonFile.get(gameName).set(member.id, DEFAULT_MMR);
                     }
-                    let userMmr =  jsonFile[gameName][member.id];
+                    let userMmr =  jsonFile.get(gameName).get(member.id);
                     blueTeamMmr +=userMmr;
                 });
-            console.log(channel.members);
+            console.log((<VoiceChannel>channel).members);
         });
 }
 
-function endGame(bot, msg, redWon) {
+export function endGame(bot: Client, msg: Message, redWon?: boolean) {
     let mmrChange = null;
     if(redWon != null){
        mmrChange = updateMmr(redWon, msg);
@@ -290,10 +291,10 @@ function endGame(bot, msg, redWon) {
     moveUsersBack(bot);
 }
 
-let lastMap = null;
+let lastMap: string = null;
 const maps = ['Bind', 'Haven', 'Split', 'Ascent'];
 
-function pickMap(msg, supressMessage){
+export function pickMap(msg: Message, supressMessage?: boolean){
     let pickMapList = maps;
     if(lastMap != null){
         pickMapList = pickMapList.filter(map => map != lastMap);
@@ -305,11 +306,10 @@ function pickMap(msg, supressMessage){
    return lastMap;
 }
 
-function updateMmr(redWon, msg){
+function updateMmr(redWon: boolean, msg: Message){
     const redWinProbability = probabilityOfRedWin();
     const blueWinProbability = 1 - redWinProbability;
-    let userRankUpMap = new Map();
-    let mmrChangeWeight;
+    let mmrChangeWeight: number;
     if(msg.content.includes("-close")){
         mmrChangeWeight = MMR_CHANGE_WEIGHT * 0.5;
     }else if(msg.content.includes("-stomp")){
@@ -318,13 +318,19 @@ function updateMmr(redWon, msg){
         mmrChangeWeight = MMR_CHANGE_WEIGHT;
     }
     if(redWon){
-        redTeam.forEach(userId => jsonFile[gameName][userId] += mmrChangeWeight * (1 - redWinProbability));
-        blueTeam.forEach(userId => jsonFile[gameName][userId] += mmrChangeWeight * (0 - blueWinProbability));
+        redTeam.forEach(userId => updateFileMMR(jsonFile, gameName, userId, mmrChangeWeight * (1 - redWinProbability)));
+        blueTeam.forEach(userId => updateFileMMR(jsonFile, gameName, userId, mmrChangeWeight * (0 - blueWinProbability)));
     }else{
-        redTeam.forEach(userId => jsonFile[gameName][userId] += mmrChangeWeight * (0 - redWinProbability));
-        blueTeam.forEach(userId => jsonFile[gameName][userId] += mmrChangeWeight * (1 - blueWinProbability));
+        redTeam.forEach(userId => updateFileMMR(jsonFile, gameName, userId, mmrChangeWeight * (0 - redWinProbability)));
+        blueTeam.forEach(userId => updateFileMMR(jsonFile, gameName, userId, mmrChangeWeight * (1 - blueWinProbability)));
     }
     return (mmrChangeWeight * (redWon ? blueWinProbability : redWinProbability)) * 100/RANK_GAP;
+}
+
+function updateFileMMR(file: Map<string, Map<string, number>>, gameName:string, userId: string,changeWeight: number){
+    let mmr = file.get(gameName).get(userId);
+    mmr += changeWeight;
+    file.get(gameName).set(userId, mmr);
 }
 
 function probabilityOfRedWin(){
@@ -332,7 +338,7 @@ function probabilityOfRedWin(){
     return 1/(1 +(Math.pow(10, ratingDifferance/400)));
 }
 
-function whoIs(bot, msg){
+export function whoIs(bot: Client, msg: Message){
     if(msg.author.id == TREE_USER_ID){
         const id = msg.content.split(" ")[1];
         const userPromise = bot.users.fetch(id);
@@ -345,10 +351,3 @@ function whoIs(bot, msg){
         });
     }
 }
-
-exports.startGame = startGame;
-exports.endGame = endGame;
-exports.checkMmr = checkMmr;
-exports.pickMap = pickMap;
-exports.whoIs = whoIs;
-exports.getTeamMessage = getTeamMessage;

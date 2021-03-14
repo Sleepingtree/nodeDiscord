@@ -1,26 +1,25 @@
-const Discord = require('discord.js');
-const fs = require('fs');
+import Discord, { GuildChannel, Snowflake, VoiceChannel, VoiceState } from 'discord.js';
+import fs from 'fs';
 const bot = new Discord.Client();
-const gameServices = require('./gameService');
-const clashService = require('./clashPlaningService');
-const draftService = require('./draftService');
-const discordRoleService = require('./discordRoleService');
-const waniKaniService = require('./waniKaniService');
-const alexaService = require('./alexaService');
+import * as gameServices from './gameService';
+import * as clashService from './clashPlaningService';
+import * as draftService from './draftService';
+import * as discordRoleService from './discordRoleService';
+import * as waniKaniService from './waniKaniService';
+import * as alexaService from'./alexaService';
+import * as youtubeService from './youtubeService';
 
 const deletedMessageFile = 'deletedMessageFile.json';
 const checkUserInterval = 1000 * 60 * 5;
 const checkWaniKaniInterval = 1000 * 60;
 const TOKEN = process.env.DISCORD_BOT_KEY;
-const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
-const VOICE_CHANNEL_ALT_ID = process.env.ALT_GENERAL_VOICE_CHANNEL;
-const TEXT_CHANNEL_ID = process.env.GENERAL_TEXT_CHANNEL;
+
 const THE_FOREST_ID = process.env.THE_FOREST_ID;
 const WHISS_USER_ID = process.env.WHISS_USER_ID;
 
 const BOT_PREFIX = '!'
 const commands = [ BOT_PREFIX + 'startGame', BOT_PREFIX + 'cancelGame', BOT_PREFIX + 'redWins', BOT_PREFIX + 'blueWins',
-    BOT_PREFIX + 'mmr', BOT_PREFIX + 'map',  BOT_PREFIX + 'join', BOT_PREFIX + 'roles'];
+    BOT_PREFIX + 'mmr', BOT_PREFIX + 'map',  BOT_PREFIX + 'join', BOT_PREFIX + 'roles', BOT_PREFIX + 'okite'];
 
 bot.login(TOKEN);
 
@@ -44,7 +43,7 @@ bot.on('message', msg => {
   }else if (msg.content.startsWith(BOT_PREFIX + 'blueWins')) {
     gameServices.endGame(bot, msg, false);
   }else if (msg.content.startsWith(BOT_PREFIX + 'mmr')) {
-    gameServices.checkMmr(bot, msg);
+    gameServices.checkMmr(msg);
   }else if (msg.content.startsWith(BOT_PREFIX + 'map')) {
     gameServices.pickMap(msg);
   }else if (msg.content.startsWith(BOT_PREFIX + 'whoIs')) {
@@ -60,6 +59,10 @@ bot.on('message', msg => {
     discordRoleService.joinRole(bot, msg);
   }else if (msg.content.startsWith(BOT_PREFIX + 'wani')) {
     waniKaniService.sendReviewcount(bot);
+  }else if (msg.content.startsWith(BOT_PREFIX + 'okite')) {
+    youtubeService.playYoutube(bot, 'https://www.youtube.com/watch?v=6QBw0FVlPiI');
+  }else if (msg.content.startsWith(BOT_PREFIX + 'shitPost')) {
+    youtubeService.playYoutube(bot, 'https://www.youtube.com/watch?v=fLaNJLZK21Y');
   }else if (msg.content.startsWith(BOT_PREFIX + 'help')) {
     let message = 'use the following commands or ask Tree for help: \r\n\r\n';
     commands.forEach(command => message += command + '\r\n');
@@ -91,30 +94,31 @@ bot.on('messageDelete', message => {
     fs.writeFileSync(deletedMessageFile, fileString);
 });
 
-function checkIfSateIsSame(oldState){
+function checkIfSateIsSame(oldState: VoiceState){
     if(oldState != null && oldState.guild !=null && oldState.guild.id == THE_FOREST_ID){
         bot.channels.fetch(oldState.channelID)
             .then(channel => {
-                if(channel.members.has(oldState.member.id)){
+                if((<GuildChannel>channel).members.has(oldState.member.id)){
                   alexaService.checkToSendWhosOnline(oldState.channelID);
                 }
             }).catch(console.log);
     }
 }
 
-async function getChannelNameFromId(channelId){
+export async function getChannelNameFromId(channelId: Snowflake){
   return await bot.channels.fetch(channelId)
-    .then(channel => channel.name)
+    .then(channel => (<GuildChannel>channel).name)
     .catch(console.log);
 
 }
 
-async function whosOnline(channelId){
+export async function whosOnline(channelId: Snowflake){
     let usersOnline = new Array();
     await bot.channels.fetch(channelId)
         .then(channel => {
-            if(channel != null && channel.members != null){
-                channel.members
+          const guildChannel: GuildChannel = <GuildChannel>channel;
+            if(channel != null && guildChannel.members != null){
+              guildChannel.members
                     .each(member => bot.users.fetch(member.id)
                         .then(user => {
                             usersOnline.push(user.username);
@@ -131,6 +135,3 @@ async function whosOnline(channelId){
 
 setInterval(() => waniKaniService.checkReviewCount(bot), checkWaniKaniInterval);
 setInterval(() => discordRoleService.checkUsersInDisc(bot), checkUserInterval);
-
-exports.whosOnline = whosOnline;
-exports.getChannelNameFromId = getChannelNameFromId;

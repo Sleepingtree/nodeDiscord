@@ -1,7 +1,9 @@
+import { Activity, Client, Guild, GuildMember, Message } from "discord.js";
+
 const roles = ['VALORANT', 'League of Legends', 'Among Us', 'Overwatch'];
 const THE_FOREST_ID = process.env.THE_FOREST_ID;
 
-function checkUsersInDisc(bot){
+export function checkUsersInDisc(bot: Client){
     bot.guilds.fetch(THE_FOREST_ID)
         .then(server =>{
             server.members.fetch()
@@ -12,15 +14,15 @@ function checkUsersInDisc(bot){
         }).catch(console.log);
 }
 
-function checkRolesToAdd(member, server){
-    for(let activityId in member.presence.activities){
-        if(checkIfshouldAddRole(member, activityId, server)){
-            addRolesForMember(member, member.presence.activities[activityId].name, server);
+function checkRolesToAdd(member: GuildMember, server: Guild){
+    for(let activity of member.presence.activities){
+        if(checkIfshouldAddRole(member, activity, server)){
+            addRolesForMember(member, activity.name, server);
         }
     }
 }
 
-function joinRole(bot, msg){
+export function joinRole(bot: Client, msg: Message){
     const roleName = msg.content.split(" -")[1];
     if(roleName == null){
      msg.channel.send("must be in in the form: ` !join -roleName`");
@@ -39,10 +41,10 @@ function joinRole(bot, msg){
     }
 }
 
-function checkIfshouldAddRole(member, activityId, server){
-    const roleName = member.presence.activities[activityId].name;
-    const isPlaying = member.presence.activities[activityId].type === 'PLAYING';
-    const isRoleAddable = roles.includes(member.presence.activities[activityId].name);
+function checkIfshouldAddRole(member: GuildMember, activity: Activity, server: Guild){
+    const roleName = activity.name;
+    const isPlaying = activity.type === 'PLAYING';
+    const isRoleAddable = roles.includes(roleName);
     if(isPlaying && isRoleAddable){
       const role = server.roles.cache.find(role => role.name === roleName);
       const isUserLackRole = !(member.roles.cache.has(role.id));
@@ -52,18 +54,14 @@ function checkIfshouldAddRole(member, activityId, server){
     }
 }
 
-function addRolesForMember(member, roleName, server){
+function addRolesForMember(member: GuildMember, roleName: String, server: Guild){
     const role = server.roles.cache.find(role => role.name === roleName);
     member.roles.add(role);
     console.log('added role: ' + roleName + ' for user: ' + member.user.username);
 }
 
-function listRoles(bot, msg, joinCommand){
+export function listRoles(bot: Client, msg: Message, joinCommand: String){
     let returnMessage = 'Type one of the following to join:'
     roles.forEach(role => returnMessage += '\r\n' + joinCommand + role);
     msg.channel.send(returnMessage);
 }
-
-exports.checkUsersInDisc = checkUsersInDisc;
-exports.joinRole = joinRole;
-exports.listRoles = listRoles;
