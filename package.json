@@ -6,6 +6,7 @@
     "start": "node ./dist/app/www",
     "prestart": "npm run build",
     "build": "tsc",
+    "presb": "npm run build",
     "sb": "nohup node start > output.log &"
   },
   "dependencies": {
