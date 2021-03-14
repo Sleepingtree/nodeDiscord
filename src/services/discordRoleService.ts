@@ -1,9 +1,21 @@
 import { Activity, Client, Guild, GuildMember, Message } from "discord.js";
+import bot from './discordLogIn';
+import {BOT_PREFIX} from './discordLogIn';
 
 const roles = ['VALORANT', 'League of Legends', 'Among Us', 'Overwatch'];
 const THE_FOREST_ID = process.env.THE_FOREST_ID;
+const joinCommand = BOT_PREFIX + 'join -';
+const checkUserInterval = 1000 * 60 * 5;
 
-export function checkUsersInDisc(bot: Client){
+bot.on('message', msg => {
+    if(msg.content.startsWith('!roles')){
+        listRoles(msg, joinCommand);
+    } else if (msg.content.startsWith(joinCommand)) {
+        joinRole(msg);
+    }
+});
+
+function checkUsersInDisc(bot: Client){
     bot.guilds.fetch(THE_FOREST_ID)
         .then(server =>{
             server.members.fetch()
@@ -22,7 +34,7 @@ function checkRolesToAdd(member: GuildMember, server: Guild){
     }
 }
 
-export function joinRole(bot: Client, msg: Message){
+function joinRole(msg: Message){
     const roleName = msg.content.split(" -")[1];
     if(roleName == null){
      msg.channel.send("must be in in the form: ` !join -roleName`");
@@ -60,8 +72,10 @@ function addRolesForMember(member: GuildMember, roleName: String, server: Guild)
     console.log('added role: ' + roleName + ' for user: ' + member.user.username);
 }
 
-export function listRoles(bot: Client, msg: Message, joinCommand: String){
+function listRoles(msg: Message, joinCommand: String){
     let returnMessage = 'Type one of the following to join:'
     roles.forEach(role => returnMessage += '\r\n' + joinCommand + role);
     msg.channel.send(returnMessage);
 }
+
+setInterval(() => checkUsersInDisc(bot), checkUserInterval);

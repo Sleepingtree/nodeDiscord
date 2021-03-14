@@ -13,6 +13,8 @@ import * as twitchService from './twitchService';
 
 import fs from 'fs';
 import { Client, Message, VoiceChannel } from 'discord.js';
+import bot from './discordLogIn';
+import {BOT_PREFIX} from './discordLogIn';
 
 let usersInGame: string[] = [];
 let redTeam: string[] = new Array();
@@ -23,7 +25,26 @@ let jsonFile: Map<string, Map<string, number>> = null;
 let redTeamMmr = 0;
 let blueTeamMmr = 0;
 
-export async function startGame(bot: Client, msg: Message) {
+bot.on('message', msg => {
+    if (msg.content.startsWith(BOT_PREFIX + 'startGame')) {
+        startGame(msg);
+      } else if (msg.content.startsWith(BOT_PREFIX + 'gameStart')) {
+        msg.channel.send("It's " + BOT_PREFIX + 'startGame ... バカ...');
+      }else if (msg.content.startsWith(BOT_PREFIX + 'cancelGame')) {
+        endGame(msg);
+      }else if (msg.content.startsWith(BOT_PREFIX + 'redWins')) {
+        endGame(msg, true);
+      }else if (msg.content.startsWith(BOT_PREFIX + 'blueWins')) {
+        endGame(msg, false);
+      }else if (msg.content.startsWith(BOT_PREFIX + 'mmr')) {
+        checkMmr(msg);
+      }else if (msg.content.startsWith(BOT_PREFIX + 'map')) {
+        pickMap(msg);
+      }
+});
+  
+
+async function startGame(msg: Message) {
     let file = fs.readFileSync(mmrFileNme, 'utf8');
     jsonFile = JSON.parse(file);
 
@@ -129,7 +150,7 @@ export function getTeamMessage(start?: boolean, msg?: Message){
   return displayMessage;
 }
 
-export async function checkMmr(msg: Message){
+async function checkMmr(msg: Message){
   const file = fs.readFileSync(mmrFileNme, 'utf8');
   const translatedFile = JSON.parse(file);
   let message = '';
@@ -269,7 +290,7 @@ async function makeTeamsManual(bot: Client){
         });
 }
 
-export function endGame(bot: Client, msg: Message, redWon?: boolean) {
+function endGame(msg: Message, redWon?: boolean) {
     let mmrChange = null;
     if(redWon != null){
        mmrChange = updateMmr(redWon, msg);
@@ -294,7 +315,7 @@ export function endGame(bot: Client, msg: Message, redWon?: boolean) {
 let lastMap: string = null;
 const maps = ['Bind', 'Haven', 'Split', 'Ascent'];
 
-export function pickMap(msg: Message, supressMessage?: boolean){
+function pickMap(msg: Message, supressMessage?: boolean){
     let pickMapList = maps;
     if(lastMap != null){
         pickMapList = pickMapList.filter(map => map != lastMap);
@@ -336,18 +357,4 @@ function updateFileMMR(file: Map<string, Map<string, number>>, gameName:string, 
 function probabilityOfRedWin(){
     const ratingDifferance = blueTeamMmr - redTeamMmr;
     return 1/(1 +(Math.pow(10, ratingDifferance/400)));
-}
-
-export function whoIs(bot: Client, msg: Message){
-    if(msg.author.id == TREE_USER_ID){
-        const id = msg.content.split(" ")[1];
-        const userPromise = bot.users.fetch(id);
-        userPromise.then(user => {
-            if(user != null){
-                msg.channel.send(user.username);
-            }else{
-                msg.channel.send("誰もいない");
-            }
-        });
-    }
 }

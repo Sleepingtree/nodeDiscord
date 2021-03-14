@@ -1,19 +1,27 @@
 import { Client, Collection, CollectorFilter, Message, MessageReaction, User } from "discord.js";
-
 import fetch, { Response } from 'node-fetch';
+
+import bot from './discordLogIn';
+import {BOT_PREFIX} from './discordLogIn';
 
 const blueTeamEmoji = '🔵';
 const redTeamEmoji = '🔴';
 const draftWait = 60000;
 
-export async function createDraftPost(bot: Client, msg: Message){
+bot.on('message', msg => {
+  if(msg.content.startsWith(BOT_PREFIX + 'draft')) {
+    createDraftPost(msg)
+  }
+});
+
+async function createDraftPost(msg: Message){
     const responseMsg = 'Waiting for captains, click which captain you want to be.'
     const post = await msg.channel.send(responseMsg);
     //blue
     post.react(blueTeamEmoji);
     //red
     post.react(redTeamEmoji);
-    const urls =  draft(null);
+    const urls =  draft();
     console.log(urls);
     const redFilter = (reaction: MessageReaction, user: User) => {
     	return [redTeamEmoji].includes(reaction.emoji.name) && user.id != post.author.id;
@@ -43,7 +51,7 @@ function handleCaptianPromise(collection: Collection<string, MessageReaction>, p
   bot.users.fetch(teamCaptaianId).then(user => user.send("Draft link:" + url));
 }
 
-async function draft(msg?: Message){
+async function draft(){
     const body = {"team1Name":"blue","team2Name":"red","matchName":"match"};
     console.log(JSON.stringify(body));
     const response = await fetch('http://prodraft.leagueoflegends.com/draft', {
@@ -61,8 +69,5 @@ async function draft(msg?: Message){
         urls.push('http://prodraft.leagueoflegends.com/?draft=' + response.id + '&auth=' + response.auth[1] +'&locale=en_US');
         //spectator
         urls.push('http://prodraft.leagueoflegends.com/?draft=' + response.id +'&locale=en_US');
-        if(msg != null){
-          msg.channel.send(urls);
-        }
     return urls;
 }

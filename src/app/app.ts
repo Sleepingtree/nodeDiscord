@@ -9,6 +9,14 @@ import indexRouter from '../routes/index';
 import usersRouter from'../routes/users';
 import alexaRouter from'../routes/alexaRouter';
 
+//start up discord bot services
+import '../services/discordRoleService';
+import '../services/waniKaniService';
+import '../services/alexaService';
+import '../services/gameService'
+import '../services/youtubeService'
+import '../services/draftService'
+import '../services/clashPlaningService'
 
 var app = express();
 

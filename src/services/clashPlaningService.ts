@@ -1,8 +1,16 @@
 import { Client, Message, TextChannel } from "discord.js";
+import bot from './discordLogIn';
+import {BOT_PREFIX} from './discordLogIn';
 
 const CLASH_PLANING_TEXT_CHANNEL = process.env.CLASH_PLANING_TEXT_CHANNEL;
 
-export async function addClashTime(bot: Client, msg: Message){
+bot.on('message', msg => {
+  if(msg.content.startsWith(BOT_PREFIX + 'clashMessage')) {
+    addClashTime(msg);
+  }
+});
+
+async function addClashTime(msg: Message){
   let message = msg.content.split("-payload ")[1];
   let channel = <TextChannel> await bot.channels.fetch(CLASH_PLANING_TEXT_CHANNEL);
   const post = await channel.send(message);

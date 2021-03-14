@@ -1,4 +1,4 @@
-export class WaniKaniSummary{
+export default class WaniKaniSummary{
   data:WaniKaniSummaryData;
 }
 

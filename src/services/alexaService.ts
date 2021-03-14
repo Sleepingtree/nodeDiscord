@@ -1,13 +1,19 @@
-import { Snowflake } from "discord.js";
+import { GuildChannel, Snowflake, VoiceState } from "discord.js";
 
 import fetch from 'node-fetch';
+import bot from './discordLogIn';
 import {whosOnline, getChannelNameFromId} from './discordLogIn';
 const NOTIFY_ME_KEY = process.env.NOTIFY_ME_KEY;
 const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
+const THE_FOREST_ID = process.env.THE_FOREST_ID;
 const maxResendTime: number = 1000 * 60 * 60 * 6; //6hours
 
 const urlBase = 'https://api.notifymyecho.com/v1/NotifyMe';
 let lastSent: number = null;
+
+bot.on('voiceStateUpdate', (oldState, newState) =>{
+    setTimeout(() => checkIfSateIsSame(newState), 1000 * 60 * 5);
+});
 
 export async function getAndRespondWhosOnline(channelId?: Snowflake){
     const channelIdToUse = channelId == null ? VOICE_CHANNEL_ID : channelId;
@@ -35,7 +41,7 @@ export async function getAndRespondWhosOnline(channelId?: Snowflake){
             console.log(`sent message: ${notification}`);
 }
 
-export async function checkToSendWhosOnline(channelId: Snowflake){
+async function checkToSendWhosOnline(channelId: Snowflake){
  const users = await whosOnline(channelId != null ? channelId : VOICE_CHANNEL_ID);
  if(!users.includes('sleepingtree') && (lastSent == null || lastSent + maxResendTime < Date.now())){
     lastSent = Date.now();
@@ -46,4 +52,15 @@ export async function checkToSendWhosOnline(channelId: Snowflake){
     console.log('false');
     return false;
  }
+}
+
+function checkIfSateIsSame(oldState: VoiceState){
+    if(oldState != null && oldState.guild !=null && oldState.guild.id == THE_FOREST_ID){
+        bot.channels.fetch(oldState.channelID)
+            .then(channel => {
+                if((<GuildChannel>channel).members.has(oldState.member.id)){
+                  checkToSendWhosOnline(oldState.channelID);
+                }
+            }).catch(console.log);
+    }
 }
