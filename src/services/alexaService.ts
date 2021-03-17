@@ -1,8 +1,8 @@
 import { GuildChannel, Snowflake, VoiceState } from "discord.js";
 
 import fetch from 'node-fetch';
-import bot from './discordLogIn';
-import {whosOnline, getChannelNameFromId} from './discordLogIn';
+import bot, {whosOnline, getChannelNameFromId} from './discordLogIn';
+
 const NOTIFY_ME_KEY = process.env.NOTIFY_ME_KEY;
 const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
 const THE_FOREST_ID = process.env.THE_FOREST_ID;

@@ -1,6 +1,5 @@
 import { Activity, Client, Guild, GuildMember, Message } from "discord.js";
-import bot from './discordLogIn';
-import {BOT_PREFIX} from './discordLogIn';
+import bot, {BOT_PREFIX} from './discordLogIn';
 
 const roles = ['VALORANT', 'League of Legends', 'Among Us', 'Overwatch'];
 const THE_FOREST_ID = process.env.THE_FOREST_ID;

@@ -1,7 +1,6 @@
 import fetch from 'node-fetch';
 import WaniKaniSummary from '../model/WaniKaniSummary';
-import bot from './discordLogIn';
-import {BOT_PREFIX} from './discordLogIn';
+import bot, {BOT_PREFIX}  from './discordLogIn';
 
 const WANIKANI_API_KEY = process.env.WANIKANI_API_KEY;
 const TREE_USER_ID = process.env.TREE_USER_ID;

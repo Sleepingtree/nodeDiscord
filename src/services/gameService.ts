@@ -1,4 +1,3 @@
-const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
 const TREE_USER_ID = process.env.TREE_USER_ID;
 const RED_TEAM_VOICE_CHANNEL_ID =process.env.RED_TEAM_VOICE_CHANNEL;
 const BLUE_TEAM_VOICE_CHANNEL_ID =process.env.BLUE_TEAM_VOICE_CHANNEL;
@@ -13,8 +12,7 @@ import * as twitchService from './twitchService';
 
 import fs from 'fs';
 import { Client, Message, VoiceChannel } from 'discord.js';
-import bot from './discordLogIn';
-import {BOT_PREFIX} from './discordLogIn';
+import bot, {BOT_PREFIX} from './discordLogIn';
 
 let usersInGame: string[] = [];
 let redTeam: string[] = new Array();
@@ -24,6 +22,7 @@ let gameName: string = null;
 let jsonFile: Map<string, Map<string, number>> = null;
 let redTeamMmr = 0;
 let blueTeamMmr = 0;
+let startingChannel: VoiceChannel = null;
 
 bot.on('message', msg => {
     if (msg.content.startsWith(BOT_PREFIX + 'startGame')) {
@@ -45,6 +44,10 @@ bot.on('message', msg => {
   
 
 async function startGame(msg: Message) {
+    const voiceChannel = msg.member.voice.channel;
+    if(!voiceChannel){
+        msg.channel.send(`Must be in a voice channel to start a game`);
+    }
     let file = fs.readFileSync(mmrFileNme, 'utf8');
     jsonFile = JSON.parse(file);
 
@@ -83,24 +86,21 @@ async function startGame(msg: Message) {
         await makeTeamsManual(bot);
     }else{
         console.log("in else");
-        await bot.channels.fetch(VOICE_CHANNEL_ID)
-            .then(channel => {
-                (<VoiceChannel>channel).members
-                    .each(member => {
-                        usersInGame.push(member.id);
-                        userNameMap.set(member.id, member.user.username)
-                        if(jsonFile.get(gameName).get(member.id)== null){
-                            jsonFile.get(gameName).set(member.id, DEFAULT_MMR);
-                        }
-                    });
-                console.log((<VoiceChannel>channel).members);
+        voiceChannel.members
+            .each(member => {
+                usersInGame.push(member.id);
+                userNameMap.set(member.id, member.user.username)
+                if(jsonFile.get(gameName).get(member.id)== null){
+                    jsonFile.get(gameName).set(member.id, DEFAULT_MMR);
+                }
             });
+        console.log(voiceChannel.members);
         //Highest mmr First
         console.log(usersInGame);
         usersInGame.sort((a,b) => jsonFile.get(gameName).get(b)-jsonFile.get(gameName).get(a));
 
         makeTeams();
-        moveUsers(bot, redTeam);
+        moveUsers(bot, redTeam, voiceChannel);
     }
 
     if(usersInGame.length == 0){
@@ -208,18 +208,15 @@ function convertUserMMRtoDisplayMMR(trueMMR: number){
     return retVal;
 }
 
-async function moveUsers(bot: Client, redTeamUser: string[]){
- bot.channels.fetch(VOICE_CHANNEL_ID)
-    .then(channel => {
-        (<VoiceChannel>channel).members
-            .each(member => {
-                if(redTeamUser.filter(id => id == member.id).length >0){
-                    member.voice.setChannel(RED_TEAM_VOICE_CHANNEL_ID);
-                }else{
-                    member.voice.setChannel(BLUE_TEAM_VOICE_CHANNEL_ID);
-                }
-            });
-  });
+ function moveUsers(bot: Client, redTeamUser: string[], channel: VoiceChannel){
+    channel.members
+        .each(member => {
+            if(redTeamUser.filter(id => id == member.id).length >0){
+                member.voice.setChannel(RED_TEAM_VOICE_CHANNEL_ID);
+            }else{
+                member.voice.setChannel(BLUE_TEAM_VOICE_CHANNEL_ID);
+            }
+        });
 }
 
 async function moveUsersBack(bot: Client){
@@ -227,16 +224,17 @@ async function moveUsersBack(bot: Client){
     .then(channel => {
         (<VoiceChannel>channel).members
             .each(member => {
-                member.voice.setChannel(VOICE_CHANNEL_ID);
+                member.voice.setChannel(startingChannel);
             });
   });
   bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID)
       .then(channel => {
           (<VoiceChannel>channel).members
               .each(member => {
-                  member.voice.setChannel(VOICE_CHANNEL_ID);
+                  member.voice.setChannel(startingChannel);
               });
     });
+    startingChannel = null;
 }
 
 function makeTeams(){

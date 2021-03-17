@@ -1,8 +1,7 @@
 import { Client, Collection, CollectorFilter, Message, MessageReaction, User } from "discord.js";
-import fetch, { Response } from 'node-fetch';
+import fetch from 'node-fetch';
 
-import bot from './discordLogIn';
-import {BOT_PREFIX} from './discordLogIn';
+import bot, {BOT_PREFIX} from './discordLogIn';
 
 const blueTeamEmoji = '🔵';
 const redTeamEmoji = '🔴';

@@ -19,6 +19,7 @@
     "dotenv": "^8.2.0",
     "express": "~4.16.1",
     "ffmpeg-static": "^4.2.7",
+    "googleapis": "^67.1.1",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
     "node-fetch": "^2.6.1",
