@@ -6,7 +6,6 @@
     "start": "node ./dist/app/www",
     "prestart": "npm run build",
     "build": "tsc",
-    "presb": "npm run build",
     "sb": "nohup node ./dist/app/www > output.log &"
   },
   "dependencies": {
@@ -18,13 +17,13 @@
     "discord.js": "^12.5.1",
     "dotenv": "^8.2.0",
     "express": "~4.16.1",
-    "ffmpeg-static": "^4.2.7",
+    "ffmpeg-static": "^4.2.8",
     "googleapis": "^67.1.1",
     "http-errors": "~1.6.3",
     "morgan": "~1.9.1",
     "node-fetch": "^2.6.1",
     "pug": "^3.0.2",
-    "tmi.js": "^1.5.0",
+    "tmi.js": "^1.7.5",
     "ytdl-core": "^4.5.0"
   },
   "devDependencies": {
