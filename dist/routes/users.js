@@ -20,7 +20,7 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = __importStar(require("express"));
-var router = express.Router();
+const router = express.Router();
 /* GET users listing. */
 router.get('/', function (req, res, next) {
     res.send('respond with a resource');

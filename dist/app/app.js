@@ -3,12 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-require('dotenv').config();
-var createError = require('http-errors');
+const dotenv_1 = require("dotenv");
+dotenv_1.config();
+const http_errors_1 = __importDefault(require("http-errors"));
 const express_1 = __importDefault(require("express"));
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
+const path_1 = __importDefault(require("path"));
+const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const morgan_1 = __importDefault(require("morgan"));
 const index_1 = __importDefault(require("../routes/index"));
 const users_1 = __importDefault(require("../routes/users"));
 const alexaRouter_1 = __importDefault(require("../routes/alexaRouter"));
@@ -20,21 +21,21 @@ require("../services/gameService");
 require("../services/youtubeService");
 require("../services/draftService");
 require("../services/clashPlaningService");
-var app = express_1.default();
+const app = express_1.default();
 // view engine setup
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path_1.default.join(__dirname, '../../views'));
 app.set('view engine', 'pug');
-app.use(logger('dev'));
+app.use(morgan_1.default('dev'));
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express_1.default.static(path.join(__dirname, 'public')));
+app.use(cookie_parser_1.default());
+app.use(express_1.default.static(path_1.default.join(__dirname, '../../public')));
 app.use('/', index_1.default);
 app.use('/users', users_1.default);
 app.use('/whosOnline', alexaRouter_1.default);
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-    next(createError(404));
+    next(http_errors_1.default(404));
 });
 // error handler
 app.use(function (err, req, res, next) {
