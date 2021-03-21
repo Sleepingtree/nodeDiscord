@@ -1,13 +1,4 @@
 "use strict";
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -57,36 +48,32 @@ bot.on('messageDelete', message => {
         fs_1.default.writeFileSync(deletedMessageFile, fileString);
     }
 });
-function getChannelNameFromId(channelId) {
-    return __awaiter(this, void 0, void 0, function* () {
-        return yield bot.channels.fetch(channelId)
-            .then(channel => channel.name)
-            .catch(console.log);
-    });
+async function getChannelNameFromId(channelId) {
+    return await bot.channels.fetch(channelId)
+        .then(channel => channel.name)
+        .catch(console.log);
 }
 exports.getChannelNameFromId = getChannelNameFromId;
-function whosOnline(channelId) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (!channelId) {
-            throw 'channel id is null';
+async function whosOnline(channelId) {
+    if (!channelId) {
+        throw 'channel id is null';
+    }
+    let usersOnline = new Array();
+    await bot.channels.fetch(channelId)
+        .then(channel => {
+        const guildChannel = channel;
+        if (channel != null && guildChannel.members != null) {
+            guildChannel.members
+                .each(member => bot.users.fetch(member.id)
+                .then(user => {
+                usersOnline.push(user.username);
+            }));
         }
-        let usersOnline = new Array();
-        yield bot.channels.fetch(channelId)
-            .then(channel => {
-            const guildChannel = channel;
-            if (channel != null && guildChannel.members != null) {
-                guildChannel.members
-                    .each(member => bot.users.fetch(member.id)
-                    .then(user => {
-                    usersOnline.push(user.username);
-                }));
-            }
-        })
-            .catch(err => {
-            console.log(err);
-        });
-        return usersOnline;
+    })
+        .catch(err => {
+        console.log(err);
     });
+    return usersOnline;
 }
 exports.whosOnline = whosOnline;
 function whoIs(msg) {

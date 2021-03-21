@@ -18,15 +18,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -77,83 +68,81 @@ discordLogIn_1.default.on('message', msg => {
         pickMap(msg);
     }
 });
-function startGame(msg) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (msg.member) {
-            const voiceChannel = msg.member.voice.channel;
-            startingChannel = voiceChannel;
-            if (!voiceChannel) {
-                msg.channel.send(`Must be in a voice channel to start a game`);
-            }
-            try {
-                const file = fs_1.default.readFileSync(mmrFileNme, 'utf8');
-                jsonFile = new MMRFile_1.default(file);
-            }
-            catch (_a) {
-                console.warn(`mmrFile in path ${mmrFileNme} does not exist making new file`);
-                jsonFile = new MMRFile_1.default();
-            }
-            const useMoonRunes = msg.member.id === TREE_USER_ID;
-            if (GAME_NAME != null) {
-                msg.channel.send(`game already started call !cancelGame first or !redWins !blueWins if done`);
-                return;
-            }
-            const userGameName = yield discordLogIn_1.default.users
-                .fetch(msg.member.id)
-                .then(user => {
-                for (let activityId in user.presence.activities) {
-                    if (user.presence.activities[activityId].type === 'PLAYING') {
-                        return user.presence.activities[activityId].name;
-                    }
+async function startGame(msg) {
+    if (msg.member) {
+        const voiceChannel = msg.member.voice.channel;
+        startingChannel = voiceChannel;
+        if (!voiceChannel) {
+            msg.channel.send(`Must be in a voice channel to start a game`);
+        }
+        try {
+            const file = fs_1.default.readFileSync(mmrFileNme, 'utf8');
+            jsonFile = new MMRFile_1.default(file);
+        }
+        catch {
+            console.warn(`mmrFile in path ${mmrFileNme} does not exist making new file`);
+            jsonFile = new MMRFile_1.default();
+        }
+        const useMoonRunes = msg.member.id === TREE_USER_ID;
+        if (GAME_NAME != null) {
+            msg.channel.send(`game already started call !cancelGame first or !redWins !blueWins if done`);
+            return;
+        }
+        const userGameName = await discordLogIn_1.default.users
+            .fetch(msg.member.id)
+            .then(user => {
+            for (let activityId in user.presence.activities) {
+                if (user.presence.activities[activityId].type === 'PLAYING') {
+                    return user.presence.activities[activityId].name;
                 }
-            });
-            if (typeof userGameName === 'string') {
-                GAME_NAME = userGameName;
-                console.log(`${jsonFile}`);
-                if (msg.content.includes("-manual")) {
-                    yield makeTeamsManual(discordLogIn_1.default, msg, userGameName);
-                }
-                else {
-                    console.log("in else");
-                    if (voiceChannel && GAME_NAME && jsonFile) {
-                        voiceChannel.members
-                            .each(member => {
-                            usersInGame.push(member.id);
-                            userNameMap.set(member.id, member.user.username);
-                        });
-                        console.log(voiceChannel.members);
-                        //Highest mmr First
-                        console.log(usersInGame);
-                        usersInGame.sort((a, b) => userCompairator(a, b, userGameName));
-                        makeTeams(userGameName);
-                        moveUsers(redTeam, voiceChannel);
-                    }
-                }
+            }
+        });
+        if (typeof userGameName === 'string') {
+            GAME_NAME = userGameName;
+            console.log(`${jsonFile}`);
+            if (msg.content.includes("-manual")) {
+                await makeTeamsManual(discordLogIn_1.default, msg, userGameName);
             }
             else {
-                if (useMoonRunes) {
-                    msg.channel.send('ゲームの中にありません');
+                console.log("in else");
+                if (voiceChannel && GAME_NAME && jsonFile) {
+                    voiceChannel.members
+                        .each(member => {
+                        usersInGame.push(member.id);
+                        userNameMap.set(member.id, member.user.username);
+                    });
+                    console.log(voiceChannel.members);
+                    //Highest mmr First
+                    console.log(usersInGame);
+                    usersInGame.sort((a, b) => userCompairator(a, b, userGameName));
+                    makeTeams(userGameName);
+                    moveUsers(redTeam, voiceChannel);
                 }
-                else {
-                    msg.channel.send(`You are not in a game. Please make sure discord is broadcasting your game`);
-                }
-                return;
-            }
-            if (usersInGame.length == 0) {
-                if (useMoonRunes) {
-                    msg.channel.send(`Please join the general voice channel first, or use the -manual command while you are in the team channels`);
-                }
-                else {
-                    msg.channel.send(`チャンネルは誰もない`);
-                }
-            }
-            else {
-                const displayMessage = getTeamMessage(true, msg);
-                msg.channel.send(displayMessage);
-                twitchService.sendMessage(displayMessage);
             }
         }
-    });
+        else {
+            if (useMoonRunes) {
+                msg.channel.send('ゲームの中にありません');
+            }
+            else {
+                msg.channel.send(`You are not in a game. Please make sure discord is broadcasting your game`);
+            }
+            return;
+        }
+        if (usersInGame.length == 0) {
+            if (useMoonRunes) {
+                msg.channel.send(`Please join the general voice channel first, or use the -manual command while you are in the team channels`);
+            }
+            else {
+                msg.channel.send(`チャンネルは誰もない`);
+            }
+        }
+        else {
+            const displayMessage = getTeamMessage(true, msg);
+            msg.channel.send(displayMessage);
+            twitchService.sendMessage(displayMessage);
+        }
+    }
 }
 function userCompairator(a, b, userGameName) {
     let bUser = jsonFile.getUsersMMR(userGameName, b);
@@ -194,29 +183,27 @@ function getTeamMessage(start, msg) {
     return displayMessage;
 }
 exports.getTeamMessage = getTeamMessage;
-function checkMmr(msg) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const file = fs_1.default.readFileSync(mmrFileNme, 'utf8');
-        const translatedFile = JSON.parse(file);
-        let message = '';
-        Object.keys(translatedFile).forEach(key => {
-            if (key != 'metaData') {
-                if (translatedFile[key][msg.author.id] != null) {
-                    if (message == '') {
-                        message = 'Your mmr ' + msg.author.username + ': ';
-                    }
-                    message += '\r\n' + key + ': ' + convertUserMMRtoDisplayMMR(translatedFile[key][msg.author.id]);
-                    console.log(message);
+async function checkMmr(msg) {
+    const file = fs_1.default.readFileSync(mmrFileNme, 'utf8');
+    const translatedFile = JSON.parse(file);
+    let message = '';
+    Object.keys(translatedFile).forEach(key => {
+        if (key != 'metaData') {
+            if (translatedFile[key][msg.author.id] != null) {
+                if (message == '') {
+                    message = 'Your mmr ' + msg.author.username + ': ';
                 }
+                message += '\r\n' + key + ': ' + convertUserMMRtoDisplayMMR(translatedFile[key][msg.author.id]);
+                console.log(message);
             }
-        });
-        if (message == '') {
-            msg.channel.send('No MMR on file');
-        }
-        else {
-            msg.channel.send(message);
         }
     });
+    if (message == '') {
+        msg.channel.send('No MMR on file');
+    }
+    else {
+        msg.channel.send(message);
+    }
 }
 function convertUserMMRtoDisplayMMR(trueMMR) {
     let mmrFloorMap = new Map();
@@ -273,36 +260,34 @@ function moveUsers(redTeamUser, channel) {
         }
     });
 }
-function moveUsersBack(bot) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (!RED_TEAM_VOICE_CHANNEL_ID) {
-            console.log("RED_TEAM_VOICE_CHANNEL_ID not defined!");
-            return;
-        }
-        if (!BLUE_TEAM_VOICE_CHANNEL_ID) {
-            console.log("BLUE_TEAM_VOICE_CHANNEL_ID not defined!");
-            return;
-        }
-        const blueTeamChannel = yield bot.channels.fetch(BLUE_TEAM_VOICE_CHANNEL_ID);
-        if (blueTeamChannel instanceof discord_js_1.VoiceChannel) {
-            blueTeamChannel.members.each(member => {
-                member.voice.setChannel(startingChannel);
-            });
-        }
-        else {
-            console.error(`BLUE_TEAM_VOICE_CHANNEL_ID:${BLUE_TEAM_VOICE_CHANNEL_ID} is not a voice channel`);
-        }
-        const redTeamChannel = yield bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID);
-        if (redTeamChannel instanceof discord_js_1.VoiceChannel) {
-            redTeamChannel.members.each(member => {
-                member.voice.setChannel(startingChannel);
-            });
-        }
-        else {
-            console.error(`RED_TEAM_VOICE_CHANNEL_ID:${RED_TEAM_VOICE_CHANNEL_ID} is not a voice channel`);
-        }
-        startingChannel = null;
-    });
+async function moveUsersBack(bot) {
+    if (!RED_TEAM_VOICE_CHANNEL_ID) {
+        console.log("RED_TEAM_VOICE_CHANNEL_ID not defined!");
+        return;
+    }
+    if (!BLUE_TEAM_VOICE_CHANNEL_ID) {
+        console.log("BLUE_TEAM_VOICE_CHANNEL_ID not defined!");
+        return;
+    }
+    const blueTeamChannel = await bot.channels.fetch(BLUE_TEAM_VOICE_CHANNEL_ID);
+    if (blueTeamChannel instanceof discord_js_1.VoiceChannel) {
+        blueTeamChannel.members.each(member => {
+            member.voice.setChannel(startingChannel);
+        });
+    }
+    else {
+        console.error(`BLUE_TEAM_VOICE_CHANNEL_ID:${BLUE_TEAM_VOICE_CHANNEL_ID} is not a voice channel`);
+    }
+    const redTeamChannel = await bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID);
+    if (redTeamChannel instanceof discord_js_1.VoiceChannel) {
+        redTeamChannel.members.each(member => {
+            member.voice.setChannel(startingChannel);
+        });
+    }
+    else {
+        console.error(`RED_TEAM_VOICE_CHANNEL_ID:${RED_TEAM_VOICE_CHANNEL_ID} is not a voice channel`);
+    }
+    startingChannel = null;
 }
 function makeTeams(gameName) {
     console.log('usersInGame');
@@ -321,35 +306,33 @@ function makeTeams(gameName) {
         }
     }
 }
-function makeTeamsManual(bot, msg, gameName) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (RED_TEAM_VOICE_CHANNEL_ID) {
-            const channel = yield bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID);
-            if (channel instanceof discord_js_1.VoiceChannel) {
-                channel.members
-                    .each(member => {
-                    usersInGame.push(member.id);
-                    userNameMap.set(member.id, member.user.username);
-                    redTeam.push(member.id);
-                    redTeamMmr += jsonFile.getUsersMMR(gameName, member.id);
-                });
-                console.log(channel.members);
-            }
+async function makeTeamsManual(bot, msg, gameName) {
+    if (RED_TEAM_VOICE_CHANNEL_ID) {
+        const channel = await bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID);
+        if (channel instanceof discord_js_1.VoiceChannel) {
+            channel.members
+                .each(member => {
+                usersInGame.push(member.id);
+                userNameMap.set(member.id, member.user.username);
+                redTeam.push(member.id);
+                redTeamMmr += jsonFile.getUsersMMR(gameName, member.id);
+            });
+            console.log(channel.members);
         }
-        if (BLUE_TEAM_VOICE_CHANNEL_ID) {
-            const channel = yield bot.channels.fetch(BLUE_TEAM_VOICE_CHANNEL_ID);
-            if (channel instanceof discord_js_1.VoiceChannel) {
-                channel.members
-                    .each(member => {
-                    usersInGame.push(member.id);
-                    userNameMap.set(member.id, member.user.username);
-                    blueTeam.push(member.id);
-                    blueTeamMmr += jsonFile.getUsersMMR(gameName, member.id);
-                });
-                console.log(channel.members);
-            }
+    }
+    if (BLUE_TEAM_VOICE_CHANNEL_ID) {
+        const channel = await bot.channels.fetch(BLUE_TEAM_VOICE_CHANNEL_ID);
+        if (channel instanceof discord_js_1.VoiceChannel) {
+            channel.members
+                .each(member => {
+                usersInGame.push(member.id);
+                userNameMap.set(member.id, member.user.username);
+                blueTeam.push(member.id);
+                blueTeamMmr += jsonFile.getUsersMMR(gameName, member.id);
+            });
+            console.log(channel.members);
         }
-    });
+    }
 }
 function endGame(msg, updateMMR, redWon) {
     let mmrChange = null;
