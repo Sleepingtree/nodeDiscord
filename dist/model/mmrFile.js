@@ -55,4 +55,4 @@ class MMRFile {
 }
 exports.default = MMRFile;
 MMRFile.DEFAULT_MMR = 1000;
-//# sourceMappingURL=MMRFile.js.map
+//# sourceMappingURL=mmrFile.js.map

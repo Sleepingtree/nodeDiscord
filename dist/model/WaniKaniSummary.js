@@ -7,4 +7,4 @@ class WaniKaniSummaryData {
 }
 class WaniKaniReviews {
 }
-//# sourceMappingURL=WaniKaniSummary.js.map
+//# sourceMappingURL=waniKaniSummary.js.map

@@ -1,1 +1,1 @@
-{"version":3,"file":"SongQueue.js","sourceRoot":"","sources":["../../src/model/SongQueue.ts"],"names":[],"mappings":";;AAAA,MAAqB,aAAa;CAGjC;AAHD,gCAGC"}
+{"version":3,"file":"songQueue.js","sourceRoot":"","sources":["../../src/model/songQueue.ts"],"names":[],"mappings":";;AAAA,MAAqB,aAAa;CAGjC;AAHD,gCAGC"}

@@ -27,14 +27,14 @@ const twitchService = __importStar(require("./twitchService"));
 const fs_1 = __importDefault(require("fs"));
 const discord_js_1 = require("discord.js");
 const discordLogIn_1 = __importStar(require("./discordLogIn"));
-const MMRFile_1 = __importDefault(require("../model/MMRFile"));
+const mmrFile_1 = __importDefault(require("../model/mmrFile"));
 const TREE_USER_ID = process.env.TREE_USER_ID;
 const RED_TEAM_VOICE_CHANNEL_ID = process.env.RED_TEAM_VOICE_CHANNEL;
 const BLUE_TEAM_VOICE_CHANNEL_ID = process.env.BLUE_TEAM_VOICE_CHANNEL;
 const MMR_CHANGE_WEIGHT = 100;
 const RANK_GAP = 100;
 //This defualts gold to default mmr
-const BRONZE_STARTING_POINT = MMRFile_1.default.DEFAULT_MMR - 2 * RANK_GAP;
+const BRONZE_STARTING_POINT = mmrFile_1.default.DEFAULT_MMR - 2 * RANK_GAP;
 const mmrFileNme = 'mmr.json';
 let usersInGame = [];
 let redTeam = new Array();
@@ -77,11 +77,11 @@ async function startGame(msg) {
         }
         try {
             const file = fs_1.default.readFileSync(mmrFileNme, 'utf8');
-            jsonFile = new MMRFile_1.default(file);
+            jsonFile = new mmrFile_1.default(file);
         }
         catch {
             console.warn(`mmrFile in path ${mmrFileNme} does not exist making new file`);
-            jsonFile = new MMRFile_1.default();
+            jsonFile = new mmrFile_1.default();
         }
         const useMoonRunes = msg.member.id === TREE_USER_ID;
         if (GAME_NAME != null) {

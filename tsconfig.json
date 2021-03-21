@@ -3,17 +3,19 @@
         "module": "commonjs",
         "esModuleInterop": true,
         "target": "ES2019",
+        "lib": ["es2019", "es2020.promise", "es2020.bigint", "es2020.string"],
+        "forceConsistentCasingInFileNames": true,
         "noImplicitAny": true,
         "moduleResolution": "node",
         "sourceMap": true,
         "outDir": "dist",
         "declaration": true,
         "strictNullChecks": true,
+        "rootDir": "src",
         "baseUrl": ".",
         "paths": {
             "*": [
-                "node_modules/*",
-                "*"
+                "node_modules/*"
             ]
         }
     },

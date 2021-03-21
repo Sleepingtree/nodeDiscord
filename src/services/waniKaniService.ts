@@ -1,5 +1,5 @@
 import fetch from 'node-fetch';
-import WaniKaniSummary from '../model/WaniKaniSummary';
+import WaniKaniSummary from '../model/waniKaniSummary';
 import bot, {BOT_PREFIX}  from './discordLogIn';
 
 const WANIKANI_API_KEY = process.env.WANIKANI_API_KEY;

@@ -1,8 +1,8 @@
 import ytdl from "ytdl-core";
 import { VoiceConnection, Message, StreamDispatcher } from "discord.js";
 import bot, { BOT_PREFIX } from './discordLogIn';
-import { google, youtube_v3 as youtube } from 'googleapis';
-import SongQueueItem from "../model/SongQueue";
+import { google } from 'googleapis';
+import SongQueueItem from "../model/songQueue";
 
 let voiceConnection: VoiceConnection;
 let voiceStream: StreamDispatcher;

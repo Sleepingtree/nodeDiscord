@@ -3,7 +3,7 @@ import * as twitchService from './twitchService';
 import fs from 'fs';
 import { Client, Message, VoiceChannel } from 'discord.js';
 import bot, { BOT_PREFIX } from './discordLogIn';
-import MMRFile from '../model/MMRFile';
+import MMRFile from '../model/mmrFile';
 
 const TREE_USER_ID = process.env.TREE_USER_ID;
 const RED_TEAM_VOICE_CHANNEL_ID = process.env.RED_TEAM_VOICE_CHANNEL;

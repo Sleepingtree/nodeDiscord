@@ -1,1 +1,1 @@
-{"version":3,"file":"WaniKaniSummary.js","sourceRoot":"","sources":["../../src/model/WaniKaniSummary.ts"],"names":[],"mappings":";;AAAA,MAAqB,eAAe;CAEnC;AAFD,kCAEC;AAED,MAAM,mBAAmB;CAExB;AAED,MAAM,eAAe;CAEpB"}
+{"version":3,"file":"waniKaniSummary.js","sourceRoot":"","sources":["../../src/model/waniKaniSummary.ts"],"names":[],"mappings":";;AAAA,MAAqB,eAAe;CAEnC;AAFD,kCAEC;AAED,MAAM,mBAAmB;CAExB;AAED,MAAM,eAAe;CAEpB"}
