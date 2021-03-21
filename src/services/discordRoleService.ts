@@ -15,7 +15,8 @@ bot.on('message', msg => {
 });
 
 function checkUsersInDisc(bot: Client){
-    bot.guilds.fetch(THE_FOREST_ID)
+    if(THE_FOREST_ID){
+        bot.guilds.fetch(THE_FOREST_ID)
         .then(server =>{
             server.members.fetch()
                 .then(members =>{
@@ -23,6 +24,9 @@ function checkUsersInDisc(bot: Client){
                     .forEach(member => checkRolesToAdd(member, server));
                 })
         }).catch(console.log);
+    }else{
+        console.error('Forrest Id is not defind');
+    }
 }
 
 function checkRolesToAdd(member: GuildMember, server: Guild){
@@ -39,7 +43,7 @@ function joinRole(msg: Message){
      msg.channel.send("must be in in the form: ` !join -roleName`");
      return;
     }
-    if(roles.includes(roleName)){
+    if(roles.includes(roleName) && THE_FOREST_ID){
         bot.guilds.fetch(THE_FOREST_ID)
                 .then(sever =>
                     sever.members.fetch(msg.author.id)
@@ -48,7 +52,7 @@ function joinRole(msg: Message){
                 ).catch(console.log);
         msg.channel.send("Added role" + roleName);
     }else{
-        msg.channel.send("Can't add role " + roleName);
+        msg.channel.send(`Can't add role ${roleName} for server ${THE_FOREST_ID}`);
     }
 }
 
@@ -58,7 +62,7 @@ function checkIfshouldAddRole(member: GuildMember, activity: Activity, server: G
     const isRoleAddable = roles.includes(roleName);
     if(isPlaying && isRoleAddable){
       const role = server.roles.cache.find(role => role.name === roleName);
-      const isUserLackRole = !(member.roles.cache.has(role.id));
+      const isUserLackRole = role ? !(member.roles.cache.has(role.id)): false;
       return isPlaying && isRoleAddable && isUserLackRole;
     }else{
         return false;
@@ -67,8 +71,11 @@ function checkIfshouldAddRole(member: GuildMember, activity: Activity, server: G
 
 function addRolesForMember(member: GuildMember, roleName: String, server: Guild){
     const role = server.roles.cache.find(role => role.name === roleName);
-    member.roles.add(role);
-    console.log('added role: ' + roleName + ' for user: ' + member.user.username);
+    if(role){
+        member.roles.add(role);
+        console.log('added role: ' + roleName + ' for user: ' + member.user.username);
+    }
+    console.log(`could not add role ${roleName} as it was not found`);
 }
 
 function listRoles(msg: Message, joinCommand: String){

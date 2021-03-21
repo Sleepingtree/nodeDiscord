@@ -18,22 +18,14 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendMessage = void 0;
 const tmi = __importStar(require("tmi.js"));
 const gameService = __importStar(require("./gameService"));
 const TWITCH_USER_NAME = process.env.TWITCH_USER_NAME;
 const TWITCH_PASSWORD = process.env.TWITCH_PASSWORD;
-const TWITCH_CHANNEL_NAME = process.env.TWITCH_CHANNEL_NAME;
+const TWITCH_CHANNEL_NAME = (_a = process.env.TWITCH_CHANNEL_NAME) !== null && _a !== void 0 ? _a : "";
 const botPrefix = '!';
 // Define configuration options
 const opts = {
@@ -87,10 +79,8 @@ function rollDice() {
 function onConnectedHandler(addr, port) {
     console.log(`* Connected to ${addr}:${port}`);
 }
-function sendMessage(msg) {
-    return __awaiter(this, void 0, void 0, function* () {
-        client.say(TWITCH_CHANNEL_NAME, msg);
-    });
+async function sendMessage(msg) {
+    client.say(TWITCH_CHANNEL_NAME, msg);
 }
 exports.sendMessage = sendMessage;
 //# sourceMappingURL=twitchService.js.map

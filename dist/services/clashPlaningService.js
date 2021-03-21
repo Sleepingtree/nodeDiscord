@@ -18,33 +18,30 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 const discordLogIn_1 = __importStar(require("./discordLogIn"));
 const CLASH_PLANING_TEXT_CHANNEL = process.env.CLASH_PLANING_TEXT_CHANNEL;
+const TREE_USER_ID = process.env.TREE_USER_ID;
 discordLogIn_1.default.on('message', msg => {
     if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'clashMessage')) {
         addClashTime(msg);
     }
 });
-function addClashTime(msg) {
-    return __awaiter(this, void 0, void 0, function* () {
-        let message = msg.content.split("-payload ")[1];
-        let channel = yield discordLogIn_1.default.channels.fetch(CLASH_PLANING_TEXT_CHANNEL);
-        const post = yield channel.send(message);
-        yield post.react('✅');
+async function addClashTime(msg) {
+    const message = msg.content.split("-payload ")[1];
+    if (CLASH_PLANING_TEXT_CHANNEL && TREE_USER_ID && msg.author.id.toString() === TREE_USER_ID) {
+        const channel = await discordLogIn_1.default.channels.fetch(CLASH_PLANING_TEXT_CHANNEL);
+        const post = await channel.send(message);
+        await post.react('✅');
         //yellow square
-        yield post.react('🟨');
+        await post.react('🟨');
         //red X
-        yield post.react('❌');
-    });
+        await post.react('❌');
+    }
+    else {
+        console.warn(`didn't post the meesage because one of thise is false 
+    CLASH_PLANING_TEXT_CHANNEL:${typeof CLASH_PLANING_TEXT_CHANNEL === "undefined"}, TREE_USER_ID:${TREE_USER_ID}
+    or auther == tree? ${msg.author.id.toString() === TREE_USER_ID}`);
+    }
 }
 //# sourceMappingURL=clashPlaningService.js.map

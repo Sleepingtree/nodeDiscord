@@ -18,41 +18,33 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getTeamMessage = void 0;
+const twitchService = __importStar(require("./twitchService"));
+const fs_1 = __importDefault(require("fs"));
+const discord_js_1 = require("discord.js");
+const discordLogIn_1 = __importStar(require("./discordLogIn"));
+const MMRFile_1 = __importDefault(require("../model/MMRFile"));
 const TREE_USER_ID = process.env.TREE_USER_ID;
 const RED_TEAM_VOICE_CHANNEL_ID = process.env.RED_TEAM_VOICE_CHANNEL;
 const BLUE_TEAM_VOICE_CHANNEL_ID = process.env.BLUE_TEAM_VOICE_CHANNEL;
-const DEFAULT_MMR = 1000;
 const MMR_CHANGE_WEIGHT = 100;
 const RANK_GAP = 100;
 //This defualts gold to default mmr
-const BRONZE_STARTING_POINT = DEFAULT_MMR - 2 * RANK_GAP;
+const BRONZE_STARTING_POINT = MMRFile_1.default.DEFAULT_MMR - 2 * RANK_GAP;
 const mmrFileNme = 'mmr.json';
-const twitchService = __importStar(require("./twitchService"));
-const fs_1 = __importDefault(require("fs"));
-const discordLogIn_1 = __importStar(require("./discordLogIn"));
 let usersInGame = [];
 let redTeam = new Array();
 let blueTeam = new Array();
 let userNameMap = new Map();
-let gameName = null;
-let jsonFile = null;
+let GAME_NAME;
+let jsonFile;
 let redTeamMmr = 0;
 let blueTeamMmr = 0;
-let startingChannel = null;
+let startingChannel;
 discordLogIn_1.default.on('message', msg => {
     if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'startGame')) {
         startGame(msg);
@@ -61,13 +53,13 @@ discordLogIn_1.default.on('message', msg => {
         msg.channel.send("It's " + discordLogIn_1.BOT_PREFIX + 'startGame ... バカ...');
     }
     else if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'cancelGame')) {
-        endGame(msg);
+        endGame(msg, false);
     }
     else if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'redWins')) {
-        endGame(msg, true);
+        endGame(msg, true, true);
     }
     else if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'blueWins')) {
-        endGame(msg, false);
+        endGame(msg, true, false);
     }
     else if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'mmr')) {
         checkMmr(msg);
@@ -76,34 +68,59 @@ discordLogIn_1.default.on('message', msg => {
         pickMap(msg);
     }
 });
-function startGame(msg) {
-    return __awaiter(this, void 0, void 0, function* () {
+async function startGame(msg) {
+    if (msg.member) {
         const voiceChannel = msg.member.voice.channel;
+        startingChannel = voiceChannel;
         if (!voiceChannel) {
             msg.channel.send(`Must be in a voice channel to start a game`);
         }
-        let file = fs_1.default.readFileSync(mmrFileNme, 'utf8');
-        jsonFile = JSON.parse(file);
-        let useMoonRunes = msg.member.id == TREE_USER_ID;
-        if (gameName != null) {
+        try {
+            const file = fs_1.default.readFileSync(mmrFileNme, 'utf8');
+            jsonFile = new MMRFile_1.default(file);
+        }
+        catch {
+            console.warn(`mmrFile in path ${mmrFileNme} does not exist making new file`);
+            jsonFile = new MMRFile_1.default();
+        }
+        const useMoonRunes = msg.member.id === TREE_USER_ID;
+        if (GAME_NAME != null) {
             msg.channel.send(`game already started call !cancelGame first or !redWins !blueWins if done`);
             return;
         }
-        yield discordLogIn_1.default.users
+        const userGameName = await discordLogIn_1.default.users
             .fetch(msg.member.id)
             .then(user => {
-            useMoonRunes = false;
             for (let activityId in user.presence.activities) {
                 if (user.presence.activities[activityId].type === 'PLAYING') {
-                    gameName = user.presence.activities[activityId].name;
-                    console.log(`${jsonFile}`);
-                    if (jsonFile.get(gameName) == null) {
-                        jsonFile.set(gameName, new Map());
-                    }
+                    return user.presence.activities[activityId].name;
                 }
             }
         });
-        if (gameName == null) {
+        if (typeof userGameName === 'string') {
+            GAME_NAME = userGameName;
+            console.log(`${jsonFile}`);
+            if (msg.content.includes("-manual")) {
+                await makeTeamsManual(discordLogIn_1.default, msg, userGameName);
+            }
+            else {
+                console.log("in else");
+                if (voiceChannel && GAME_NAME && jsonFile) {
+                    voiceChannel.members
+                        .each(member => {
+                        usersInGame.push(member.id);
+                        userNameMap.set(member.id, member.user.username);
+                    });
+                    console.log(voiceChannel.members);
+                    //Highest mmr First
+                    console.log(usersInGame);
+                    usersInGame.sort((a, b) => userCompairator(a, b, userGameName));
+                    makeTeams(userGameName);
+                    moveUsers(redTeam, voiceChannel);
+                }
+            }
+        }
+        else {
             if (useMoonRunes) {
                 msg.channel.send('ゲームの中にありません');
             }
@@ -111,26 +128,6 @@ function startGame(msg) {
                 msg.channel.send(`You are not in a game. Please make sure discord is broadcasting your game`);
             }
             return;
-        }
-        if (msg.content.includes("-manual")) {
-            yield makeTeamsManual(discordLogIn_1.default);
-        }
-        else {
-            console.log("in else");
-            voiceChannel.members
-                .each(member => {
-                usersInGame.push(member.id);
-                userNameMap.set(member.id, member.user.username);
-                if (jsonFile.get(gameName).get(member.id) == null) {
-                    jsonFile.get(gameName).set(member.id, DEFAULT_MMR);
-                }
-            });
-            console.log(voiceChannel.members);
-            //Highest mmr First
-            console.log(usersInGame);
-            usersInGame.sort((a, b) => jsonFile.get(gameName).get(b) - jsonFile.get(gameName).get(a));
-            makeTeams();
-            moveUsers(discordLogIn_1.default, redTeam, voiceChannel);
         }
         if (usersInGame.length == 0) {
             if (useMoonRunes) {
@@ -145,20 +142,25 @@ function startGame(msg) {
             msg.channel.send(displayMessage);
             twitchService.sendMessage(displayMessage);
         }
-    });
+    }
+}
+function userCompairator(a, b, userGameName) {
+    let bUser = jsonFile.getUsersMMR(userGameName, b);
+    let aUser = jsonFile.getUsersMMR(userGameName, a);
+    return bUser - aUser;
 }
 function getTeamMessage(start, msg) {
-    if (gameName == null) {
+    if (GAME_NAME == null) {
         return 'No in house game started';
     }
     let gameMessage;
     if (start != null && start) {
-        gameMessage = `Started game of ` + gameName;
+        gameMessage = `Started game of ` + GAME_NAME;
     }
     else {
-        gameMessage = `Tree is playing a game of ` + gameName;
+        gameMessage = `Tree is playing a game of ` + GAME_NAME;
     }
-    if (gameName == 'VALORANT' && msg != null) {
+    if (GAME_NAME == 'VALORANT' && msg != null) {
         gameMessage += ' on map: ' + pickMap(msg, true);
     }
     let redTeamPrintUsers = "";
@@ -181,29 +183,27 @@ function getTeamMessage(start, msg) {
     return displayMessage;
 }
 exports.getTeamMessage = getTeamMessage;
-function checkMmr(msg) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const file = fs_1.default.readFileSync(mmrFileNme, 'utf8');
-        const translatedFile = JSON.parse(file);
-        let message = '';
-        Object.keys(translatedFile).forEach(key => {
-            if (key != 'metaData') {
-                if (translatedFile[key][msg.author.id] != null) {
-                    if (message == '') {
-                        message = 'Your mmr ' + msg.author.username + ': ';
-                    }
-                    message += '\r\n' + key + ': ' + convertUserMMRtoDisplayMMR(translatedFile[key][msg.author.id]);
-                    console.log(message);
+async function checkMmr(msg) {
+    const file = fs_1.default.readFileSync(mmrFileNme, 'utf8');
+    const translatedFile = JSON.parse(file);
+    let message = '';
+    Object.keys(translatedFile).forEach(key => {
+        if (key != 'metaData') {
+            if (translatedFile[key][msg.author.id] != null) {
+                if (message == '') {
+                    message = 'Your mmr ' + msg.author.username + ': ';
                 }
+                message += '\r\n' + key + ': ' + convertUserMMRtoDisplayMMR(translatedFile[key][msg.author.id]);
+                console.log(message);
             }
-        });
-        if (message == '') {
-            msg.channel.send('No MMR on file');
-        }
-        else {
-            msg.channel.send(message);
         }
     });
+    if (message == '') {
+        msg.channel.send('No MMR on file');
+    }
+    else {
+        msg.channel.send(message);
+    }
 }
 function convertUserMMRtoDisplayMMR(trueMMR) {
     let mmrFloorMap = new Map();
@@ -241,7 +241,15 @@ function convertUserMMRtoDisplayMMR(trueMMR) {
     }
     return retVal;
 }
-function moveUsers(bot, redTeamUser, channel) {
+function moveUsers(redTeamUser, channel) {
+    if (!RED_TEAM_VOICE_CHANNEL_ID) {
+        console.log("RED_TEAM_VOICE_CHANNEL_ID not defined!");
+        return;
+    }
+    if (!BLUE_TEAM_VOICE_CHANNEL_ID) {
+        console.log("BLUE_TEAM_VOICE_CHANNEL_ID not defined!");
+        return;
+    }
     channel.members
         .each(member => {
         if (redTeamUser.filter(id => id == member.id).length > 0) {
@@ -252,30 +260,40 @@ function moveUsers(bot, redTeamUser, channel) {
         }
     });
 }
-function moveUsersBack(bot) {
-    return __awaiter(this, void 0, void 0, function* () {
-        bot.channels.fetch(BLUE_TEAM_VOICE_CHANNEL_ID)
-            .then(channel => {
-            channel.members
-                .each(member => {
-                member.voice.setChannel(startingChannel);
-            });
+async function moveUsersBack(bot) {
+    if (!RED_TEAM_VOICE_CHANNEL_ID) {
+        console.log("RED_TEAM_VOICE_CHANNEL_ID not defined!");
+        return;
+    }
+    if (!BLUE_TEAM_VOICE_CHANNEL_ID) {
+        console.log("BLUE_TEAM_VOICE_CHANNEL_ID not defined!");
+        return;
+    }
+    const blueTeamChannel = await bot.channels.fetch(BLUE_TEAM_VOICE_CHANNEL_ID);
+    if (blueTeamChannel instanceof discord_js_1.VoiceChannel) {
+        blueTeamChannel.members.each(member => {
+            member.voice.setChannel(startingChannel);
         });
-        bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID)
-            .then(channel => {
-            channel.members
-                .each(member => {
-                member.voice.setChannel(startingChannel);
-            });
+    }
+    else {
+        console.error(`BLUE_TEAM_VOICE_CHANNEL_ID:${BLUE_TEAM_VOICE_CHANNEL_ID} is not a voice channel`);
+    }
+    const redTeamChannel = await bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID);
+    if (redTeamChannel instanceof discord_js_1.VoiceChannel) {
+        redTeamChannel.members.each(member => {
+            member.voice.setChannel(startingChannel);
         });
-        startingChannel = null;
-    });
+    }
+    else {
+        console.error(`RED_TEAM_VOICE_CHANNEL_ID:${RED_TEAM_VOICE_CHANNEL_ID} is not a voice channel`);
+    }
+    startingChannel = null;
 }
-function makeTeams() {
+function makeTeams(gameName) {
     console.log('usersInGame');
     console.log(usersInGame);
     for (let i = 0; i < usersInGame.length; i++) {
-        let userMmr = jsonFile.get(gameName).get(usersInGame[i]);
+        let userMmr = jsonFile.getUsersMMR(gameName, usersInGame[i]);
         if (redTeamMmr <= blueTeamMmr || (blueTeam.length >= usersInGame.length / 2)) {
             console.log('Adding user to red' + usersInGame[i]);
             redTeam.push(usersInGame[i]);
@@ -288,54 +306,52 @@ function makeTeams() {
         }
     }
 }
-function makeTeamsManual(bot) {
-    return __awaiter(this, void 0, void 0, function* () {
-        bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID)
-            .then(channel => {
+async function makeTeamsManual(bot, msg, gameName) {
+    if (RED_TEAM_VOICE_CHANNEL_ID) {
+        const channel = await bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID);
+        if (channel instanceof discord_js_1.VoiceChannel) {
             channel.members
                 .each(member => {
                 usersInGame.push(member.id);
                 userNameMap.set(member.id, member.user.username);
                 redTeam.push(member.id);
-                if (jsonFile.get(gameName).get(member.id) == null) {
-                    jsonFile.get(gameName).set(member.id, DEFAULT_MMR);
-                }
-                let userMmr = jsonFile.get(gameName).get(member.id);
-                redTeamMmr += userMmr;
+                redTeamMmr += jsonFile.getUsersMMR(gameName, member.id);
             });
             console.log(channel.members);
-        });
-        bot.channels.fetch(BLUE_TEAM_VOICE_CHANNEL_ID)
-            .then(channel => {
+        }
+    }
+    if (BLUE_TEAM_VOICE_CHANNEL_ID) {
+        const channel = await bot.channels.fetch(BLUE_TEAM_VOICE_CHANNEL_ID);
+        if (channel instanceof discord_js_1.VoiceChannel) {
             channel.members
                 .each(member => {
                 usersInGame.push(member.id);
                 userNameMap.set(member.id, member.user.username);
                 blueTeam.push(member.id);
-                if (jsonFile.get(gameName).get(member.id) == null) {
-                    jsonFile.get(gameName).set(member.id, DEFAULT_MMR);
-                }
-                let userMmr = jsonFile.get(gameName).get(member.id);
-                blueTeamMmr += userMmr;
+                blueTeamMmr += jsonFile.getUsersMMR(gameName, member.id);
             });
             console.log(channel.members);
-        });
-    });
+        }
+    }
 }
-function endGame(msg, redWon) {
+function endGame(msg, updateMMR, redWon) {
     let mmrChange = null;
-    if (redWon != null) {
-        mmrChange = updateMmr(redWon, msg);
+    if (updateMMR) {
+        if (typeof redWon !== 'undefined' && GAME_NAME) {
+            mmrChange = updateMmr(redWon, msg, GAME_NAME);
+        }
+        else {
+            msg.channel.send('couldn\'t update mmr sorry!');
+        }
     }
     usersInGame = [];
-    gameName = null;
+    GAME_NAME = null;
     redTeam = new Array();
     blueTeam = new Array();
     redTeamMmr = 0;
     blueTeamMmr = 0;
-    const fileString = JSON.stringify(jsonFile, null, 2);
+    const fileString = JSON.stringify(jsonFile.getFileToSave(), null, 2);
     fs_1.default.writeFileSync(mmrFileNme, fileString);
-    jsonFile = null;
     let userMsg = mmrChange == null ? 'Canceled Game' : 'Game ended mmr lost/gained: ' + Math.floor(mmrChange);
     if (mmrChange != null) {
         twitchService.sendMessage(userMsg);
@@ -356,7 +372,7 @@ function pickMap(msg, supressMessage) {
     }
     return lastMap;
 }
-function updateMmr(redWon, msg) {
+function updateMmr(redWon, msg, gameName) {
     const redWinProbability = probabilityOfRedWin();
     const blueWinProbability = 1 - redWinProbability;
     let mmrChangeWeight;
@@ -380,9 +396,9 @@ function updateMmr(redWon, msg) {
     return (mmrChangeWeight * (redWon ? blueWinProbability : redWinProbability)) * 100 / RANK_GAP;
 }
 function updateFileMMR(file, gameName, userId, changeWeight) {
-    let mmr = file.get(gameName).get(userId);
+    let mmr = file.getUsersMMR(gameName, userId);
     mmr += changeWeight;
-    file.get(gameName).set(userId, mmr);
+    file.addOrUpdateUser(gameName, userId, mmr);
 }
 function probabilityOfRedWin() {
     const ratingDifferance = blueTeamMmr - redTeamMmr;

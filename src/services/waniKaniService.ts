@@ -4,7 +4,7 @@ import bot, {BOT_PREFIX}  from './discordLogIn';
 
 const WANIKANI_API_KEY = process.env.WANIKANI_API_KEY;
 const TREE_USER_ID = process.env.TREE_USER_ID;
-let lastSummery: WaniKaniSummary = null;
+let lastSummery: WaniKaniSummary | undefined;
 let reviewMessageSent: boolean = true;
 const checkWaniKaniInterval = 1000 * 60;
 
@@ -24,22 +24,23 @@ async function getSummery(){
 }
 
 function getReviewCount(){
-  return lastSummery == null ? null : lastSummery.data.reviews[0].subject_ids.length;
+  return lastSummery?.data.reviews[0].subject_ids.length;
 }
 
 async function checkReviewCount(){
   await getSummery();
-  if(getReviewCount() > 0 && !reviewMessageSent){
+  const reviewCount = getReviewCount();
+  if(reviewCount && reviewCount > 0 && !reviewMessageSent){
     sendReviewcount();
-  }else if(getReviewCount() == 0){
+  }else if(reviewCount == 0){
     reviewMessageSent = false;
   }
 }
 
 function sendReviewcount(){
- let reviewCount: number = getReviewCount();
- let message: string = null;
- if(reviewCount > 0){
+ let reviewCount = getReviewCount();
+ let message: string;
+ if(reviewCount && reviewCount > 0){
     reviewMessageSent = true;
     let addS = reviewCount > 1 ? 's' : '';
     message = `You have ${reviewCount} review${addS} to do! がんばって`;
@@ -47,7 +48,9 @@ function sendReviewcount(){
     reviewMessageSent = false;
     message = `何もない`;
  }
- bot.users.fetch(TREE_USER_ID).then(user => user.send(message));
+ if(TREE_USER_ID){
+  bot.users.fetch(TREE_USER_ID).then(user => user.send(message));
+ }
 }
 
 setInterval(() => checkReviewCount(), checkWaniKaniInterval);

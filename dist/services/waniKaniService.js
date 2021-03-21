@@ -18,15 +18,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -35,7 +26,7 @@ const node_fetch_1 = __importDefault(require("node-fetch"));
 const discordLogIn_1 = __importStar(require("./discordLogIn"));
 const WANIKANI_API_KEY = process.env.WANIKANI_API_KEY;
 const TREE_USER_ID = process.env.TREE_USER_ID;
-let lastSummery = null;
+let lastSummery;
 let reviewMessageSent = true;
 const checkWaniKaniInterval = 1000 * 60;
 discordLogIn_1.default.on('message', msg => {
@@ -43,34 +34,31 @@ discordLogIn_1.default.on('message', msg => {
         sendReviewcount();
     }
 });
-function getSummery() {
-    return __awaiter(this, void 0, void 0, function* () {
-        const url = "https://api.wanikani.com/v2/summary";
-        let res = yield node_fetch_1.default(url, {
-            method: 'get',
-            headers: { 'Authorization': `Bearer ${WANIKANI_API_KEY}` },
-        });
-        lastSummery = (yield res.json());
+async function getSummery() {
+    const url = "https://api.wanikani.com/v2/summary";
+    let res = await node_fetch_1.default(url, {
+        method: 'get',
+        headers: { 'Authorization': `Bearer ${WANIKANI_API_KEY}` },
     });
+    lastSummery = await res.json();
 }
 function getReviewCount() {
-    return lastSummery == null ? null : lastSummery.data.reviews[0].subject_ids.length;
+    return lastSummery === null || lastSummery === void 0 ? void 0 : lastSummery.data.reviews[0].subject_ids.length;
 }
-function checkReviewCount() {
-    return __awaiter(this, void 0, void 0, function* () {
-        yield getSummery();
-        if (getReviewCount() > 0 && !reviewMessageSent) {
-            sendReviewcount();
-        }
-        else if (getReviewCount() == 0) {
-            reviewMessageSent = false;
-        }
-    });
+async function checkReviewCount() {
+    await getSummery();
+    const reviewCount = getReviewCount();
+    if (reviewCount && reviewCount > 0 && !reviewMessageSent) {
+        sendReviewcount();
+    }
+    else if (reviewCount == 0) {
+        reviewMessageSent = false;
+    }
 }
 function sendReviewcount() {
     let reviewCount = getReviewCount();
-    let message = null;
-    if (reviewCount > 0) {
+    let message;
+    if (reviewCount && reviewCount > 0) {
         reviewMessageSent = true;
         let addS = reviewCount > 1 ? 's' : '';
         message = `You have ${reviewCount} review${addS} to do! がんばって`;
@@ -79,7 +67,9 @@ function sendReviewcount() {
         reviewMessageSent = false;
         message = `何もない`;
     }
-    discordLogIn_1.default.users.fetch(TREE_USER_ID).then(user => user.send(message));
+    if (TREE_USER_ID) {
+        discordLogIn_1.default.users.fetch(TREE_USER_ID).then(user => user.send(message));
+    }
 }
 setInterval(() => checkReviewCount(), checkWaniKaniInterval);
 //# sourceMappingURL=waniKaniService.js.map

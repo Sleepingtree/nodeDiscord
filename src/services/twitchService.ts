@@ -2,7 +2,7 @@ import * as tmi from 'tmi.js';
 import * as gameService from './gameService';
 const TWITCH_USER_NAME = process.env.TWITCH_USER_NAME;
 const TWITCH_PASSWORD = process.env.TWITCH_PASSWORD;
-const TWITCH_CHANNEL_NAME = process.env.TWITCH_CHANNEL_NAME;
+const TWITCH_CHANNEL_NAME = process.env.TWITCH_CHANNEL_NAME ?? "";
 
 const botPrefix = '!';
 

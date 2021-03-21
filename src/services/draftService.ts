@@ -46,7 +46,7 @@ function sendLink(post: Message, filter: CollectorFilter){
 
 function handleCaptianPromise(collection: Collection<string, MessageReaction>, post: Message, url: String, bot: Client){
   const reaction = collection.first();
-  const teamCaptaianId = reaction.users.cache.filter(user => user.id != post.author.id).values().next().value.id;
+  const teamCaptaianId = reaction?.users.cache.filter(user => user.id != post.author.id).values().next().value.id;
   bot.users.fetch(teamCaptaianId).then(user => user.send("Draft link:" + url));
 }
 

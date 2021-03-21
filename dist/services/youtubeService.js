@@ -18,15 +18,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
@@ -34,8 +25,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const ytdl_core_1 = __importDefault(require("ytdl-core"));
 const discordLogIn_1 = __importStar(require("./discordLogIn"));
 const googleapis_1 = require("googleapis");
-let voiceConnection = null;
-let voiceStream = null;
+let voiceConnection;
+let voiceStream;
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 const playQueue = [];
 const service = googleapis_1.google.youtube({
@@ -71,65 +62,66 @@ discordLogIn_1.default.on('message', msg => {
         closeVoiceConnection();
     }
 });
-function playYoutube(msg, url) {
-    return __awaiter(this, void 0, void 0, function* () {
-        if (voiceConnection === null) {
-            yield getConnection(msg);
-        }
-        voiceStream = voiceConnection.play(ytdl_core_1.default(url, { quality: 'highestaudio' }), { volume: 0.1 })
-            .on("finish", () => checkAndIncrmentQueue(msg))
-            .on("error", closeVoiceConnection);
-    });
+async function playYoutube(msg, url) {
+    if (voiceConnection === null) {
+        await getConnection(msg);
+    }
+    voiceStream = voiceConnection.play(ytdl_core_1.default(url, { quality: 'highestaudio' }), { volume: 0.1 })
+        .on("finish", () => checkAndIncrmentQueue(msg))
+        .on("error", closeVoiceConnection);
 }
-function getConnection(msg) {
-    return __awaiter(this, void 0, void 0, function* () {
+async function getConnection(msg) {
+    if (msg.member) {
         const channel = msg.member.voice.channel;
         if (!channel) {
             msg.channel.send('you must be in a voice channel!');
         }
         else {
-            voiceConnection = yield channel.join();
+            voiceConnection = await channel.join();
         }
-    });
+    }
 }
-function searchYoutube(msg, search) {
-    return __awaiter(this, void 0, void 0, function* () {
-        console.log(search);
-        try {
-            if (search) {
-                const searchResults = yield service.search.list({
-                    q: search,
-                    part: ['snippet']
-                });
-                const title = yield service.videos.list({
+async function searchYoutube(msg, search) {
+    var _a, _b;
+    console.log(search);
+    try {
+        if (search) {
+            const searchResults = await service.search.list({
+                q: search,
+                part: ['snippet'],
+                maxResults: 1
+            });
+            if (searchResults.data.items && ((_a = searchResults.data.items[0].id) === null || _a === void 0 ? void 0 : _a.videoId)) {
+                const innerSearch = await service.videos.list({
                     id: [searchResults.data.items[0].id.videoId],
                     part: ['snippet']
-                }).then(item => item.data.items[0].snippet.title);
-                msg.channel.send(`added: ${title}`);
-                return {
-                    url: `https://www.youtube.com/watch?v=${searchResults.data.items[0].id.videoId}`,
-                    title: title
-                };
+                });
+                if (innerSearch.data.items && ((_b = innerSearch.data.items[0].snippet) === null || _b === void 0 ? void 0 : _b.title)) {
+                    const title = innerSearch.data.items[0].snippet.title;
+                    msg.channel.send(`added: ${title}`);
+                    return {
+                        url: `https://www.youtube.com/watch?v=${searchResults.data.items[0].id.videoId}`,
+                        title: title
+                    };
+                }
             }
-            msg.channel.send('You need to search on something!');
         }
-        catch (error) {
-            console.error(error);
-        }
-        return null;
-    });
+        msg.channel.send('You need to search on something!');
+    }
+    catch (error) {
+        console.error(error);
+    }
+    console.error('Shouldn\'t be here');
 }
-function searchAndAddYoutube(msg, search) {
-    return __awaiter(this, void 0, void 0, function* () {
-        const queueItem = yield searchYoutube(msg, search);
-        const isQueueEmpty = playQueue.length == 0;
-        if (queueItem) {
-            playQueue.push(queueItem);
-            if (isQueueEmpty) {
-                playYoutube(msg, queueItem.url);
-            }
+async function searchAndAddYoutube(msg, search) {
+    const queueItem = await searchYoutube(msg, search);
+    const isQueueEmpty = playQueue.length == 0;
+    if (queueItem) {
+        playQueue.push(queueItem);
+        if (isQueueEmpty) {
+            playYoutube(msg, queueItem.url);
         }
-    });
+    }
 }
 function checkAndIncrmentQueue(msg) {
     playQueue.shift();
@@ -141,10 +133,9 @@ function checkAndIncrmentQueue(msg) {
     }
 }
 function closeVoiceConnection(error) {
-    if (voiceConnection != null) {
+    if (voiceConnection.status) {
         voiceConnection.disconnect();
-        voiceConnection = null;
-        voiceStream = null;
+        voiceStream.end();
         playQueue.splice(0, playQueue.length);
     }
     if (error) {

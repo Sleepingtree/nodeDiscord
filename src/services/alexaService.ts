@@ -9,7 +9,7 @@ const THE_FOREST_ID = process.env.THE_FOREST_ID;
 const maxResendTime: number = 1000 * 60 * 60 * 6; //6hours
 
 const urlBase = 'https://api.notifymyecho.com/v1/NotifyMe';
-let lastSent: number = null;
+let lastSent: number | null = null;
 
 bot.on('voiceStateUpdate', (oldState, newState) =>{
     setTimeout(() => checkIfSateIsSame(newState), 1000 * 60 * 5);
@@ -46,7 +46,7 @@ async function checkToSendWhosOnline(channelId: Snowflake){
  if(!users.includes('sleepingtree') && (lastSent == null || lastSent + maxResendTime < Date.now())){
     lastSent = Date.now();
     return getAndRespondWhosOnline(channelId)
-        .then(data => true)
+        .then(() => true)
         .catch(err => console.log(err));
  }else{
     console.log('false');
@@ -54,13 +54,17 @@ async function checkToSendWhosOnline(channelId: Snowflake){
  }
 }
 
-function checkIfSateIsSame(oldState: VoiceState){
-    if(oldState != null && oldState.guild !=null && oldState.guild.id == THE_FOREST_ID){
-        bot.channels.fetch(oldState.channelID)
-            .then(channel => {
-                if((<GuildChannel>channel).members.has(oldState.member.id)){
-                  checkToSendWhosOnline(oldState.channelID);
-                }
-            }).catch(console.log);
+async function checkIfSateIsSame(oldState: VoiceState){
+    if(oldState.channelID && oldState.guild !=null && oldState.guild.id == THE_FOREST_ID){
+        const channel = await bot.channels.fetch(oldState.channelID);
+        if(channel instanceof GuildChannel){
+            if(oldState.member){
+                if(channel.members.has(oldState.member.id)){
+                    checkToSendWhosOnline(oldState.channelID);
+                  }
+            }
+        }else{
+            console.warn(`Channel ${oldState.channelID} is not a voice channel`);
+        }
     }
 }
