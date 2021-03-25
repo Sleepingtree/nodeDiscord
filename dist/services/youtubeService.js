@@ -63,7 +63,7 @@ discordLogIn_1.default.on('message', msg => {
     }
 });
 async function playYoutube(msg, url) {
-    if (voiceConnection === null) {
+    if (!voiceConnection) {
         await getConnection(msg);
     }
     voiceStream = voiceConnection.play(ytdl_core_1.default(url, { quality: 'highestaudio' }), { volume: 0.1 })

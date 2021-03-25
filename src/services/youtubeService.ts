@@ -40,7 +40,7 @@ bot.on('message', msg => {
 
 
 async function playYoutube(msg: Message, url: string) {
-    if (voiceConnection === null) {
+    if (!voiceConnection) {
         await getConnection(msg);
     }
     voiceStream = voiceConnection.play(ytdl(url, { quality: 'highestaudio' }), { volume: 0.1 })
