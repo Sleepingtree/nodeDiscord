@@ -34,13 +34,7 @@ const service = googleapis_1.google.youtube({
     auth: GOOGLE_API_KEY
 });
 discordLogIn_1.default.on('message', msg => {
-    if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'okite')) {
-        playYoutube(msg, 'https://www.youtube.com/watch?v=6QBw0FVlPiI');
-    }
-    else if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'shitPost')) {
-        playYoutube(msg, 'https://www.youtube.com/watch?v=fLaNJLZK21Y');
-    }
-    else if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'play ')) {
+    if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'play ')) {
         searchAndAddYoutube(msg, msg.content.split(discordLogIn_1.BOT_PREFIX + 'play ')[1]);
     }
     else if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'play')) {
@@ -63,23 +57,28 @@ discordLogIn_1.default.on('message', msg => {
     }
 });
 async function playYoutube(msg, url) {
-    if (!voiceConnection) {
-        await getConnection(msg);
-    }
-    voiceStream = voiceConnection.play(ytdl_core_1.default(url, { quality: 'highestaudio' }), { volume: 0.1 })
+    const tempConnection = await getConnection(msg);
+    voiceStream = tempConnection.play(ytdl_core_1.default(url, { quality: 'highestaudio' }), { volume: 0.1 })
         .on("finish", () => checkAndIncrmentQueue(msg))
         .on("error", closeVoiceConnection);
 }
 async function getConnection(msg) {
+    if (voiceConnection) {
+        return voiceConnection;
+    }
     if (msg.member) {
         const channel = msg.member.voice.channel;
         if (!channel) {
             msg.channel.send('you must be in a voice channel!');
         }
         else {
-            voiceConnection = await channel.join();
+            const tempConnection = await channel.join();
+            voiceConnection = tempConnection;
+            return tempConnection;
         }
     }
+    //If connection was not gotten throw caller needs to handle it
+    throw `Either member was not in a channel or was unable to get a voice connection`;
 }
 async function searchYoutube(msg, search) {
     var _a, _b;
@@ -133,14 +132,15 @@ function checkAndIncrmentQueue(msg) {
     }
 }
 function closeVoiceConnection(error) {
-    if (voiceConnection.status) {
+    if (voiceConnection) {
         voiceConnection.disconnect();
-        voiceStream.end();
-        playQueue.splice(0, playQueue.length);
     }
     if (error) {
         console.error(error);
     }
+    playQueue.splice(0, playQueue.length);
+    voiceConnection = undefined;
+    voiceStream = undefined;
 }
 function listQueue(msg) {
     let response = `no songs in the queue, use ${discordLogIn_1.BOT_PREFIX}play to add songs`;
@@ -155,12 +155,12 @@ function listQueue(msg) {
     msg.channel.send(response);
 }
 function puase() {
-    if (voiceConnection != null) {
+    if (voiceStream) {
         voiceStream.pause();
     }
 }
 function resume(msg) {
-    if (voiceStream != null) {
+    if (voiceStream) {
         voiceStream.resume();
     }
     else {
