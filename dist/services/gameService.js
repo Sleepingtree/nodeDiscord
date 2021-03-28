@@ -101,7 +101,7 @@ async function startGame(msg) {
             GAME_NAME = userGameName;
             console.log(`${jsonFile}`);
             if (msg.content.includes("-manual")) {
-                await makeTeamsManual(discordLogIn_1.default, msg, userGameName);
+                await makeTeamsManual(discordLogIn_1.default, userGameName);
             }
             else {
                 console.log("in else");
@@ -306,7 +306,7 @@ function makeTeams(gameName) {
         }
     }
 }
-async function makeTeamsManual(bot, msg, gameName) {
+async function makeTeamsManual(bot, gameName) {
     if (RED_TEAM_VOICE_CHANNEL_ID) {
         const channel = await bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID);
         if (channel instanceof discord_js_1.VoiceChannel) {

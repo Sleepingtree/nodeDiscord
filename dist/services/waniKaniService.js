@@ -40,7 +40,10 @@ async function getSummery() {
         method: 'get',
         headers: { 'Authorization': `Bearer ${WANIKANI_API_KEY}` },
     });
-    lastSummery = await res.json();
+    const summery = await res.json();
+    if (summery) {
+        lastSummery = summery;
+    }
 }
 function getReviewCount() {
     return lastSummery === null || lastSummery === void 0 ? void 0 : lastSummery.data.reviews[0].subject_ids.length;

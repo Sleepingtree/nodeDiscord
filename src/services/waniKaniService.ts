@@ -20,7 +20,10 @@ async function getSummery(){
             method: 'get',
             headers: { 'Authorization': `Bearer ${WANIKANI_API_KEY}` },
         });
-    lastSummery = <WaniKaniSummary> await res.json();
+        const summery = await res.json() as WaniKaniSummary;
+        if(summery){
+          lastSummery = summery;
+        }
 }
 
 function getReviewCount(){

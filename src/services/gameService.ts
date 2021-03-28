@@ -79,7 +79,7 @@ async function startGame(msg: Message) {
             console.log(`${jsonFile}`);
 
             if (msg.content.includes("-manual")) {
-                await makeTeamsManual(bot, msg, userGameName);
+                await makeTeamsManual(bot, userGameName);
             } else {
                 console.log("in else");
                 if (voiceChannel && GAME_NAME && jsonFile) {
@@ -286,7 +286,7 @@ function makeTeams(gameName: string) {
     }
 }
 
-async function makeTeamsManual(bot: Client, msg: Message, gameName: string) {
+async function makeTeamsManual(bot: Client, gameName: string) {
     if (RED_TEAM_VOICE_CHANNEL_ID) {
         const channel = await bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID);
         if (channel instanceof VoiceChannel) {

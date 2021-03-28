@@ -32,7 +32,7 @@ const THE_FOREST_ID = process.env.THE_FOREST_ID;
 const maxResendTime = 1000 * 60 * 60 * 6; //6hours
 const urlBase = 'https://api.notifymyecho.com/v1/NotifyMe';
 let lastSent = null;
-discordLogIn_1.default.on('voiceStateUpdate', (oldState, newState) => {
+discordLogIn_1.default.on('voiceStateUpdate', (_oldState, newState) => {
     setTimeout(() => checkIfSateIsSame(newState), 1000 * 60 * 5);
 });
 async function getAndRespondWhosOnline(channelId) {

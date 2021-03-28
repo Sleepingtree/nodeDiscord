@@ -7,10 +7,10 @@ const express_1 = __importDefault(require("express"));
 const alexaService_1 = require("../services/alexaService");
 const router = express_1.default.Router();
 /* GET users listing. */
-router.all('/', function (req, res, next) {
+router.all('/', function (_req, res) {
     console.log('In Alexa router');
     alexaService_1.getAndRespondWhosOnline()
-        .then(data => res.send())
+        .then(() => res.send())
         .catch(err => console.log(err));
 });
 exports.default = router;

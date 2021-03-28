@@ -11,7 +11,7 @@ const maxResendTime: number = 1000 * 60 * 60 * 6; //6hours
 const urlBase = 'https://api.notifymyecho.com/v1/NotifyMe';
 let lastSent: number | null = null;
 
-bot.on('voiceStateUpdate', (oldState, newState) =>{
+bot.on('voiceStateUpdate', (_oldState, newState) =>{
     setTimeout(() => checkIfSateIsSame(newState), 1000 * 60 * 5);
 });
 

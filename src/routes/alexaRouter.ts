@@ -3,10 +3,10 @@ import {getAndRespondWhosOnline} from'../services/alexaService';
 const router = express.Router();
 
 /* GET users listing. */
-router.all('/', function(req, res, next) {
+router.all('/', function(_req, res) {
     console.log('In Alexa router');
     getAndRespondWhosOnline()
-      .then(data => res.send())
+      .then(() => res.send())
       .catch(err => console.log(err));
 });
 
