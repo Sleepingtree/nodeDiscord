@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.whoIs = exports.whosOnline = exports.getChannelNameFromId = exports.BOT_PREFIX = void 0;
+exports.getBotStatus = exports.whoIs = exports.whosOnline = exports.getChannelNameFromId = exports.BOT_PREFIX = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const fs_1 = __importDefault(require("fs"));
 const bot = new discord_js_1.default.Client();
@@ -91,5 +91,49 @@ function whoIs(msg) {
     }
 }
 exports.whoIs = whoIs;
+function getBotStatus() {
+    const botUser = bot.user;
+    if (!botUser) {
+        return undefined;
+    }
+    else {
+        const activity = botUser.presence.activities[0];
+        if (activity) {
+            if (activity.type === 'CUSTOM_STATUS') {
+                return {
+                    message: `Coco's status is: ${activity.name}`,
+                    avatarURL: `${botUser.avatarURL()}`
+                };
+            }
+            else {
+                return {
+                    message: `Coco is ${activity.type} ${addedWordToBotStatus(activity.type)}${activity.name}`,
+                    avatarURL: `${botUser.avatarURL()}`
+                };
+            }
+        }
+        else {
+            return {
+                message: `${botUser.username} is not doing anything`,
+                avatarURL: `${botUser.avatarURL()}`
+            };
+        }
+    }
+}
+exports.getBotStatus = getBotStatus;
+function addedWordToBotStatus(activityType) {
+    if (activityType === 'PLAYING' || activityType === 'STREAMING' || activityType === 'WATCHING') {
+        return '';
+    }
+    else if (activityType === 'LISTENING') {
+        return 'to ';
+    }
+    else if (activityType === 'COMPETING') {
+        return 'in ';
+    }
+    else {
+        throw `unhandled status type of ${activityType}`;
+    }
+}
 exports.default = bot;
 //# sourceMappingURL=discordLogIn.js.map

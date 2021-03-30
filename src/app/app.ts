@@ -1,14 +1,15 @@
-import {config} from 'dotenv';
+import { config } from 'dotenv';
 config();
 import createError from 'http-errors';
-import express from'express';
+import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
 
 import indexRouter from '../routes/index';
-import usersRouter from'../routes/users';
-import alexaRouter from'../routes/alexaRouter';
+import usersRouter from '../routes/users';
+import alexaRouter from '../routes/alexaRouter';
+import botStatusRouter from '../routes/botStatus';
 
 //start up discord bot services
 import '../services/discordRoleService';
@@ -35,14 +36,15 @@ app.use(express.static(path.join(__dirname, '../../public')));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/whosOnline', alexaRouter);
+app.use('/botStatus', botStatusRouter);
 
 // catch 404 and forward to error handler
-app.use(function(req, res, next) {
+app.use(function (_req, _res, next) {
   next(createError(404));
 });
 
 // error handler
-app.use(function(err: any, req: any, res: any, next: any) {
+app.use(function (err: any, req: any, res: any, _next: any) {
   // set locals, only providing error in development
   res.locals.message = err.message;
   res.locals.error = req.app.get('env') === 'development' ? err : {};

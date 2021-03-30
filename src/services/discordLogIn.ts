@@ -1,4 +1,4 @@
-import Discord, { GuildChannel, Message, Snowflake } from 'discord.js';
+import Discord, { ActivityType, GuildChannel, Message, Snowflake } from 'discord.js';
 import fs from 'fs';
 const bot = new Discord.Client();
 
@@ -90,5 +90,50 @@ export function whoIs(msg: Message) {
     });
   }
 }
+
+type botStatus = {
+  message: string;
+  avatarURL: string;
+}
+
+export function getBotStatus(): botStatus | undefined {
+  const botUser = bot.user;
+  if (!botUser) {
+    return undefined;
+  } else {
+    const activity = botUser.presence.activities[0];
+    if (activity) {
+      if (activity.type === 'CUSTOM_STATUS') {
+        return {
+          message: `Coco's status is: ${activity.name}`,
+          avatarURL: `${botUser.avatarURL()}`
+        }
+      } else {
+        return {
+          message: `Coco is ${activity.type} ${addedWordToBotStatus(activity.type)}${activity.name}`,
+        avatarURL: `${botUser.avatarURL()}`
+        }
+      }
+    }else{
+      return {
+        message: `${botUser.username} is not doing anything`,
+        avatarURL: `${botUser.avatarURL()}`
+      }
+    }
+  }
+}
+
+function addedWordToBotStatus(activityType: ActivityType) {
+  if (activityType === 'PLAYING' || activityType === 'STREAMING' || activityType === 'WATCHING') {
+    return '';
+  } else if (activityType === 'LISTENING') {
+    return 'to ';
+  } else if (activityType === 'COMPETING') {
+    return 'in ';
+  } else {
+    throw `unhandled status type of ${activityType}`
+  }
+}
+
 
 export default bot;

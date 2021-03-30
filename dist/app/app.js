@@ -13,6 +13,7 @@ const morgan_1 = __importDefault(require("morgan"));
 const index_1 = __importDefault(require("../routes/index"));
 const users_1 = __importDefault(require("../routes/users"));
 const alexaRouter_1 = __importDefault(require("../routes/alexaRouter"));
+const botStatus_1 = __importDefault(require("../routes/botStatus"));
 //start up discord bot services
 require("../services/discordRoleService");
 require("../services/waniKaniService");
@@ -33,12 +34,13 @@ app.use(express_1.default.static(path_1.default.join(__dirname, '../../public'))
 app.use('/', index_1.default);
 app.use('/users', users_1.default);
 app.use('/whosOnline', alexaRouter_1.default);
+app.use('/botStatus', botStatus_1.default);
 // catch 404 and forward to error handler
-app.use(function (req, res, next) {
+app.use(function (_req, _res, next) {
     next(http_errors_1.default(404));
 });
 // error handler
-app.use(function (err, req, res, next) {
+app.use(function (err, req, res, _next) {
     // set locals, only providing error in development
     res.locals.message = err.message;
     res.locals.error = req.app.get('env') === 'development' ? err : {};
