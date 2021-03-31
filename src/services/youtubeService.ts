@@ -35,10 +35,10 @@ bot.on('message', msg => {
 });
 
 
-async function playYoutube(msg: Message, url: string) {
+async function playYoutube(msg: Message, url: string, songName: string) {
 
     const tempConnection = await getConnection(msg);
-
+    bot.user?.setActivity(songName, {type: "LISTENING"});
     voiceStream = tempConnection.play(ytdl(url, { quality: 'highestaudio' }), { volume: 0.1 })
         .on("finish", () => checkAndIncrmentQueue(msg))
         .on("error", closeVoiceConnection);
@@ -101,7 +101,7 @@ async function searchAndAddYoutube(msg: Message, search: string) {
     if (queueItem) {
         playQueue.push(queueItem);
         if (isQueueEmpty) {
-            playYoutube(msg, queueItem.url);
+            playYoutube(msg, queueItem.url, queueItem.title);
         }
     }
 }
@@ -109,7 +109,7 @@ async function searchAndAddYoutube(msg: Message, search: string) {
 function checkAndIncrmentQueue(msg: Message) {
     playQueue.shift();
     if (playQueue.length > 0) {
-        playYoutube(msg, playQueue[0].url);
+        playYoutube(msg, playQueue[0].url, playQueue[0].title);
     } else {
         closeVoiceConnection();
     }
@@ -123,6 +123,7 @@ function closeVoiceConnection(error?: Error) {
         console.error(error);
     }
     playQueue.splice(0, playQueue.length);
+    bot.user?.setActivity();
     voiceConnection = undefined;
     voiceStream = undefined;
 }

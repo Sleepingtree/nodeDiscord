@@ -110,7 +110,7 @@ export function getBotStatus(): botStatus | undefined {
         }
       } else {
         return {
-          message: `Coco is ${activity.type} ${addedWordToBotStatus(activity.type)}${activity.name}`,
+          message: `Coco is ${activity.type.toLowerCase()} ${addedWordToBotStatus(activity.type)}${activity.name}`,
         avatarURL: `${botUser.avatarURL()}`
         }
       }
@@ -134,6 +134,5 @@ function addedWordToBotStatus(activityType: ActivityType) {
     throw `unhandled status type of ${activityType}`
   }
 }
-
 
 export default bot;

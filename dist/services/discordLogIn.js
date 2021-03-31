@@ -107,7 +107,7 @@ function getBotStatus() {
             }
             else {
                 return {
-                    message: `Coco is ${activity.type} ${addedWordToBotStatus(activity.type)}${activity.name}`,
+                    message: `Coco is ${activity.type.toLowerCase()} ${addedWordToBotStatus(activity.type)}${activity.name}`,
                     avatarURL: `${botUser.avatarURL()}`
                 };
             }
