@@ -5,6 +5,7 @@ import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
+import cors from 'cors';
 
 import indexRouter from '../routes/index';
 import usersRouter from '../routes/users';
@@ -21,6 +22,10 @@ import '../services/draftService'
 import '../services/clashPlaningService'
 
 const app = express();
+
+app.use(cors({
+  origin:'http:api.sleepingtree.net'
+}));
 
 // view engine setup
 app.set('views', path.join(__dirname, '../../views'));

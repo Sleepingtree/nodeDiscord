@@ -54,7 +54,7 @@ function onListening() {
     let addr = server.address();
     let bind = typeof addr === 'string'
         ? 'pipe ' + addr
-        : 'port ' + addr.port;
+        : 'port ' + (addr === null || addr === void 0 ? void 0 : addr.port);
     debug_1.default('Listening on ' + bind);
 }
 //# sourceMappingURL=www.js.map
