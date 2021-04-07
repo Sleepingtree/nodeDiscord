@@ -6,11 +6,17 @@
 
 import app from './app';
 import debug from 'debug';
-import http from 'http';
+import https from 'https';
+import http, { Server } from 'http';
+import fs from 'fs';
 
 /**
  * Get port from environment and store in Express.
  */
+
+const devlopment = process.env.DEVELOPMENT ? process.env.DEVELOPMENT == 'true' : false;
+
+
 
 const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
@@ -19,7 +25,24 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-const server = http.createServer(app);
+let server: Server;
+
+if(devlopment){
+  server = http.createServer(app);
+}else{
+  const privateKey  = fs.readFileSync('server.key', 'utf8');
+  const certificate = fs.readFileSync('server.cert', 'utf8');
+  const caCert = fs.readFileSync('root.pem', 'utf8');
+
+  const credentials = {
+    key: privateKey, 
+    cert: certificate,
+    ca: caCert
+  };
+  
+  server = https.createServer(credentials, app);
+}
+
 
 /**
  * Listen on provided port, on all network interfaces.

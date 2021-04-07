@@ -87,6 +87,7 @@ jspm_packages/
 .env
 server.cert
 server.key
+root.pem
 config/
 
 Intellij

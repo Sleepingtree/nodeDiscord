@@ -9,16 +9,33 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const app_1 = __importDefault(require("./app"));
 const debug_1 = __importDefault(require("debug"));
+const https_1 = __importDefault(require("https"));
 const http_1 = __importDefault(require("http"));
+const fs_1 = __importDefault(require("fs"));
 /**
  * Get port from environment and store in Express.
  */
+const devlopment = process.env.DEVELOPMENT ? process.env.DEVELOPMENT == 'true' : false;
 const port = normalizePort(process.env.PORT || '3000');
 app_1.default.set('port', port);
 /**
  * Create HTTP server.
  */
-const server = http_1.default.createServer(app_1.default);
+let server;
+if (devlopment) {
+    server = http_1.default.createServer(app_1.default);
+}
+else {
+    const privateKey = fs_1.default.readFileSync('server.key', 'utf8');
+    const certificate = fs_1.default.readFileSync('server.cert', 'utf8');
+    const caCert = fs_1.default.readFileSync('root.pem', 'utf8');
+    const credentials = {
+        key: privateKey,
+        cert: certificate,
+        ca: caCert
+    };
+    server = https_1.default.createServer(credentials, app_1.default);
+}
 /**
  * Listen on provided port, on all network interfaces.
  */
