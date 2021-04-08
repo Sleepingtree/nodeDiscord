@@ -10,6 +10,7 @@ const express_1 = __importDefault(require("express"));
 const path_1 = __importDefault(require("path"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
 const morgan_1 = __importDefault(require("morgan"));
+const cors_1 = __importDefault(require("cors"));
 const index_1 = __importDefault(require("../routes/index"));
 const users_1 = __importDefault(require("../routes/users"));
 const alexaRouter_1 = __importDefault(require("../routes/alexaRouter"));
@@ -23,6 +24,10 @@ require("../services/youtubeService");
 require("../services/draftService");
 require("../services/clashPlaningService");
 const app = express_1.default();
+app.use(cors_1.default({
+    credentials: true,
+    origin: "https://sleepingtree.net",
+}));
 // view engine setup
 app.set('views', path_1.default.join(__dirname, '../../views'));
 app.set('view engine', 'pug');
