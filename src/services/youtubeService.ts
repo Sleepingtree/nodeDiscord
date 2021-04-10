@@ -1,8 +1,9 @@
 import ytdl from "ytdl-core";
 import { VoiceConnection, Message, StreamDispatcher } from "discord.js";
-import bot, { BOT_PREFIX } from './discordLogIn';
+import bot, { BOT_PREFIX, botStatusEmitter, updateBotStatus } from './discordLogIn';
 import { google } from 'googleapis';
 import SongQueueItem from "../model/songQueue";
+
 
 let voiceConnection: VoiceConnection | undefined;
 let voiceStream: StreamDispatcher | undefined;
@@ -36,12 +37,12 @@ bot.on('message', msg => {
 
 
 async function playYoutube(msg: Message, url: string, songName: string) {
-
     const tempConnection = await getConnection(msg);
-    bot.user?.setActivity(songName, {type: "LISTENING"});
+    
     voiceStream = tempConnection.play(ytdl(url, { quality: 'highestaudio' }), { volume: 0.1 })
         .on("finish", () => checkAndIncrmentQueue(msg))
         .on("error", closeVoiceConnection);
+    updateBotStatus(songName, {type: "LISTENING"});
 }
 
 async function getConnection(msg: Message) {
@@ -123,7 +124,7 @@ function closeVoiceConnection(error?: Error) {
         console.error(error);
     }
     playQueue.splice(0, playQueue.length);
-    bot.user?.setActivity();
+    updateBotStatus();
     voiceConnection = undefined;
     voiceStream = undefined;
 }

@@ -3,10 +3,13 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.getBotStatus = exports.whoIs = exports.whosOnline = exports.getChannelNameFromId = exports.BOT_PREFIX = void 0;
+exports.updateBotStatus = exports.getBotStatus = exports.whoIs = exports.whosOnline = exports.getChannelNameFromId = exports.BOT_PREFIX = exports.botStatusChangeEvent = exports.botStatusEmitter = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const fs_1 = __importDefault(require("fs"));
+const events_1 = require("events");
 const bot = new discord_js_1.default.Client();
+exports.botStatusEmitter = new events_1.EventEmitter();
+exports.botStatusChangeEvent = 'botStatusChange';
 const deletedMessageFile = 'deletedMessageFile.json';
 const TOKEN = process.env.DISCORD_BOT_KEY;
 const TREE_USER_ID = process.env.TREE_USER_ID;
@@ -101,13 +104,13 @@ function getBotStatus() {
         if (activity) {
             if (activity.type === 'CUSTOM_STATUS') {
                 return {
-                    message: `Coco's status is: ${activity.name}`,
+                    message: `${botUser.username}'s status is: ${activity.name}`,
                     avatarURL: `${botUser.avatarURL()}`
                 };
             }
             else {
                 return {
-                    message: `Coco is ${activity.type.toLowerCase()} ${addedWordToBotStatus(activity.type)}${activity.name}`,
+                    message: `${botUser.username} is ${activity.type.toLowerCase()} ${addedWordToBotStatus(activity.type)}${activity.name}`,
                     avatarURL: `${botUser.avatarURL()}`
                 };
             }
@@ -122,18 +125,51 @@ function getBotStatus() {
 }
 exports.getBotStatus = getBotStatus;
 function addedWordToBotStatus(activityType) {
-    if (activityType === 'PLAYING' || activityType === 'STREAMING' || activityType === 'WATCHING') {
-        return '';
-    }
-    else if (activityType === 'LISTENING') {
-        return 'to ';
-    }
-    else if (activityType === 'COMPETING') {
-        return 'in ';
-    }
-    else {
-        throw `unhandled status type of ${activityType}`;
+    switch (activityType) {
+        case 'LISTENING':
+            return 'to ';
+        case 'COMPETING':
+            return 'in ';
+        default:
+            return ' ';
     }
 }
+async function updateBotStatus(status, options) {
+    var _a, _b;
+    let botStatus;
+    if (status) {
+        botStatus = await ((_a = bot.user) === null || _a === void 0 ? void 0 : _a.setActivity(status, options));
+    }
+    else {
+        botStatus = await ((_b = bot.user) === null || _b === void 0 ? void 0 : _b.setActivity(options));
+    }
+    if (botStatus) {
+        exports.botStatusEmitter.emit(exports.botStatusChangeEvent);
+    }
+}
+exports.updateBotStatus = updateBotStatus;
+bot.on('presenceUpdate', (oldSatus, newStatus) => {
+    var _a;
+    //Check if the user is me, and if there is a real staus change
+    if (newStatus.userID === TREE_USER_ID && newStatus.activities !== (oldSatus === null || oldSatus === void 0 ? void 0 : oldSatus.activities)) {
+        const botStatus = (_a = bot.user) === null || _a === void 0 ? void 0 : _a.presence.activities[0];
+        if (!botStatus || botStatus.type === 'WATCHING') {
+            const treeStatus = newStatus.activities[0];
+            if (treeStatus) {
+                let statusMessage = `Tree ${treeStatus.type.toLowerCase()} ${addedWordToBotStatus(treeStatus.type)}`;
+                if (treeStatus.details) {
+                    statusMessage += `${treeStatus.details}`;
+                }
+                else {
+                    statusMessage += `${treeStatus.name}`;
+                }
+                updateBotStatus(statusMessage, { type: 'WATCHING' });
+            }
+            else {
+                updateBotStatus();
+            }
+        }
+    }
+});
 exports.default = bot;
 //# sourceMappingURL=discordLogIn.js.map

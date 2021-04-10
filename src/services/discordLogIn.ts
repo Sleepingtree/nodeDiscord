@@ -1,6 +1,12 @@
-import Discord, { ActivityType, GuildChannel, Message, Snowflake } from 'discord.js';
+import Discord, { ActivityOptions, ActivityType, GuildChannel, Message, Snowflake } from 'discord.js';
 import fs from 'fs';
+import { EventEmitter } from 'events';
+import { Presence } from 'discord.js';
+
 const bot = new Discord.Client();
+
+export const botStatusEmitter = new EventEmitter();
+export const botStatusChangeEvent = 'botStatusChange';
 
 const deletedMessageFile = 'deletedMessageFile.json';
 const TOKEN = process.env.DISCORD_BOT_KEY;
@@ -36,7 +42,7 @@ bot.on('messageDelete', message => {
   console.log('in delete');
   const file = fs.readFileSync(deletedMessageFile, 'utf8');
   const jsonFile = JSON.parse(file);
-  jsonFile[message.id] = message
+  jsonFile[message.id] = message;
   const fileString = JSON.stringify(jsonFile, null, 2);
   const reply = `Message from ${message.member?.user.username} was deleted message was: \`${message.content}\` `;
   if (WHISS_USER_ID) {
@@ -105,13 +111,13 @@ export function getBotStatus(): botStatus | undefined {
     if (activity) {
       if (activity.type === 'CUSTOM_STATUS') {
         return {
-          message: `Coco's status is: ${activity.name}`,
+          message: `${botUser.username}'s status is: ${activity.name}`,
           avatarURL: `${botUser.avatarURL()}`
         }
       } else {
         return {
-          message: `Coco is ${activity.type.toLowerCase()} ${addedWordToBotStatus(activity.type)}${activity.name}`,
-        avatarURL: `${botUser.avatarURL()}`
+          message: `${botUser.username} is ${activity.type.toLowerCase()} ${addedWordToBotStatus(activity.type)}${activity.name}`,
+          avatarURL: `${botUser.avatarURL()}`
         }
       }
     }else{
@@ -124,15 +130,47 @@ export function getBotStatus(): botStatus | undefined {
 }
 
 function addedWordToBotStatus(activityType: ActivityType) {
-  if (activityType === 'PLAYING' || activityType === 'STREAMING' || activityType === 'WATCHING') {
-    return '';
-  } else if (activityType === 'LISTENING') {
-    return 'to ';
-  } else if (activityType === 'COMPETING') {
-    return 'in ';
-  } else {
-    throw `unhandled status type of ${activityType}`
+  switch(activityType){
+    case 'LISTENING':
+      return 'to ';
+    case 'COMPETING':
+      return 'in ';
+    default:
+      return ' ';
   }
 }
+
+export async function updateBotStatus(status?: string, options?: ActivityOptions){
+  let botStatus: Presence | undefined;
+  if(status){
+   botStatus = await bot.user?.setActivity(status, options);
+  }else{
+    botStatus = await bot.user?.setActivity(options);
+  }
+ if(botStatus){
+   botStatusEmitter.emit(botStatusChangeEvent);
+ }
+}
+
+bot.on('presenceUpdate', (oldSatus: Presence | undefined, newStatus: Presence) =>{
+  //Check if the user is me, and if there is a real staus change
+  if(newStatus.userID === TREE_USER_ID && newStatus.activities !== oldSatus?.activities){
+    const botStatus = bot.user?.presence.activities[0];
+    if(!botStatus || botStatus.type === 'WATCHING'){
+      const treeStatus = newStatus.activities[0];
+      if(treeStatus){
+        let statusMessage = `Tree ${treeStatus.type.toLowerCase()} ${addedWordToBotStatus(treeStatus.type)}`;
+        if(treeStatus.details){
+          statusMessage += `${treeStatus.details}`;
+        }else{
+          statusMessage += `${treeStatus.name}`;
+        }
+        updateBotStatus(statusMessage, {type: 'WATCHING'});
+      }else{
+        updateBotStatus();
+      }
+    }
+  }
+});
 
 export default bot;

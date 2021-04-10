@@ -23,7 +23,7 @@ import '../services/clashPlaningService'
 
 const app = express();
 
-app.use( cors({
+app.use(cors({
   credentials: true,
   origin: "https://sleepingtree.net",
 }));

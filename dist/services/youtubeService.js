@@ -57,12 +57,11 @@ discordLogIn_1.default.on('message', msg => {
     }
 });
 async function playYoutube(msg, url, songName) {
-    var _a;
     const tempConnection = await getConnection(msg);
-    (_a = discordLogIn_1.default.user) === null || _a === void 0 ? void 0 : _a.setActivity(songName, { type: "LISTENING" });
     voiceStream = tempConnection.play(ytdl_core_1.default(url, { quality: 'highestaudio' }), { volume: 0.1 })
         .on("finish", () => checkAndIncrmentQueue(msg))
         .on("error", closeVoiceConnection);
+    discordLogIn_1.updateBotStatus(songName, { type: "LISTENING" });
 }
 async function getConnection(msg) {
     if (voiceConnection) {
@@ -134,7 +133,6 @@ function checkAndIncrmentQueue(msg) {
     }
 }
 function closeVoiceConnection(error) {
-    var _a;
     if (voiceConnection) {
         voiceConnection.disconnect();
     }
@@ -142,7 +140,7 @@ function closeVoiceConnection(error) {
         console.error(error);
     }
     playQueue.splice(0, playQueue.length);
-    (_a = discordLogIn_1.default.user) === null || _a === void 0 ? void 0 : _a.setActivity();
+    discordLogIn_1.updateBotStatus();
     voiceConnection = undefined;
     voiceStream = undefined;
 }

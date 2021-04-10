@@ -9,6 +9,10 @@ import debug from 'debug';
 import https from 'https';
 import http, { Server } from 'http';
 import fs from 'fs';
+import {Server as SocketServer, Socket} from 'socket.io';
+import { botStatusChangeEvent, botStatusEmitter } from '../services/discordLogIn';
+
+import { getBotStatus } from '../services/discordLogIn';
 
 /**
  * Get port from environment and store in Express.
@@ -92,3 +96,13 @@ function onListening() {
     : 'port ' + addr?.port;
   debug('Listening on ' + bind);
 }
+
+const io = new SocketServer(server, {path: '/io'});
+
+io.on("connection", (socket: Socket) => {
+  //TODO replace with events instead of pushing.
+  socket.emit('botStatus', getBotStatus());
+  botStatusEmitter.on(botStatusChangeEvent, () => {
+    socket.emit('botStatus', getBotStatus());
+  });
+});

@@ -12,6 +12,9 @@ const debug_1 = __importDefault(require("debug"));
 const https_1 = __importDefault(require("https"));
 const http_1 = __importDefault(require("http"));
 const fs_1 = __importDefault(require("fs"));
+const socket_io_1 = require("socket.io");
+const discordLogIn_1 = require("../services/discordLogIn");
+const discordLogIn_2 = require("../services/discordLogIn");
 /**
  * Get port from environment and store in Express.
  */
@@ -74,4 +77,12 @@ function onListening() {
         : 'port ' + (addr === null || addr === void 0 ? void 0 : addr.port);
     debug_1.default('Listening on ' + bind);
 }
+const io = new socket_io_1.Server(server, { path: '/io' });
+io.on("connection", (socket) => {
+    //TODO replace with events instead of pushing.
+    socket.emit('botStatus', discordLogIn_2.getBotStatus());
+    discordLogIn_1.botStatusEmitter.on(discordLogIn_1.botStatusChangeEvent, () => {
+        socket.emit('botStatus', discordLogIn_2.getBotStatus());
+    });
+});
 //# sourceMappingURL=www.js.map
