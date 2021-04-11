@@ -105,9 +105,16 @@ const io = new SocketServer(server, {
 });
 
 io.on("connection", (socket: Socket) => {
-  //TODO replace with events instead of pushing.
-  socket.emit('botStatus', getBotStatus());
-  botStatusEmitter.on(botStatusChangeEvent, () => {
+
+  function handleStatusUpdate(){
     socket.emit('botStatus', getBotStatus());
+  }
+  
+  handleStatusUpdate();
+
+  botStatusEmitter.on(botStatusChangeEvent, handleStatusUpdate);
+
+  socket.on('disconnect', () =>{
+    botStatusEmitter.off(botStatusChangeEvent, handleStatusUpdate);
   });
 });

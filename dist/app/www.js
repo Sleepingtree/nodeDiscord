@@ -84,10 +84,13 @@ const io = new socket_io_1.Server(server, {
     }
 });
 io.on("connection", (socket) => {
-    //TODO replace with events instead of pushing.
-    socket.emit('botStatus', discordLogIn_2.getBotStatus());
-    discordLogIn_1.botStatusEmitter.on(discordLogIn_1.botStatusChangeEvent, () => {
+    function handleStatusUpdate() {
         socket.emit('botStatus', discordLogIn_2.getBotStatus());
+    }
+    handleStatusUpdate();
+    discordLogIn_1.botStatusEmitter.on(discordLogIn_1.botStatusChangeEvent, handleStatusUpdate);
+    socket.on('disconnect', () => {
+        discordLogIn_1.botStatusEmitter.off(discordLogIn_1.botStatusChangeEvent, handleStatusUpdate);
     });
 });
 //# sourceMappingURL=www.js.map
