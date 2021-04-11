@@ -77,7 +77,12 @@ function onListening() {
         : 'port ' + (addr === null || addr === void 0 ? void 0 : addr.port);
     debug_1.default('Listening on ' + bind);
 }
-const io = new socket_io_1.Server(server, { path: '/io' });
+const io = new socket_io_1.Server(server, {
+    path: '/io',
+    cors: {
+        origin: 'https://sleepingtree.net'
+    }
+});
 io.on("connection", (socket) => {
     //TODO replace with events instead of pushing.
     socket.emit('botStatus', discordLogIn_2.getBotStatus());

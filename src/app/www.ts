@@ -97,7 +97,12 @@ function onListening() {
   debug('Listening on ' + bind);
 }
 
-const io = new SocketServer(server, {path: '/io'});
+const io = new SocketServer(server, {
+  path: '/io',
+  cors: {
+    origin: 'https://sleepingtree.net'
+  }
+});
 
 io.on("connection", (socket: Socket) => {
   //TODO replace with events instead of pushing.
