@@ -69,8 +69,11 @@ discordLogIn_1.default.on('message', msg => {
     }
 });
 async function startGame(msg) {
+    console.log(msg);
     if (msg.member) {
+        console.log('here');
         const voiceChannel = msg.member.voice.channel;
+        console.log(voiceChannel);
         startingChannel = voiceChannel;
         if (!voiceChannel) {
             msg.channel.send(`Must be in a voice channel to start a game`);
