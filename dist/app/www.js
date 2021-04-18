@@ -93,4 +93,20 @@ io.on("connection", (socket) => {
         discordLogIn_1.botStatusEmitter.off(discordLogIn_1.botStatusChangeEvent, handleStatusUpdate);
     });
 });
+function handleCloseEvent(serverType, error) {
+    if (error) {
+        console.error(`Unexpected error on shutdown of ${serverType} server, Error: ${error}`);
+    }
+    else {
+        console.log(`closed ${serverType} server`);
+    }
+}
+process.on('SIGTERM', () => {
+    server.close(error => {
+        handleCloseEvent('http(s)', error);
+    });
+    io.close(error => {
+        handleCloseEvent('socket', error);
+    });
+});
 //# sourceMappingURL=www.js.map
