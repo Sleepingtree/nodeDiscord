@@ -134,6 +134,14 @@ function addedWordToBotStatus(activityType) {
             return ' ';
     }
 }
+function treeDisplayType(activityType) {
+    switch (activityType) {
+        case 'CUSTOM_STATUS':
+            return '';
+        default:
+            return activityType.toLocaleLowerCase().replace('ing', '');
+    }
+}
 async function updateBotStatus(status, options) {
     var _a, _b;
     let botStatus;
@@ -156,9 +164,12 @@ bot.on('presenceUpdate', (oldSatus, newStatus) => {
         if (!botStatus || botStatus.type === 'WATCHING') {
             const treeStatus = newStatus.activities[0];
             if (treeStatus) {
-                let statusMessage = `Tree ${treeStatus.type.toLowerCase()} ${addedWordToBotStatus(treeStatus.type)}`;
+                let statusMessage = `Tree ${treeDisplayType(treeStatus.type)} ${addedWordToBotStatus(treeStatus.type)}`;
                 if (treeStatus.details) {
                     statusMessage += `${treeStatus.details}`;
+                }
+                else if (treeStatus.state) {
+                    statusMessage += `${treeStatus.state}`;
                 }
                 else {
                     statusMessage += `${treeStatus.name}`;
