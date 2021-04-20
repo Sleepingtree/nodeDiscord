@@ -134,4 +134,9 @@ process.on('SIGTERM', ()=>{
   io.close(error =>{
     handleCloseEvent('socket', error);
   })
+  console.log('waiting 10 secounds for requests to close')
+  setInterval(() => {
+    console.log('process exit')
+    process.exit();
+  }, 10000)
 });
