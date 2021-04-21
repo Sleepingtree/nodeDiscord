@@ -89,7 +89,9 @@ function addRolesForMember(member, roleName, server) {
         member.roles.add(role);
         console.log('added role: ' + roleName + ' for user: ' + member.user.username);
     }
-    console.log(`could not add role ${roleName} as it was not found`);
+    else {
+        console.log(`could not add role ${roleName} as it was not found`);
+    }
 }
 function listRoles(msg, joinCommand) {
     let returnMessage = 'Type one of the following to join:';

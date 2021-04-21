@@ -74,8 +74,9 @@ function addRolesForMember(member: GuildMember, roleName: String, server: Guild)
     if(role){
         member.roles.add(role);
         console.log('added role: ' + roleName + ' for user: ' + member.user.username);
+    }else{
+        console.log(`could not add role ${roleName} as it was not found`);   
     }
-    console.log(`could not add role ${roleName} as it was not found`);
 }
 
 function listRoles(msg: Message, joinCommand: String){
