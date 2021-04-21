@@ -1,10 +1,10 @@
 import { Activity, Client, Guild, GuildMember, Message } from "discord.js";
 import bot, {BOT_PREFIX} from './discordLogIn';
 
-const roles = ['VALORANT', 'League of Legends', 'Among Us', 'Overwatch'];
+const roles = process.env.DISCORD_BOT_ROLES ? process.env.DISCORD_BOT_ROLES.split('|') : [];
 const THE_FOREST_ID = process.env.THE_FOREST_ID;
 const joinCommand = BOT_PREFIX + 'join -';
-const checkUserInterval = 1000 * 60 * 5;
+const checkUserInterval = 1000 * 60 * 1;
 
 bot.on('message', msg => {
     if(msg.content.startsWith('!roles')){
