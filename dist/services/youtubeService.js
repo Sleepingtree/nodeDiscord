@@ -58,7 +58,7 @@ discordLogIn_1.default.on('message', msg => {
 });
 async function playYoutube(msg, url, songName) {
     const tempConnection = await getConnection(msg);
-    voiceStream = tempConnection.play(ytdl_core_1.default(url, { quality: 'highestaudio' }), { volume: 0.1 })
+    voiceStream = tempConnection.play(ytdl_core_1.default(url, { quality: 'highestaudio', filter: (video) => video.hasAudio }), { volume: 0.1 })
         .on("finish", () => checkAndIncrmentQueue(msg))
         .on("error", closeVoiceConnection);
     discordLogIn_1.updateBotStatus(songName, { type: "LISTENING" });
