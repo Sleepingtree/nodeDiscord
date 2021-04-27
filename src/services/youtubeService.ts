@@ -39,7 +39,7 @@ bot.on('message', msg => {
 async function playYoutube(msg: Message, url: string, songName: string) {
     const tempConnection = await getConnection(msg);
     
-    voiceStream = tempConnection.play(ytdl(url, { quality: 'highestaudio' }), { volume: 0.1 })
+    voiceStream = tempConnection.play(ytdl(url, { quality: 'highestaudio', filter: (video) => video.hasAudio}), { volume: 0.1 })
         .on("finish", () => checkAndIncrmentQueue(msg))
         .on("error", closeVoiceConnection);
     updateBotStatus(songName, {type: "LISTENING"});
