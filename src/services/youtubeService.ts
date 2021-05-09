@@ -1,6 +1,6 @@
 import ytdl from "ytdl-core";
 import { VoiceConnection, Message, StreamDispatcher } from "discord.js";
-import bot, { BOT_PREFIX, botStatusEmitter, updateBotStatus } from './discordLogIn';
+import bot, { BOT_PREFIX, updateBotStatus } from './discordLogIn';
 import { google } from 'googleapis';
 import SongQueueItem from "../model/songQueue";
 

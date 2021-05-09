@@ -30,7 +30,7 @@ client.on('connected', onConnectedHandler);
 client.connect();
 
 // Called every time a message comes in
-function onMessageHandler (target: any, context: any, msg: any, self: any) {
+function onMessageHandler (target: string, _context: tmi.ChatUserstate, msg: string, self: boolean) {
   if (self) { return; } // Ignore messages from the bot
 
 
@@ -58,7 +58,7 @@ function rollDice () {
   return Math.floor(Math.random() * sides) + 1;
 }
 // Called every time the bot connects to Twitch chat
-function onConnectedHandler (addr: any, port: any) {
+function onConnectedHandler (addr: string, port: number) {
   console.log(`* Connected to ${addr}:${port}`);
 }
 
