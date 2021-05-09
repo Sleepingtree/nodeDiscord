@@ -22,7 +22,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discordLogIn_1 = __importStar(require("./discordLogIn"));
 const roles = process.env.DISCORD_BOT_ROLES ? process.env.DISCORD_BOT_ROLES.split('|') : [];
 const THE_FOREST_ID = process.env.THE_FOREST_ID;
-const joinCommand = discordLogIn_1.BOT_PREFIX + 'join -';
+const joinCommand = `${discordLogIn_1.BOT_PREFIX}join -`;
 const checkUserInterval = 1000 * 60 * 1;
 discordLogIn_1.default.on('message', msg => {
     if (msg.content.startsWith('!roles')) {
@@ -32,6 +32,25 @@ discordLogIn_1.default.on('message', msg => {
         joinRole(msg);
     }
 });
+discordLogIn_1.default.on('presenceUpdate', (_oldPresence, presence) => {
+    var _a;
+    if (((_a = presence.guild) === null || _a === void 0 ? void 0 : _a.id) === THE_FOREST_ID) {
+        presence.activities
+            .filter(activity => {
+            return roles.includes(activity.name) && activity.type === 'PLAYING';
+        }).map(activity => { var _a; return (_a = presence.guild) === null || _a === void 0 ? void 0 : _a.roles.cache.find(role => role.name === activity.name); })
+            .filter(roleNotEmpty)
+            .filter(role => { var _a; return !((_a = presence.member) === null || _a === void 0 ? void 0 : _a.roles.cache.has(role.id)); })
+            .forEach(role => {
+            var _a, _b;
+            console.log(`added role ${role.name} to user ${(_a = presence.member) === null || _a === void 0 ? void 0 : _a.user.username}`);
+            (_b = presence.member) === null || _b === void 0 ? void 0 : _b.roles.add(role);
+        });
+    }
+});
+function roleNotEmpty(value) {
+    return !(value === null || value === undefined);
+}
 function checkUsersInDisc(bot) {
     if (THE_FOREST_ID) {
         bot.guilds.fetch(THE_FOREST_ID)
@@ -98,5 +117,5 @@ function listRoles(msg, joinCommand) {
     roles.forEach(role => returnMessage += '\r\n' + joinCommand + role);
     msg.channel.send(returnMessage);
 }
-setInterval(() => checkUsersInDisc(discordLogIn_1.default), checkUserInterval);
+//setInterval(() => checkUsersInDisc(bot), checkUserInterval);
 //# sourceMappingURL=discordRoleService.js.map
