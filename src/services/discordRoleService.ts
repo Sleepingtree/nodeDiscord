@@ -1,4 +1,4 @@
-import { Activity, Client, Guild, GuildMember, Message } from "discord.js";
+import { Guild, GuildMember, Message } from "discord.js";
 import bot, {BOT_PREFIX} from './discordLogIn';
 
 const roles = process.env.DISCORD_BOT_ROLES ? process.env.DISCORD_BOT_ROLES.split('|') : [];

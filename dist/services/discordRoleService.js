@@ -23,7 +23,6 @@ const discordLogIn_1 = __importStar(require("./discordLogIn"));
 const roles = process.env.DISCORD_BOT_ROLES ? process.env.DISCORD_BOT_ROLES.split('|') : [];
 const THE_FOREST_ID = process.env.THE_FOREST_ID;
 const joinCommand = `${discordLogIn_1.BOT_PREFIX}join -`;
-const checkUserInterval = 1000 * 60 * 1;
 discordLogIn_1.default.on('message', msg => {
     if (msg.content.startsWith('!roles')) {
         listRoles(msg, joinCommand);
@@ -51,28 +50,6 @@ discordLogIn_1.default.on('presenceUpdate', (_oldPresence, presence) => {
 function roleNotEmpty(value) {
     return !(value === null || value === undefined);
 }
-function checkUsersInDisc(bot) {
-    if (THE_FOREST_ID) {
-        bot.guilds.fetch(THE_FOREST_ID)
-            .then(server => {
-            server.members.fetch()
-                .then(members => {
-                members.filter(member => member.presence.status !== "offline")
-                    .forEach(member => checkRolesToAdd(member, server));
-            });
-        }).catch(console.log);
-    }
-    else {
-        console.error('Forrest Id is not defind');
-    }
-}
-function checkRolesToAdd(member, server) {
-    for (let activity of member.presence.activities) {
-        if (checkIfshouldAddRole(member, activity, server)) {
-            addRolesForMember(member, activity.name, server);
-        }
-    }
-}
 function joinRole(msg) {
     const roleName = msg.content.split(" -")[1];
     if (roleName == null) {
@@ -87,19 +64,6 @@ function joinRole(msg) {
     }
     else {
         msg.channel.send(`Can't add role ${roleName} for server ${THE_FOREST_ID}`);
-    }
-}
-function checkIfshouldAddRole(member, activity, server) {
-    const roleName = activity.name;
-    const isPlaying = activity.type === 'PLAYING';
-    const isRoleAddable = roles.includes(roleName);
-    if (isPlaying && isRoleAddable) {
-        const role = server.roles.cache.find(role => role.name === roleName);
-        const isUserLackRole = role ? !(member.roles.cache.has(role.id)) : false;
-        return isPlaying && isRoleAddable && isUserLackRole;
-    }
-    else {
-        return false;
     }
 }
 function addRolesForMember(member, roleName, server) {
@@ -117,5 +81,4 @@ function listRoles(msg, joinCommand) {
     roles.forEach(role => returnMessage += '\r\n' + joinCommand + role);
     msg.channel.send(returnMessage);
 }
-//setInterval(() => checkUsersInDisc(bot), checkUserInterval);
 //# sourceMappingURL=discordRoleService.js.map
