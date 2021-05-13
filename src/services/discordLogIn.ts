@@ -1,12 +1,13 @@
 import Discord, { ActivityOptions, ActivityType, GuildChannel, Message, Snowflake } from 'discord.js';
 import fs from 'fs';
-import { EventEmitter } from 'events';
 import { Presence } from 'discord.js';
+
+import BotStatusEmitter from '../model/botStatusEmitter';
+import BotStatus from '../model/botStatus';
 
 const bot = new Discord.Client();
 
-export const botStatusEmitter = new EventEmitter();
-export const botStatusChangeEvent = 'botStatusChange';
+export const botStatusEmitter = new BotStatusEmitter();
 
 const deletedMessageFile = 'deletedMessageFile.json';
 const TOKEN = process.env.DISCORD_BOT_KEY;
@@ -97,40 +98,37 @@ export function whoIs(msg: Message) {
   }
 }
 
-type botStatus = {
-  message: string;
-  avatarURL: string;
-}
+type BotStatusOrUndefined<T extends BotStatus | Presence | undefined | null> = T extends undefined | null ? undefined : BotStatus;
 
-export function getBotStatus(): botStatus | undefined {
+export function getBotStatus<T extends Presence | undefined>(botStatus?: T): BotStatusOrUndefined<T> {
   const botUser = bot.user;
   if (!botUser) {
-    return undefined;
+    return undefined as BotStatusOrUndefined<T>;
   } else {
-    const activity = botUser.presence.activities[0];
+    const activity = botStatus ? botStatus.activities[0] : botUser.presence.activities[0];
     if (activity) {
       if (activity.type === 'CUSTOM_STATUS') {
         return {
           message: `${botUser.username}'s status is: ${activity.name}`,
           avatarURL: `${botUser.avatarURL()}`
-        }
+        } as BotStatusOrUndefined<T>
       } else {
         return {
           message: `${botUser.username} is ${activity.type.toLowerCase()} ${addedWordToBotStatus(activity.type)}${activity.name}`,
           avatarURL: `${botUser.avatarURL()}`
-        }
+        } as BotStatusOrUndefined<T>
       }
-    }else{
+    } else {
       return {
         message: `${botUser.username} is not doing anything`,
         avatarURL: `${botUser.avatarURL()}`
-      }
+      } as BotStatusOrUndefined<T>
     }
   }
 }
 
 function addedWordToBotStatus(activityType: ActivityType) {
-  switch(activityType){
+  switch (activityType) {
     case 'LISTENING':
       return 'to ';
     case 'COMPETING':
@@ -140,8 +138,8 @@ function addedWordToBotStatus(activityType: ActivityType) {
   }
 }
 
-function treeDisplayType(activityType: ActivityType){
-  switch(activityType){
+function treeDisplayType(activityType: ActivityType) {
+  switch (activityType) {
     case 'CUSTOM_STATUS':
       return ''
     default:
@@ -149,35 +147,35 @@ function treeDisplayType(activityType: ActivityType){
   }
 }
 
-export async function updateBotStatus(status?: string, options?: ActivityOptions){
+export async function updateBotStatus(status?: string, options?: ActivityOptions) {
   let botStatus: Presence | undefined;
-  if(status){
-   botStatus = await bot.user?.setActivity(status, options);
-  }else{
+  if (status) {
+    botStatus = await bot.user?.setActivity(status, options);
+  } else {
     botStatus = await bot.user?.setActivity(options);
   }
- if(botStatus){
-   botStatusEmitter.emit(botStatusChangeEvent);
- }
+  if (botStatus) {
+    botStatusEmitter.emit('botStatusChange', getBotStatus(botStatus));
+  }
 }
 
-bot.on('presenceUpdate', (oldSatus: Presence | undefined, newStatus: Presence) =>{
+bot.on('presenceUpdate', (oldSatus: Presence | undefined, newStatus: Presence) => {
   //Check if the user is me, and if there is a real staus change
-  if(newStatus.userID === TREE_USER_ID && newStatus.activities !== oldSatus?.activities){
+  if (newStatus.userID === TREE_USER_ID && newStatus.activities !== oldSatus?.activities) {
     const botStatus = bot.user?.presence.activities[0];
-    if(!botStatus || botStatus.type === 'WATCHING'){
+    if (!botStatus || botStatus.type === 'WATCHING') {
       const treeStatus = newStatus.activities[0];
-      if(treeStatus){
+      if (treeStatus) {
         let statusMessage = `Tree ${treeDisplayType(treeStatus.type)} ${addedWordToBotStatus(treeStatus.type)}`;
-        if(treeStatus.details){
+        if (treeStatus.details) {
           statusMessage += `${treeStatus.details}`;
-        }else if(treeStatus.state){
+        } else if (treeStatus.state) {
           statusMessage += `${treeStatus.state}`;
-        }else{
+        } else {
           statusMessage += `${treeStatus.name}`;
         }
-        updateBotStatus(statusMessage, {type: 'WATCHING'});
-      }else{
+        updateBotStatus(statusMessage, { type: 'WATCHING' });
+      } else {
         updateBotStatus();
       }
     }

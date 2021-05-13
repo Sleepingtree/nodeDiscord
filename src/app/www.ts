@@ -10,8 +10,8 @@ import https from 'https';
 import http, { Server } from 'http';
 import fs from 'fs';
 import {Server as SocketServer, Socket} from 'socket.io';
-import { botStatusChangeEvent, botStatusEmitter } from '../services/discordLogIn';
-
+import { botStatusEmitter } from '../services/discordLogIn';
+import BotStatus from '../model/botStatus';
 import { getBotStatus } from '../services/discordLogIn';
 
 /**
@@ -106,16 +106,16 @@ const io = new SocketServer(server, {
 
 io.on("connection", (socket: Socket) => {
 
-  function handleStatusUpdate(){
-    socket.emit('botStatus', getBotStatus());
+  function handleStatusUpdate(status: BotStatus | undefined){
+    socket.emit('botStatus', status);
   }
   
-  handleStatusUpdate();
+  handleStatusUpdate(getBotStatus());
 
-  botStatusEmitter.on(botStatusChangeEvent, handleStatusUpdate);
+  botStatusEmitter.on('botStatusChange', handleStatusUpdate);
 
   socket.on('disconnect', () =>{
-    botStatusEmitter.off(botStatusChangeEvent, handleStatusUpdate);
+    botStatusEmitter.off('botStatusChange', handleStatusUpdate);
   });
 });
 

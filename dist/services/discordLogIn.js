@@ -3,13 +3,12 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateBotStatus = exports.getBotStatus = exports.whoIs = exports.whosOnline = exports.getChannelNameFromId = exports.BOT_PREFIX = exports.botStatusChangeEvent = exports.botStatusEmitter = void 0;
+exports.updateBotStatus = exports.getBotStatus = exports.whoIs = exports.whosOnline = exports.getChannelNameFromId = exports.BOT_PREFIX = exports.botStatusEmitter = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const fs_1 = __importDefault(require("fs"));
-const events_1 = require("events");
+const botStatusEmitter_1 = __importDefault(require("../model/botStatusEmitter"));
 const bot = new discord_js_1.default.Client();
-exports.botStatusEmitter = new events_1.EventEmitter();
-exports.botStatusChangeEvent = 'botStatusChange';
+exports.botStatusEmitter = new botStatusEmitter_1.default();
 const deletedMessageFile = 'deletedMessageFile.json';
 const TOKEN = process.env.DISCORD_BOT_KEY;
 const TREE_USER_ID = process.env.TREE_USER_ID;
@@ -94,13 +93,13 @@ function whoIs(msg) {
     }
 }
 exports.whoIs = whoIs;
-function getBotStatus() {
+function getBotStatus(botStatus) {
     const botUser = bot.user;
     if (!botUser) {
         return undefined;
     }
     else {
-        const activity = botUser.presence.activities[0];
+        const activity = botStatus ? botStatus.activities[0] : botUser.presence.activities[0];
         if (activity) {
             if (activity.type === 'CUSTOM_STATUS') {
                 return {
@@ -152,7 +151,7 @@ async function updateBotStatus(status, options) {
         botStatus = await ((_b = bot.user) === null || _b === void 0 ? void 0 : _b.setActivity(options));
     }
     if (botStatus) {
-        exports.botStatusEmitter.emit(exports.botStatusChangeEvent);
+        exports.botStatusEmitter.emit('botStatusChange', getBotStatus(botStatus));
     }
 }
 exports.updateBotStatus = updateBotStatus;
