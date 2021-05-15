@@ -21,14 +21,16 @@ var __importStar = (this && this.__importStar) || function (mod) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getAndRespondWhosOnline = void 0;
 const discord_js_1 = require("discord.js");
 const node_fetch_1 = __importDefault(require("node-fetch"));
 const discordLogIn_1 = __importStar(require("./discordLogIn"));
+const throwIfUndefinedOrNull_1 = __importDefault(require("../util/throwIfUndefinedOrNull"));
 const NOTIFY_ME_KEY = process.env.NOTIFY_ME_KEY;
 const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
-const THE_FOREST_ID = process.env.THE_FOREST_ID;
+const THE_FOREST_ID = (_a = process.env.THE_FOREST_ID) !== null && _a !== void 0 ? _a : throwIfUndefinedOrNull_1.default('Forest sever ID is not defined');
 const maxResendTime = 1000 * 60 * 60 * 6; //6hours
 const urlBase = 'https://api.notifymyecho.com/v1/NotifyMe';
 let lastSent = null;

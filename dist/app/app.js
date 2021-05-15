@@ -5,7 +5,6 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = require("dotenv");
 dotenv_1.config();
-const http_errors_1 = __importDefault(require("http-errors"));
 const express_1 = __importDefault(require("express"));
 const path_1 = __importDefault(require("path"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
@@ -32,6 +31,11 @@ app.use(cors_1.default({
 app.set('views', path_1.default.join(__dirname, '../../views'));
 app.set('view engine', 'pug');
 app.use(morgan_1.default('dev'));
+//hide info from scripting attacks
+app.use((_req, res, next) => {
+    res.header('X-Powered-By', 'Electricity');
+    next();
+});
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: false }));
 app.use(cookie_parser_1.default());
@@ -41,8 +45,8 @@ app.use('/users', users_1.default);
 app.use('/whosOnline', alexaRouter_1.default);
 app.use('/botStatus', botStatus_1.default);
 // catch 404 and forward to error handler
-app.use(function (_req, _res, next) {
-    next(http_errors_1.default(404));
+app.use(function (_req, res, _next) {
+    res.status(418).send('I am not a coffee machine');
 });
 // error handler
 app.use(function (err, req, res, _next) {

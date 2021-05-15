@@ -34,6 +34,12 @@ app.set('view engine', 'pug');
 
 app.use(logger('dev'));
 
+//hide info from scripting attacks
+app.use((_req, res, next) => {
+  res.header('X-Powered-By','Electricity');
+  next();
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
@@ -45,8 +51,8 @@ app.use('/whosOnline', alexaRouter);
 app.use('/botStatus', botStatusRouter);
 
 // catch 404 and forward to error handler
-app.use(function (_req, _res, next) {
-  next(createError(404));
+app.use(function (_req, res, _next) {
+  res.status(418).send('I am not a coffee machine');
 });
 
 // error handler
