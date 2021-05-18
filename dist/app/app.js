@@ -13,6 +13,7 @@ const cors_1 = __importDefault(require("cors"));
 const index_1 = __importDefault(require("../routes/index"));
 const users_1 = __importDefault(require("../routes/users"));
 const alexaRouter_1 = __importDefault(require("../routes/alexaRouter"));
+const newAlexaRouter_1 = __importDefault(require("../routes/newAlexaRouter"));
 const botStatus_1 = __importDefault(require("../routes/botStatus"));
 //start up discord bot services
 require("../services/discordRoleService");
@@ -36,6 +37,8 @@ app.use((_req, res, next) => {
     res.header('X-Powered-By', 'Electricity');
     next();
 });
+//Alexa app expects raw text not json
+app.use('/alexa', newAlexaRouter_1.default);
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: false }));
 app.use(cookie_parser_1.default());

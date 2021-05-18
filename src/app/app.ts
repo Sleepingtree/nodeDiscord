@@ -1,6 +1,5 @@
 import { config } from 'dotenv';
 config();
-import createError from 'http-errors';
 import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
@@ -10,6 +9,7 @@ import cors from 'cors';
 import indexRouter from '../routes/index';
 import usersRouter from '../routes/users';
 import alexaRouter from '../routes/alexaRouter';
+import newAlexaRouter from '../routes/newAlexaRouter';
 import botStatusRouter from '../routes/botStatus';
 
 //start up discord bot services
@@ -40,12 +40,16 @@ app.use((_req, res, next) => {
   next();
 });
 
+//Alexa app expects raw text not json
+app.use('/alexa', newAlexaRouter);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, '../../public')));
 
 app.use('/welcome', indexRouter);
+
 app.use('/users', usersRouter);
 app.use('/whosOnline', alexaRouter);
 app.use('/botStatus', botStatusRouter);
