@@ -2,16 +2,19 @@
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.updateBotStatus = exports.getBotStatus = exports.whoIs = exports.whosOnline = exports.getChannelNameFromId = exports.BOT_PREFIX = exports.botStatusEmitter = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const fs_1 = __importDefault(require("fs"));
 const botStatusEmitter_1 = __importDefault(require("../model/botStatusEmitter"));
+const throwIfUndefinedOrNull_1 = __importDefault(require("../util/throwIfUndefinedOrNull"));
 const bot = new discord_js_1.default.Client();
 exports.botStatusEmitter = new botStatusEmitter_1.default();
 const deletedMessageFile = 'deletedMessageFile.json';
 const TOKEN = process.env.DISCORD_BOT_KEY;
 const TREE_USER_ID = process.env.TREE_USER_ID;
+const THE_FOREST_ID = (_a = process.env.THE_FOREST_ID) !== null && _a !== void 0 ? _a : throwIfUndefinedOrNull_1.default('Discord server ID is undefined');
 const WHISS_USER_ID = process.env.WHISS_USER_ID;
 exports.BOT_PREFIX = '!';
 const commands = [exports.BOT_PREFIX + 'startGame', exports.BOT_PREFIX + 'cancelGame', exports.BOT_PREFIX + 'redWins', exports.BOT_PREFIX + 'blueWins',
@@ -57,23 +60,13 @@ async function getChannelNameFromId(channelId) {
 }
 exports.getChannelNameFromId = getChannelNameFromId;
 async function whosOnline(channelId) {
-    if (!channelId) {
-        throw 'channel id is null';
-    }
-    let usersOnline = new Array();
-    await bot.channels.fetch(channelId)
-        .then(channel => {
-        const guildChannel = channel;
-        if (channel != null && guildChannel.members != null) {
-            guildChannel.members
-                .each(member => bot.users.fetch(member.id)
-                .then(user => {
-                usersOnline.push(user.username);
-            }));
-        }
-    })
-        .catch(err => {
-        console.log(err);
+    let usersOnline = [];
+    const theForrest = await bot.guilds.fetch(THE_FOREST_ID);
+    theForrest.channels.cache
+        .filter(channel => channel.type === 'voice')
+        .filter(channel => !channelId || channel.id === channelId)
+        .forEach(channel => {
+        channel.members.forEach(member => usersOnline.push(member.user.username));
     });
     return usersOnline;
 }

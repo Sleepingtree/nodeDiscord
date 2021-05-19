@@ -6,7 +6,7 @@ declare const bot: Discord.Client;
 export declare const botStatusEmitter: BotStatusEmitter;
 export declare const BOT_PREFIX = "!";
 export declare function getChannelNameFromId(channelId: Snowflake): Promise<string | void>;
-export declare function whosOnline(channelId?: Snowflake): Promise<any[]>;
+export declare function whosOnline(channelId?: Snowflake): Promise<string[]>;
 export declare function whoIs(msg: Message): void;
 declare type BotStatusOrUndefined<T extends BotStatus | Presence | undefined | null> = T extends undefined | null ? undefined : BotStatus;
 export declare function getBotStatus<T extends Presence | undefined>(botStatus?: T): BotStatusOrUndefined<T>;
