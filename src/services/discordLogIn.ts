@@ -4,6 +4,7 @@ import { Presence } from 'discord.js';
 
 import BotStatusEmitter from '../model/botStatusEmitter';
 import BotStatus from '../model/botStatus';
+import throwIfNull from '../util/throwIfUndefinedOrNull';
 
 const bot = new Discord.Client();
 
@@ -12,6 +13,7 @@ export const botStatusEmitter = new BotStatusEmitter();
 const deletedMessageFile = 'deletedMessageFile.json';
 const TOKEN = process.env.DISCORD_BOT_KEY;
 const TREE_USER_ID = process.env.TREE_USER_ID;
+const THE_FOREST_ID = process.env.THE_FOREST_ID ?? throwIfNull('Discord server ID is undefined');
 
 const WHISS_USER_ID = process.env.WHISS_USER_ID;
 
@@ -62,24 +64,13 @@ export async function getChannelNameFromId(channelId: Snowflake) {
 }
 
 export async function whosOnline(channelId?: Snowflake) {
-  if (!channelId) {
-    throw 'channel id is null';
-  }
-  let usersOnline = new Array();
-  await bot.channels.fetch(channelId)
-    .then(channel => {
-      const guildChannel: GuildChannel = <GuildChannel>channel;
-      if (channel != null && guildChannel.members != null) {
-        guildChannel.members
-          .each(member => bot.users.fetch(member.id)
-            .then(user => {
-              usersOnline.push(user.username);
-            })
-          );
-      }
-    })
-    .catch(err => {
-      console.log(err);
+  let usersOnline: string[] = [];
+  const theForrest = await bot.guilds.fetch(THE_FOREST_ID);
+  theForrest.channels.cache
+    .filter(channel => channel.type === 'voice')
+    .filter(channel => !channelId || channel.id === channelId)
+    .forEach(channel => {
+      channel.members.forEach(member => usersOnline.push(member.user.username))
     });
   return usersOnline;
 }

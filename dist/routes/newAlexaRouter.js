@@ -10,14 +10,6 @@ const router = express_1.default.Router();
 const skill = newAlexaService_1.default.create();
 const adapter = new ask_sdk_express_adapter_1.ExpressAdapter(skill, true, true);
 const requestHandelers = adapter.getRequestHandlers();
-router.all('/', (req, _res, next) => {
-    console.log(`In rounter for alexa req: $`);
-    next();
-});
 router.all('/', requestHandelers);
-router.all('/', (req, _res, next) => {
-    console.log(`In rounter for alexa after`);
-    next();
-});
 exports.default = router;
 //# sourceMappingURL=newAlexaRouter.js.map
