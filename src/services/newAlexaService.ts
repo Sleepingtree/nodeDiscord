@@ -1,11 +1,11 @@
-import { RequestHandler, HandlerInput, SkillBuilders, getRequestType, getIntentName } from 'ask-sdk-core';
-import { Response, SessionEndedRequest } from 'ask-sdk-model';
+import { RequestHandler, HandlerInput, SkillBuilders, getRequestType, getIntentName, getDialogState } from 'ask-sdk-core';
+import { IntentRequest, Response, SessionEndedRequest, SimpleSlotValue } from 'ask-sdk-model';
 
 import { whosOnline } from './discordLogIn';
+import * as  alexaModel from '../model/alexaModel';
 
 const LaunchRequestHandler: RequestHandler = {
   canHandle(handlerInput: HandlerInput): boolean {
-    console.log('In intentandler')
     return getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
   },
   handle(handlerInput: HandlerInput): Response {
@@ -49,6 +49,63 @@ const WhosOnlineIntentHandler: RequestHandler = {
   },
 };
 
+const PostMessageStartedIntentHandler: RequestHandler = {
+  canHandle(handlerInput: HandlerInput): boolean {
+    return getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+      && getIntentName(handlerInput.requestEnvelope) === 'postMessage'
+      && getDialogState(handlerInput.requestEnvelope) === 'STARTED';
+  },
+  async handle(handlerInput: HandlerInput) {
+    const { intent } = handlerInput.requestEnvelope.request as IntentRequest;
+    const speechText = 'what channel would you like to post to?';
+    return handlerInput.responseBuilder
+      .withSimpleCard('Post a message', speechText)
+      .addDelegateDirective(intent)
+      .getResponse();
+  },
+};
+
+
+const PostMessageIntentHandler: RequestHandler = {
+  canHandle(handlerInput: HandlerInput): boolean {
+    return getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+      && getIntentName(handlerInput.requestEnvelope) === 'postMessage'
+      && getDialogState(handlerInput.requestEnvelope) === 'IN_PROGRESS';
+  },
+  async handle(handlerInput: HandlerInput) {
+    const { intent } = handlerInput.requestEnvelope.request as IntentRequest;
+    const channelName = intent.slots?.[alexaModel.channelName].value;
+    const speechText = channelName ?? 'what channel would you like to post to?';
+    const responseBuilder = handlerInput.responseBuilder
+      .withSimpleCard('Post a message', speechText);
+    if (!channelName) {
+      responseBuilder.addElicitSlotDirective(alexaModel.channelName);
+    }
+    return responseBuilder
+      .addDelegateDirective(intent)
+      .getResponse();
+  },
+};
+
+const PostMessageCompleteIntentHandler: RequestHandler = {
+  canHandle(handlerInput: HandlerInput): boolean {
+    return getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
+      && getIntentName(handlerInput.requestEnvelope) === 'postMessage'
+      && getDialogState(handlerInput.requestEnvelope) === 'COMPLETED';
+  },
+  async handle(handlerInput: HandlerInput) {
+    const { intent } = handlerInput.requestEnvelope.request as IntentRequest;
+    const channelName = intent.slots?.[alexaModel.channelName].value;
+    const messageToPost = intent.slots?.messageToPost.value;
+    const speechText = `posting ${messageToPost} to ${channelName}`;
+    return handlerInput.responseBuilder
+      .speak(speechText)
+      .reprompt(speechText)
+      .withSimpleCard('Post a message', speechText)
+      .getResponse();
+  },
+};
+
 const CancelAndStopIntentHandler: RequestHandler = {
   canHandle(handlerInput: HandlerInput): boolean {
     return getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
@@ -81,6 +138,9 @@ const skillBuilder = SkillBuilders.custom()
   .addRequestHandlers(LaunchRequestHandler,
     HelloWorldIntentHandler,
     WhosOnlineIntentHandler,
+    PostMessageStartedIntentHandler,
+    PostMessageIntentHandler,
+    PostMessageCompleteIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler)
   .withCustomUserAgent('The Forrest');
