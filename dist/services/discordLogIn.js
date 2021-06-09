@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateBotStatus = exports.getBotStatus = exports.whoIs = exports.whosOnline = exports.getChannelNameFromId = exports.BOT_PREFIX = exports.botStatusEmitter = void 0;
+exports.postMessageInChannel = exports.updateBotStatus = exports.getBotStatus = exports.whoIs = exports.whosOnline = exports.getChannelNameFromId = exports.BOT_PREFIX = exports.botStatusEmitter = void 0;
 const discord_js_1 = __importDefault(require("discord.js"));
 const fs_1 = __importDefault(require("fs"));
 const botStatusEmitter_1 = __importDefault(require("../model/botStatusEmitter"));
@@ -137,6 +137,7 @@ function treeDisplayType(activityType) {
 async function updateBotStatus(status, options) {
     var _a, _b;
     let botStatus;
+    console.log(`Updating bot status to  ${status}`);
     if (status) {
         botStatus = await ((_a = bot.user) === null || _a === void 0 ? void 0 : _a.setActivity(status, options));
     }
@@ -148,6 +149,17 @@ async function updateBotStatus(status, options) {
     }
 }
 exports.updateBotStatus = updateBotStatus;
+async function postMessageInChannel(message, channelName) {
+    const theForest = await bot.guilds.fetch(THE_FOREST_ID);
+    const channel = theForest.channels.cache
+        .filter(channel => channel.name === channelName)
+        .first();
+    const canPost = channel === null || channel === void 0 ? void 0 : channel.isText();
+    if (canPost) {
+        channel.send(message);
+    }
+}
+exports.postMessageInChannel = postMessageInChannel;
 bot.on('presenceUpdate', (oldSatus, newStatus) => {
     var _a;
     //Check if the user is me, and if there is a real staus change

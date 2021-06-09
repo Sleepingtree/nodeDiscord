@@ -1,4 +1,4 @@
-import Discord, { ActivityOptions, ActivityType, GuildChannel, Message, Snowflake } from 'discord.js';
+import Discord, { ActivityOptions, ActivityType, GuildChannel, Message, Snowflake, TextChannel } from 'discord.js';
 import fs from 'fs';
 import { Presence } from 'discord.js';
 
@@ -140,6 +140,7 @@ function treeDisplayType(activityType: ActivityType) {
 
 export async function updateBotStatus(status?: string, options?: ActivityOptions) {
   let botStatus: Presence | undefined;
+  console.log(`Updating bot status to  ${status}`);
   if (status) {
     botStatus = await bot.user?.setActivity(status, options);
   } else {
@@ -147,6 +148,17 @@ export async function updateBotStatus(status?: string, options?: ActivityOptions
   }
   if (botStatus) {
     botStatusEmitter.emit('botStatusChange', getBotStatus(botStatus));
+  }
+}
+
+export async function postMessageInChannel(message: string, channelName: string){
+  const theForest = await bot.guilds.fetch(THE_FOREST_ID);
+  const channel = theForest.channels.cache
+    .filter(channel => channel.name === channelName)
+    .first();
+  const canPost = channel?.isText();
+  if(canPost){
+    (channel as TextChannel).send(message);
   }
 }
 

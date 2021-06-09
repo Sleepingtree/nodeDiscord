@@ -108,8 +108,12 @@ const PostMessageCompleteIntentHandler = {
         var _a, _b;
         const { intent } = handlerInput.requestEnvelope.request;
         const channelName = (_a = intent.slots) === null || _a === void 0 ? void 0 : _a[alexaModel.channelName].value;
-        const messageToPost = (_b = intent.slots) === null || _b === void 0 ? void 0 : _b.messageToPost.value;
-        const speechText = `posting ${messageToPost} to ${channelName}`;
+        const messageToPost = (_b = intent.slots) === null || _b === void 0 ? void 0 : _b[alexaModel.messageToPost].value;
+        let speechText = `counld not post ${messageToPost} to channel ${channelName}`;
+        if (messageToPost && channelName) {
+            discordLogIn_1.postMessageInChannel(messageToPost, channelName);
+            speechText = `posting ${messageToPost} to ${channelName}`;
+        }
         return handlerInput.responseBuilder
             .speak(speechText)
             .reprompt(speechText)

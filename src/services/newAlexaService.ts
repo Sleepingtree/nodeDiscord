@@ -1,7 +1,7 @@
 import { RequestHandler, HandlerInput, SkillBuilders, getRequestType, getIntentName, getDialogState } from 'ask-sdk-core';
 import { IntentRequest, Response, SessionEndedRequest, SimpleSlotValue } from 'ask-sdk-model';
 
-import { whosOnline } from './discordLogIn';
+import { postMessageInChannel, whosOnline } from './discordLogIn';
 import * as  alexaModel from '../model/alexaModel';
 
 const LaunchRequestHandler: RequestHandler = {
@@ -96,8 +96,12 @@ const PostMessageCompleteIntentHandler: RequestHandler = {
   async handle(handlerInput: HandlerInput) {
     const { intent } = handlerInput.requestEnvelope.request as IntentRequest;
     const channelName = intent.slots?.[alexaModel.channelName].value;
-    const messageToPost = intent.slots?.messageToPost.value;
-    const speechText = `posting ${messageToPost} to ${channelName}`;
+    const messageToPost = intent.slots?.[alexaModel.messageToPost].value;
+    let speechText = `counld not post ${messageToPost} to channel ${channelName}`
+    if(messageToPost && channelName){
+      postMessageInChannel(messageToPost, channelName);
+      speechText = `posting ${messageToPost} to ${channelName}`;
+    }
     return handlerInput.responseBuilder
       .speak(speechText)
       .reprompt(speechText)
