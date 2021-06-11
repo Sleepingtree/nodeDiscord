@@ -152,7 +152,7 @@ exports.updateBotStatus = updateBotStatus;
 async function postMessageInChannel(message, channelName) {
     const theForest = await bot.guilds.fetch(THE_FOREST_ID);
     const channel = theForest.channels.cache
-        .filter(channel => channel.name === channelName)
+        .filter(channel => channel.name.replace('-', ' ').toLowerCase() === channelName)
         .first();
     const canPost = channel === null || channel === void 0 ? void 0 : channel.isText();
     if (canPost) {
