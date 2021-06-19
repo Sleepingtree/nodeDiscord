@@ -36,20 +36,20 @@ bot.on('message', msg => {
 });
 
 
-async function playYoutube(msg: Message, url: string, songName: string) {
+async function playYoutube(url: string, songName: string, msg?: Message) {
     const tempConnection = await getConnection(msg);
     
     voiceStream = tempConnection.play(ytdl(url, { quality: 'highestaudio', filter: (video) => video.hasAudio}), { volume: 0.1 })
         .on("finish", () => checkAndIncrmentQueue(msg))
-        .on("error", closeVoiceConnection);
+        .on("error", checkAndIncrmentQueue);
     updateBotStatus(songName, {type: "LISTENING"});
 }
 
-async function getConnection(msg: Message) {
+async function getConnection(msg?: Message) {
     if (voiceConnection) {
         return voiceConnection;
     }
-    if (msg.member) {
+    if (msg?.member) {
         const channel = msg.member.voice.channel;
         if (!channel) {
             msg.channel.send('you must be in a voice channel!');
@@ -102,15 +102,15 @@ async function searchAndAddYoutube(msg: Message, search: string) {
     if (queueItem) {
         playQueue.push(queueItem);
         if (isQueueEmpty) {
-            playYoutube(msg, queueItem.url, queueItem.title);
+            playYoutube(queueItem.url, queueItem.title, msg);
         }
     }
 }
 
-function checkAndIncrmentQueue(msg: Message) {
+function checkAndIncrmentQueue(msg?: Message) {
     playQueue.shift();
     if (playQueue.length > 0) {
-        playYoutube(msg, playQueue[0].url, playQueue[0].title);
+        playYoutube(playQueue[0].url, playQueue[0].title, msg);
     } else {
         closeVoiceConnection();
     }
