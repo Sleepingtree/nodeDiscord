@@ -1,4 +1,4 @@
-import { Client, Message, TextChannel } from "discord.js";
+import { Message, TextChannel } from "discord.js";
 import bot, {BOT_PREFIX} from './discordLogIn';
 
 const CLASH_PLANING_TEXT_CHANNEL = process.env.CLASH_PLANING_TEXT_CHANNEL;

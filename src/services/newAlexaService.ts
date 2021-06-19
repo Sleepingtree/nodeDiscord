@@ -1,5 +1,5 @@
 import { RequestHandler, HandlerInput, SkillBuilders, getRequestType, getIntentName, getDialogState } from 'ask-sdk-core';
-import { IntentRequest, Response, SessionEndedRequest, SimpleSlotValue } from 'ask-sdk-model';
+import { IntentRequest, Response, SessionEndedRequest } from 'ask-sdk-model';
 
 import { postMessageInChannel, whosOnline } from './discordLogIn';
 import * as  alexaModel from '../model/alexaModel';

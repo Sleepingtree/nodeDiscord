@@ -1,6 +1,12 @@
 {
   "name": "discord",
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": {
+    "email": "ajgrabow@gmail.com",
+    "url": "https://github.com/Sleepingtree/nodeDiscord",
+    "name": "Aaron Grabow"
+  },
   "private": true,
   "scripts": {
     "start": "node ./dist/app/www",

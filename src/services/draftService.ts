@@ -60,7 +60,7 @@ async function draft(){
         })
         .then(res => res.json());
         console.log(response);
-        const ids = [response.auth[0], response.auth[1], response.id];
+       
         let urls: Array<String> = [];
         //blue team
         urls.push('http://prodraft.leagueoflegends.com/?draft=' + response.id + '&auth=' + response.auth[0] +'&locale=en_US');
