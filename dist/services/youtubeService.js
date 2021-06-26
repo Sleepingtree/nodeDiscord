@@ -70,6 +70,7 @@ async function getConnection(msg) {
     if (msg === null || msg === void 0 ? void 0 : msg.member) {
         const channel = msg.member.voice.channel;
         if (!channel) {
+            closeVoiceConnection();
             msg.channel.send('you must be in a voice channel!');
         }
         else {

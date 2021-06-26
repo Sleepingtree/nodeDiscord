@@ -52,6 +52,7 @@ async function getConnection(msg?: Message) {
     if (msg?.member) {
         const channel = msg.member.voice.channel;
         if (!channel) {
+            closeVoiceConnection();
             msg.channel.send('you must be in a voice channel!');
         } else {
             const tempConnection = await channel.join();
