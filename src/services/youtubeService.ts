@@ -87,14 +87,18 @@ async function searchYoutube(msg: Message, search: string): Promise<SongQueueIte
                         url: `https://www.youtube.com/watch?v=${searchResults.data.items[0].id.videoId}`,
                         title: title
                     };
+                }else{
+                    console.error(`Inner search items ${typeof innerSearch.data.items}`);
                 }
+            }else{
+                console.error(`Search results status was ${searchResults.status} data ${searchResults.data.items}`);
             }
+        }else{
+            msg.channel.send('You need to search on something!');
         }
-        msg.channel.send('You need to search on something!');
     } catch (error) {
         console.error(error);
     }
-    console.error('Shouldn\'t be here');
 }
 
 async function searchAndAddYoutube(msg: Message, search: string) {

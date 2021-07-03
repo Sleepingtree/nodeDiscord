@@ -105,14 +105,21 @@ async function searchYoutube(msg, search) {
                         title: title
                     };
                 }
+                else {
+                    console.error(`Inner search items ${typeof innerSearch.data.items}`);
+                }
+            }
+            else {
+                console.error(`Search results status was ${searchResults.status} data ${searchResults.data.items}`);
             }
         }
-        msg.channel.send('You need to search on something!');
+        else {
+            msg.channel.send('You need to search on something!');
+        }
     }
     catch (error) {
         console.error(error);
     }
-    console.error('Shouldn\'t be here');
 }
 async function searchAndAddYoutube(msg, search) {
     const queueItem = await searchYoutube(msg, search);
