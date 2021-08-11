@@ -38,19 +38,18 @@ bot.on('message', msg => {
         msg.channel.send(message);
     }
 });
-bot.on('messageDelete', message => {
+bot.on('messageDelete', async (message) => {
     var _a;
     console.log('in delete');
-    const file = fs_1.default.readFileSync(deletedMessageFile, 'utf8');
+    const file = await fs_1.default.promises.readFile(deletedMessageFile, 'utf8');
     const jsonFile = JSON.parse(file);
     jsonFile[message.id] = message;
     const fileString = JSON.stringify(jsonFile, null, 2);
     const reply = `Message from ${(_a = message.member) === null || _a === void 0 ? void 0 : _a.user.username} was deleted message was: \`${message.content}\` `;
     if (WHISS_USER_ID) {
-        bot.users.fetch(WHISS_USER_ID)
-            .then(user => user.send(reply))
-            .catch(console.log);
-        fs_1.default.writeFileSync(deletedMessageFile, fileString);
+        const whiss = await bot.users.fetch(WHISS_USER_ID);
+        whiss.send(reply);
+        fs_1.default.promises.writeFile(deletedMessageFile, fileString);
     }
 });
 async function getChannelNameFromId(channelId) {
@@ -137,7 +136,7 @@ function treeDisplayType(activityType) {
 async function updateBotStatus(status, options) {
     var _a, _b;
     let botStatus;
-    console.log(`Updating bot status to  ${status}`);
+    console.log(`Updating bot status to ${status}`);
     if (status) {
         botStatus = await ((_a = bot.user) === null || _a === void 0 ? void 0 : _a.setActivity(status, options));
     }
@@ -168,7 +167,7 @@ bot.on('presenceUpdate', (oldSatus, newStatus) => {
         if (!botStatus || botStatus.type === 'WATCHING') {
             const treeStatus = newStatus.activities[0];
             if (treeStatus) {
-                let statusMessage = `Tree ${treeDisplayType(treeStatus.type)} ${addedWordToBotStatus(treeStatus.type)}`;
+                let statusMessage = `Tree ${treeDisplayType(treeStatus.type)}${addedWordToBotStatus(treeStatus.type)}`;
                 if (treeStatus.details) {
                     statusMessage += `${treeStatus.details}`;
                 }
