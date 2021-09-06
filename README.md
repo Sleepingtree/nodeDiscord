@@ -10,6 +10,10 @@ This project was created to help understand Typescript/node while building a fun
 
 3. Navigate to the root location of the project and run
 
+4. Set up a discord application [here](https://discord.com/developers/applications)
+
+5. Set up a .env file with the values for your server, and your bot log in   
+
 ```bash
 npm install
 ```
