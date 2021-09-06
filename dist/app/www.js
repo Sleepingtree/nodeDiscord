@@ -75,7 +75,7 @@ function onListening() {
     let bind = typeof addr === 'string'
         ? 'pipe ' + addr
         : 'port ' + (addr === null || addr === void 0 ? void 0 : addr.port);
-    debug_1.default('Listening on ' + bind);
+    (0, debug_1.default)('Listening on ' + bind);
 }
 const io = new socket_io_1.Server(server, {
     path: '/io',
@@ -87,7 +87,7 @@ io.on("connection", (socket) => {
     function handleStatusUpdate(status) {
         socket.emit('botStatus', status);
     }
-    handleStatusUpdate(discordLogIn_2.getBotStatus());
+    handleStatusUpdate((0, discordLogIn_2.getBotStatus)());
     discordLogIn_1.botStatusEmitter.on('botStatusChange', handleStatusUpdate);
     socket.on('disconnect', () => {
         discordLogIn_1.botStatusEmitter.off('botStatusChange', handleStatusUpdate);

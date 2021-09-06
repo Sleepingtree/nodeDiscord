@@ -36,7 +36,7 @@ discordLogIn_1.default.on('message', msg => {
 });
 async function getSummery() {
     const url = "https://api.wanikani.com/v2/summary";
-    let res = await node_fetch_1.default(url, {
+    let res = await (0, node_fetch_1.default)(url, {
         method: 'get',
         headers: { 'Authorization': `Bearer ${WANIKANI_API_KEY}` },
     });

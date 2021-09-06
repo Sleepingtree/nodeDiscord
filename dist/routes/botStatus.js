@@ -24,7 +24,7 @@ const discordLogIn_1 = require("../services/discordLogIn");
 const router = express.Router();
 /* GET home page. */
 router.get('/', function (_req, res) {
-    res.json(discordLogIn_1.getBotStatus()).send();
+    res.json((0, discordLogIn_1.getBotStatus)()).send();
 });
 exports.default = router;
 //# sourceMappingURL=botStatus.js.map

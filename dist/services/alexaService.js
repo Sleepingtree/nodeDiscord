@@ -30,7 +30,7 @@ const discordLogIn_1 = __importStar(require("./discordLogIn"));
 const throwIfUndefinedOrNull_1 = __importDefault(require("../util/throwIfUndefinedOrNull"));
 const NOTIFY_ME_KEY = process.env.NOTIFY_ME_KEY;
 const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
-const THE_FOREST_ID = (_a = process.env.THE_FOREST_ID) !== null && _a !== void 0 ? _a : throwIfUndefinedOrNull_1.default('Forest sever ID is not defined');
+const THE_FOREST_ID = (_a = process.env.THE_FOREST_ID) !== null && _a !== void 0 ? _a : (0, throwIfUndefinedOrNull_1.default)('Forest sever ID is not defined');
 const maxResendTime = 1000 * 60 * 60 * 6; //6hours
 const urlBase = 'https://api.notifymyecho.com/v1/NotifyMe';
 let lastSent = null;
@@ -39,20 +39,20 @@ discordLogIn_1.default.on('voiceStateUpdate', (_oldState, newState) => {
 });
 async function getAndRespondWhosOnline(channelId) {
     const channelIdToUse = channelId == null ? VOICE_CHANNEL_ID : channelId;
-    const users = await discordLogIn_1.whosOnline(channelIdToUse);
+    const users = await (0, discordLogIn_1.whosOnline)(channelIdToUse);
     let notification = `users online are ${users}`;
     if (users.length == 0) {
         notification = 'no one is online';
     }
     if (channelId != null) {
-        const channelName = await discordLogIn_1.getChannelNameFromId(channelId);
+        const channelName = await (0, discordLogIn_1.getChannelNameFromId)(channelId);
         notification += ` on channel ${channelName}`;
     }
     const body = {
         "notification": notification,
         "accessCode": NOTIFY_ME_KEY
     };
-    node_fetch_1.default(urlBase, {
+    (0, node_fetch_1.default)(urlBase, {
         method: 'post',
         body: JSON.stringify(body),
         headers: { 'Content-Type': 'application/json' },
@@ -64,7 +64,7 @@ async function getAndRespondWhosOnline(channelId) {
 }
 exports.getAndRespondWhosOnline = getAndRespondWhosOnline;
 async function checkToSendWhosOnline(channelId) {
-    const users = await discordLogIn_1.whosOnline(channelId != null ? channelId : VOICE_CHANNEL_ID);
+    const users = await (0, discordLogIn_1.whosOnline)(channelId != null ? channelId : VOICE_CHANNEL_ID);
     if (!users.includes('sleepingtree') && (lastSent == null || lastSent + maxResendTime < Date.now())) {
         lastSent = Date.now();
         return getAndRespondWhosOnline(channelId)

@@ -9,7 +9,7 @@ const router = express_1.default.Router();
 /* GET users listing. */
 router.all('/', function (_req, res) {
     console.log('In Alexa router');
-    alexaService_1.getAndRespondWhosOnline()
+    (0, alexaService_1.getAndRespondWhosOnline)()
         .then(() => res.send())
         .catch(err => console.log(err));
 });

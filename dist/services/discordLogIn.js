@@ -14,7 +14,7 @@ exports.botStatusEmitter = new botStatusEmitter_1.default();
 const deletedMessageFile = 'deletedMessageFile.json';
 const TOKEN = process.env.DISCORD_BOT_KEY;
 const TREE_USER_ID = process.env.TREE_USER_ID;
-const THE_FOREST_ID = (_a = process.env.THE_FOREST_ID) !== null && _a !== void 0 ? _a : throwIfUndefinedOrNull_1.default('Discord server ID is undefined');
+const THE_FOREST_ID = (_a = process.env.THE_FOREST_ID) !== null && _a !== void 0 ? _a : (0, throwIfUndefinedOrNull_1.default)('Discord server ID is undefined');
 const WHISS_USER_ID = process.env.WHISS_USER_ID;
 exports.BOT_PREFIX = '!';
 const commands = [exports.BOT_PREFIX + 'startGame', exports.BOT_PREFIX + 'cancelGame', exports.BOT_PREFIX + 'redWins', exports.BOT_PREFIX + 'blueWins',
@@ -137,7 +137,9 @@ function treeDisplayType(activityType) {
 async function updateBotStatus(status, options) {
     var _a, _b;
     let botStatus;
-    console.log(`Updating bot status to  ${status}`);
+    if (status) {
+        console.log(`Updating bot status to  ${status}`);
+    }
     if (status) {
         botStatus = await ((_a = bot.user) === null || _a === void 0 ? void 0 : _a.setActivity(status, options));
     }

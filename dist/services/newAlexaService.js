@@ -24,7 +24,7 @@ const discordLogIn_1 = require("./discordLogIn");
 const alexaModel = __importStar(require("../model/alexaModel"));
 const LaunchRequestHandler = {
     canHandle(handlerInput) {
-        return ask_sdk_core_1.getRequestType(handlerInput.requestEnvelope) === 'LaunchRequest';
+        return (0, ask_sdk_core_1.getRequestType)(handlerInput.requestEnvelope) === 'LaunchRequest';
     },
     handle(handlerInput) {
         const speechText = 'Started the forrest';
@@ -37,8 +37,8 @@ const LaunchRequestHandler = {
 };
 const HelloWorldIntentHandler = {
     canHandle(handlerInput) {
-        return ask_sdk_core_1.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && ask_sdk_core_1.getIntentName(handlerInput.requestEnvelope) === 'HelloWorldIntent';
+        return (0, ask_sdk_core_1.getRequestType)(handlerInput.requestEnvelope) === 'IntentRequest'
+            && (0, ask_sdk_core_1.getIntentName)(handlerInput.requestEnvelope) === 'HelloWorldIntent';
     },
     handle(handlerInput) {
         const speechText = 'Hello World!';
@@ -50,11 +50,11 @@ const HelloWorldIntentHandler = {
 };
 const WhosOnlineIntentHandler = {
     canHandle(handlerInput) {
-        return ask_sdk_core_1.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && ask_sdk_core_1.getIntentName(handlerInput.requestEnvelope) === 'whosOnline';
+        return (0, ask_sdk_core_1.getRequestType)(handlerInput.requestEnvelope) === 'IntentRequest'
+            && (0, ask_sdk_core_1.getIntentName)(handlerInput.requestEnvelope) === 'whosOnline';
     },
     async handle(handlerInput) {
-        const users = await discordLogIn_1.whosOnline();
+        const users = await (0, discordLogIn_1.whosOnline)();
         const speechText = users.length > 0 ? `users online are ${users}` : 'no one is online';
         return handlerInput.responseBuilder
             .speak(speechText)
@@ -64,9 +64,9 @@ const WhosOnlineIntentHandler = {
 };
 const PostMessageStartedIntentHandler = {
     canHandle(handlerInput) {
-        return ask_sdk_core_1.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && ask_sdk_core_1.getIntentName(handlerInput.requestEnvelope) === 'postMessage'
-            && ask_sdk_core_1.getDialogState(handlerInput.requestEnvelope) === 'STARTED';
+        return (0, ask_sdk_core_1.getRequestType)(handlerInput.requestEnvelope) === 'IntentRequest'
+            && (0, ask_sdk_core_1.getIntentName)(handlerInput.requestEnvelope) === 'postMessage'
+            && (0, ask_sdk_core_1.getDialogState)(handlerInput.requestEnvelope) === 'STARTED';
     },
     async handle(handlerInput) {
         const { intent } = handlerInput.requestEnvelope.request;
@@ -79,9 +79,9 @@ const PostMessageStartedIntentHandler = {
 };
 const PostMessageIntentHandler = {
     canHandle(handlerInput) {
-        return ask_sdk_core_1.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && ask_sdk_core_1.getIntentName(handlerInput.requestEnvelope) === 'postMessage'
-            && ask_sdk_core_1.getDialogState(handlerInput.requestEnvelope) === 'IN_PROGRESS';
+        return (0, ask_sdk_core_1.getRequestType)(handlerInput.requestEnvelope) === 'IntentRequest'
+            && (0, ask_sdk_core_1.getIntentName)(handlerInput.requestEnvelope) === 'postMessage'
+            && (0, ask_sdk_core_1.getDialogState)(handlerInput.requestEnvelope) === 'IN_PROGRESS';
     },
     async handle(handlerInput) {
         var _a;
@@ -100,9 +100,9 @@ const PostMessageIntentHandler = {
 };
 const PostMessageCompleteIntentHandler = {
     canHandle(handlerInput) {
-        return ask_sdk_core_1.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && ask_sdk_core_1.getIntentName(handlerInput.requestEnvelope) === 'postMessage'
-            && ask_sdk_core_1.getDialogState(handlerInput.requestEnvelope) === 'COMPLETED';
+        return (0, ask_sdk_core_1.getRequestType)(handlerInput.requestEnvelope) === 'IntentRequest'
+            && (0, ask_sdk_core_1.getIntentName)(handlerInput.requestEnvelope) === 'postMessage'
+            && (0, ask_sdk_core_1.getDialogState)(handlerInput.requestEnvelope) === 'COMPLETED';
     },
     async handle(handlerInput) {
         var _a, _b;
@@ -111,7 +111,7 @@ const PostMessageCompleteIntentHandler = {
         const messageToPost = (_b = intent.slots) === null || _b === void 0 ? void 0 : _b[alexaModel.messageToPost].value;
         let speechText = `counld not post ${messageToPost} to channel ${channelName}`;
         if (messageToPost && channelName) {
-            discordLogIn_1.postMessageInChannel(messageToPost, channelName);
+            (0, discordLogIn_1.postMessageInChannel)(messageToPost, channelName);
             speechText = `posting ${messageToPost} to ${channelName}`;
         }
         return handlerInput.responseBuilder
@@ -123,9 +123,9 @@ const PostMessageCompleteIntentHandler = {
 };
 const CancelAndStopIntentHandler = {
     canHandle(handlerInput) {
-        return ask_sdk_core_1.getRequestType(handlerInput.requestEnvelope) === 'IntentRequest'
-            && (ask_sdk_core_1.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.CancelIntent'
-                || ask_sdk_core_1.getIntentName(handlerInput.requestEnvelope) === 'AMAZON.StopIntent');
+        return (0, ask_sdk_core_1.getRequestType)(handlerInput.requestEnvelope) === 'IntentRequest'
+            && ((0, ask_sdk_core_1.getIntentName)(handlerInput.requestEnvelope) === 'AMAZON.CancelIntent'
+                || (0, ask_sdk_core_1.getIntentName)(handlerInput.requestEnvelope) === 'AMAZON.StopIntent');
     },
     handle(handlerInput) {
         const speechText = 'Goodbye!';
@@ -138,7 +138,7 @@ const CancelAndStopIntentHandler = {
 };
 const SessionEndedRequestHandler = {
     canHandle(handlerInput) {
-        return ask_sdk_core_1.getRequestType(handlerInput.requestEnvelope) === 'SessionEndedRequest';
+        return (0, ask_sdk_core_1.getRequestType)(handlerInput.requestEnvelope) === 'SessionEndedRequest';
     },
     handle(handlerInput) {
         console.log(`Session ended with reason: ${handlerInput.requestEnvelope.request.reason}`);

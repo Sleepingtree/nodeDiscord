@@ -4,7 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const dotenv_1 = require("dotenv");
-dotenv_1.config();
+(0, dotenv_1.config)();
 const express_1 = __importDefault(require("express"));
 const path_1 = __importDefault(require("path"));
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
@@ -23,15 +23,15 @@ require("../services/gameService");
 require("../services/youtubeService");
 require("../services/draftService");
 require("../services/clashPlaningService");
-const app = express_1.default();
-app.use(cors_1.default({
+const app = (0, express_1.default)();
+app.use((0, cors_1.default)({
     credentials: true,
     origin: "https://sleepingtree.net",
 }));
 // view engine setup
 app.set('views', path_1.default.join(__dirname, '../../views'));
 app.set('view engine', 'pug');
-app.use(morgan_1.default('dev'));
+app.use((0, morgan_1.default)('dev'));
 //hide info from scripting attacks
 app.use((_req, res, next) => {
     res.header('X-Powered-By', 'Electricity');
@@ -41,7 +41,7 @@ app.use((_req, res, next) => {
 app.use('/alexa', newAlexaRouter_1.default);
 app.use(express_1.default.json());
 app.use(express_1.default.urlencoded({ extended: false }));
-app.use(cookie_parser_1.default());
+app.use((0, cookie_parser_1.default)());
 app.use(express_1.default.static(path_1.default.join(__dirname, '../../public')));
 app.use('/welcome', index_1.default);
 app.use('/users', users_1.default);

@@ -67,7 +67,7 @@ function handleCaptianPromise(collection, post, url, bot) {
 async function draft() {
     const body = { "team1Name": "blue", "team2Name": "red", "matchName": "match" };
     console.log(JSON.stringify(body));
-    const response = await node_fetch_1.default('http://prodraft.leagueoflegends.com/draft', {
+    const response = await (0, node_fetch_1.default)('http://prodraft.leagueoflegends.com/draft', {
         method: 'post',
         body: JSON.stringify(body),
         headers: { 'Content-Type': 'application/json' },
