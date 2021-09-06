@@ -18,7 +18,7 @@ const THE_FOREST_ID = (_a = process.env.THE_FOREST_ID) !== null && _a !== void 0
 const WHISS_USER_ID = process.env.WHISS_USER_ID;
 exports.BOT_PREFIX = '!';
 const commands = [exports.BOT_PREFIX + 'startGame', exports.BOT_PREFIX + 'cancelGame', exports.BOT_PREFIX + 'redWins', exports.BOT_PREFIX + 'blueWins',
-    exports.BOT_PREFIX + 'mmr', exports.BOT_PREFIX + 'map', exports.BOT_PREFIX + 'join', exports.BOT_PREFIX + 'roles', exports.BOT_PREFIX + 'okite'];
+exports.BOT_PREFIX + 'mmr', exports.BOT_PREFIX + 'map', exports.BOT_PREFIX + 'join', exports.BOT_PREFIX + 'roles', exports.BOT_PREFIX + 'okite'];
 bot.login(TOKEN);
 bot.on('ready', () => {
     var _a;
@@ -38,19 +38,18 @@ bot.on('message', msg => {
         msg.channel.send(message);
     }
 });
-bot.on('messageDelete', message => {
+bot.on('messageDelete', async (message) => {
     var _a;
     console.log('in delete');
-    const file = fs_1.default.readFileSync(deletedMessageFile, 'utf8');
+    const file = await fs_1.default.promises.readFile(deletedMessageFile, 'utf8');
     const jsonFile = JSON.parse(file);
     jsonFile[message.id] = message;
     const fileString = JSON.stringify(jsonFile, null, 2);
     const reply = `Message from ${(_a = message.member) === null || _a === void 0 ? void 0 : _a.user.username} was deleted message was: \`${message.content}\` `;
     if (WHISS_USER_ID) {
-        bot.users.fetch(WHISS_USER_ID)
-            .then(user => user.send(reply))
-            .catch(console.log);
-        fs_1.default.writeFileSync(deletedMessageFile, fileString);
+        const whiss = await bot.users.fetch(WHISS_USER_ID);
+        whiss.send(reply);
+        fs_1.default.promises.writeFile(deletedMessageFile, fileString);
     }
 });
 async function getChannelNameFromId(channelId) {
@@ -66,8 +65,8 @@ async function whosOnline(channelId) {
         .filter(channel => channel.type === 'voice')
         .filter(channel => !channelId || channel.id === channelId)
         .forEach(channel => {
-        channel.members.forEach(member => usersOnline.push(member.user.username));
-    });
+            channel.members.forEach(member => usersOnline.push(member.user.username));
+        });
     return usersOnline;
 }
 exports.whosOnline = whosOnline;
@@ -170,7 +169,7 @@ bot.on('presenceUpdate', (oldSatus, newStatus) => {
         if (!botStatus || botStatus.type === 'WATCHING') {
             const treeStatus = newStatus.activities[0];
             if (treeStatus) {
-                let statusMessage = `Tree ${treeDisplayType(treeStatus.type)} ${addedWordToBotStatus(treeStatus.type)}`;
+                let statusMessage = `Tree ${treeDisplayType(treeStatus.type)}${addedWordToBotStatus(treeStatus.type)}`;
                 if (treeStatus.details) {
                     statusMessage += `${treeStatus.details}`;
                 }

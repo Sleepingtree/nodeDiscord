@@ -41,18 +41,17 @@ bot.on('message', msg => {
   }
 });
 
-bot.on('messageDelete', message => {
+bot.on('messageDelete', async message => {
   console.log('in delete');
-  const file = fs.readFileSync(deletedMessageFile, 'utf8');
+  const file = await fs.promises.readFile(deletedMessageFile, 'utf8');
   const jsonFile = JSON.parse(file);
   jsonFile[message.id] = message;
   const fileString = JSON.stringify(jsonFile, null, 2);
   const reply = `Message from ${message.member?.user.username} was deleted message was: \`${message.content}\` `;
   if (WHISS_USER_ID) {
-    bot.users.fetch(WHISS_USER_ID)
-      .then(user => user.send(reply))
-      .catch(console.log);
-    fs.writeFileSync(deletedMessageFile, fileString);
+    const whiss = await bot.users.fetch(WHISS_USER_ID)
+    whiss.send(reply);
+    fs.promises.writeFile(deletedMessageFile, fileString);
   }
 });
 
@@ -91,7 +90,7 @@ export function whoIs(msg: Message) {
 
 type BotStatusOrUndefined<T extends BotStatus | Presence | undefined | null> = T extends undefined | null ? undefined : BotStatus;
 
-export function getBotStatus<T extends Presence | undefined>(botStatus?: T): BotStatusOrUndefined<T> {
+export function getBotStatus<T extends Presence>(botStatus?: T): BotStatusOrUndefined<T> {
   const botUser = bot.user;
   if (!botUser) {
     return undefined as BotStatusOrUndefined<T>;
@@ -171,7 +170,7 @@ bot.on('presenceUpdate', (oldSatus: Presence | undefined, newStatus: Presence) =
     if (!botStatus || botStatus.type === 'WATCHING') {
       const treeStatus = newStatus.activities[0];
       if (treeStatus) {
-        let statusMessage = `Tree ${treeDisplayType(treeStatus.type)} ${addedWordToBotStatus(treeStatus.type)}`;
+        let statusMessage = `Tree ${treeDisplayType(treeStatus.type)}${addedWordToBotStatus(treeStatus.type)}`;
         if (treeStatus.details) {
           statusMessage += `${treeStatus.details}`;
         } else if (treeStatus.state) {
