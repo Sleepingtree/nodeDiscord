@@ -45,9 +45,11 @@ bot.on('message', msg => {
 async function startGame(msg: Message) {
     if (msg.member) {
         const voiceChannel = msg.member.voice.channel;
-        startingChannel = voiceChannel;
-        if (!voiceChannel) {
+        if (!voiceChannel || voiceChannel?.type === "GUILD_STAGE_VOICE") {
             msg.channel.send(`Must be in a voice channel to start a game`);
+            return;
+        } else {
+            startingChannel = voiceChannel;
         }
         try {
             const file = fs.readFileSync(mmrFileNme, 'utf8');
@@ -64,17 +66,9 @@ async function startGame(msg: Message) {
             return;
         }
 
-        const userGameName = await bot.users
-            .fetch(msg.member.id)
-            .then(user => {
-                for (let activityId in user.presence.activities) {
-                    if (user.presence.activities[activityId].type === 'PLAYING') {
-                        return user.presence.activities[activityId].name;
-                    }
-                }
-            });
+        const userGameName = msg.member.presence?.activities.find(activity => activity.type === 'PLAYING')?.name;
 
-        if (typeof userGameName === 'string') {
+        if (userGameName) {
             GAME_NAME = userGameName;
             console.log(`${jsonFile}`);
 
@@ -319,12 +313,12 @@ async function makeTeamsManual(bot: Client, gameName: string) {
 function endGame(msg: Message, updateMMR: boolean, redWon?: boolean) {
     let mmrChange = null;
     if (updateMMR) {
-        if(typeof redWon !== 'undefined' && GAME_NAME){
+        if (typeof redWon !== 'undefined' && GAME_NAME) {
             mmrChange = updateMmr(redWon, msg, GAME_NAME);
-        }else{
+        } else {
             msg.channel.send('couldn\'t update mmr sorry!')
         }
-       
+
     }
     usersInGame = [];
     GAME_NAME = null;

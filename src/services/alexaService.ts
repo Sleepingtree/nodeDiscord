@@ -56,16 +56,16 @@ async function checkToSendWhosOnline(channelId: Snowflake) {
 }
 
 async function checkIfSateIsSame(oldState: VoiceState) {
-    if (oldState.channelID && oldState.guild != null && oldState.guild.id == THE_FOREST_ID) {
-        const channel = await bot.channels.fetch(oldState.channelID);
+    if (oldState.channelId && oldState.guild != null && oldState.guild.id == THE_FOREST_ID) {
+        const channel = await bot.channels.fetch(oldState.channelId);
         if (channel instanceof GuildChannel) {
             if (oldState.member) {
                 if (channel.members.has(oldState.member.id)) {
-                    checkToSendWhosOnline(oldState.channelID);
+                    checkToSendWhosOnline(oldState.channelId);
                 }
             }
         } else {
-            console.warn(`Channel ${oldState.channelID} is not a voice channel`);
+            console.warn(`Channel ${oldState.channelId} is not a voice channel`);
         }
     }
 }

@@ -1,11 +1,12 @@
 import ytdl from "ytdl-core";
-import { VoiceConnection, Message, StreamDispatcher } from "discord.js";
+import { Message } from "discord.js";
+import { VoiceConnection, joinVoiceChannel, AudioPlayer, createAudioPlayer, createAudioResource } from '@discordjs/voice'
 import bot, { BOT_PREFIX, updateBotStatus } from './discordLogIn';
 import { google } from 'googleapis';
 import SongQueueItem from "../model/songQueue";
 
 const voiceConnectionMap: { [key: string]: VoiceConnection | undefined } = {};
-const voiceStreamMap: { [key: string]: StreamDispatcher | undefined } = {};
+const voicePlayerMap: { [key: string]: AudioPlayer | undefined } = {};
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
 const playQueue: { [key: string]: SongQueueItem[] | undefined } = {};
@@ -43,12 +44,21 @@ function handleNotInGuild(msg: Message, cb: (guildId: string) => void) {
 
 async function playYoutube(url: string, songName: string, guildId: string, msg?: Message) {
     const tempConnection = await getConnection(guildId, msg);
-    voiceStreamMap[guildId] = tempConnection.play(ytdl(url, { quality: 'highestaudio', filter: (video) => video.hasAudio }), { volume: 0.1 })
-        .on("finish", () => checkAndIncrmentQueue(guildId, msg))
-        .on("error", (error) => {
-            checkAndIncrmentQueue(guildId);
-            console.error(error);
-        });
+    const resource = createAudioResource(ytdl(url, { quality: 'highestaudio', filter: (video) => video.hasAudio }));
+    const player = createAudioPlayer();
+    player.play(resource);
+    player.on('stateChange', (_oldState, newState) => {
+        if (newState.status === 'idle') {
+            checkAndIncrmentQueue(guildId, msg);
+        }
+    });
+    tempConnection.subscribe(player);
+    // voiceStreamMap[guildId] = tempConnection.play(ytdl(url, { quality: 'highestaudio', filter: (video) => video.hasAudio }), { volume: 0.1 })
+    //     .on("finish", () => checkAndIncrmentQueue(guildId, msg))
+    //     .on("error", (error) => {
+    //         checkAndIncrmentQueue(guildId);
+    //         console.error(error);
+    //     });
     updateBotStatus(songName, { type: "LISTENING" });
 }
 
@@ -63,12 +73,20 @@ async function getConnection(guildId: string, msg?: Message) {
             closeVoiceConnection(guildId);
             msg.channel.send('you must be in a voice channel!');
         } else {
-            if (channel.guild.id !== guildId) {
+            if (channel.guild.id !== guildId || channel.type === 'GUILD_STAGE_VOICE') {
                 msg.channel.send('You need to be in one server for this to work!');
+            } else {
+                const voiceConnectionConfig = {
+                    guildId: guildId,
+                    channelId: channel.id,
+                    selfDeaf: false,
+                    selfMute: false,
+                    adapterCreator: channel.guild.voiceAdapterCreator,
+                }
+                const tempConnection = joinVoiceChannel(voiceConnectionConfig)
+                voiceConnectionMap[guildId] = tempConnection;
+                return tempConnection;
             }
-            const tempConnection = await channel.join();
-            voiceConnectionMap[guildId] = tempConnection;
-            return tempConnection;
         }
     }
     //If connection was not gotten throw caller needs to handle it
@@ -123,7 +141,11 @@ async function searchAndAddYoutube(guildId: string, msg: Message, search: string
         }
     }
 }
-
+/**
+ * @deprecated
+ * @param guildId 
+ * @param msg 
+ */
 function checkAndIncrmentQueue(guildId: string, msg?: Message) {
     const localQueue = playQueue[guildId];
     if (localQueue) {
@@ -140,7 +162,7 @@ function checkAndIncrmentQueue(guildId: string, msg?: Message) {
 function closeVoiceConnection(guildId: string, error?: Error) {
     let localVoicConnection = voiceConnectionMap[guildId];
     if (localVoicConnection) {
-        localVoicConnection.disconnect();
+        localVoicConnection.destroy();
     }
     if (error) {
         console.error(error);
@@ -148,7 +170,7 @@ function closeVoiceConnection(guildId: string, error?: Error) {
     playQueue[guildId] = [];
     updateBotStatus();
     voiceConnectionMap[guildId] = undefined;
-    voiceStreamMap[guildId] = undefined;
+    voicePlayerMap[guildId] = undefined;
 }
 
 function listQueue(guildId: string, msg: Message) {
@@ -166,16 +188,16 @@ function listQueue(guildId: string, msg: Message) {
 }
 
 function puase(guildId: string) {
-    const localVoiceStream = voiceStreamMap[guildId];
+    const localVoiceStream = voicePlayerMap[guildId];
     if (localVoiceStream) {
         localVoiceStream.pause();
     }
 }
 
 function resume(guildId: string, msg: Message) {
-    const localVoiceStream = voiceStreamMap[guildId];
+    const localVoiceStream = voicePlayerMap[guildId];
     if (localVoiceStream) {
-        localVoiceStream.resume();
+        localVoiceStream.unpause();
     } else {
         msg.channel.send('Nothing is in the queue');
     }
