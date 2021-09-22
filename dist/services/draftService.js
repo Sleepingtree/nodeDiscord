@@ -49,10 +49,10 @@ async function createDraftPost(msg) {
     };
     const bluePromise = sendLink(post, blueFilter);
     const redPromise = sendLink(post, redFilter);
-    Promise.all([redPromise, bluePromise, urls]).then((values) => {
-        handleCaptianPromise(values[0], post, values[2][1], discordLogIn_1.default);
-        handleCaptianPromise(values[1], post, values[2][0], discordLogIn_1.default);
-        msg.channel.send("Draft link: " + values[2][2]);
+    Promise.all([redPromise, bluePromise, urls]).then(([redCaptian, blueCaptian, url]) => {
+        handleCaptianPromise(redCaptian, post, url[1], discordLogIn_1.default);
+        handleCaptianPromise(blueCaptian, post, url[0], discordLogIn_1.default);
+        msg.channel.send(`Draft link: ${url[2]}`);
     });
     post.delete({ timeout: draftWait });
 }
