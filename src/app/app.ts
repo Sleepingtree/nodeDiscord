@@ -36,7 +36,7 @@ app.use(logger('dev'));
 
 //hide info from scripting attacks
 app.use((_req, res, next) => {
-  res.header('X-Powered-By','Electricity');
+  res.header('X-Powered-By', 'Electricity');
   next();
 });
 
