@@ -123,8 +123,6 @@ web_modules/
 # dotenv environment variables file
 .env
 .env.test
-.greenlockrc
-greenlock.d/
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
