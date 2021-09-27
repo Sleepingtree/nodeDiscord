@@ -18,7 +18,7 @@ const THE_FOREST_ID = (_a = process.env.THE_FOREST_ID) !== null && _a !== void 0
 const WHISS_USER_ID = process.env.WHISS_USER_ID;
 exports.BOT_PREFIX = '!';
 const commands = [exports.BOT_PREFIX + 'startGame', exports.BOT_PREFIX + 'cancelGame', exports.BOT_PREFIX + 'redWins', exports.BOT_PREFIX + 'blueWins',
-exports.BOT_PREFIX + 'mmr', exports.BOT_PREFIX + 'map', exports.BOT_PREFIX + 'join', exports.BOT_PREFIX + 'roles', exports.BOT_PREFIX + 'okite'];
+    exports.BOT_PREFIX + 'mmr', exports.BOT_PREFIX + 'map', exports.BOT_PREFIX + 'join', exports.BOT_PREFIX + 'roles', exports.BOT_PREFIX + 'okite'];
 bot.login(TOKEN);
 bot.on('ready', () => {
     var _a;
@@ -65,8 +65,8 @@ async function whosOnline(channelId) {
         .filter(channel => channel.type === 'voice')
         .filter(channel => !channelId || channel.id === channelId)
         .forEach(channel => {
-            channel.members.forEach(member => usersOnline.push(member.user.username));
-        });
+        channel.members.forEach(member => usersOnline.push(member.user.username));
+    });
     return usersOnline;
 }
 exports.whosOnline = whosOnline;
