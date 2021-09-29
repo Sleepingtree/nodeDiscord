@@ -104,7 +104,7 @@ export function getBotStatus<T extends Presence>(botStatus?: T): BotStatusOrUnde
         } as BotStatusOrUndefined<T>
       } else {
         return {
-          message: `${botUser.username} is ${activity.type.toLowerCase()} ${addedWordToBotStatus(activity.type)}${activity.name}`,
+          message: `${botUser.username} is ${activity.type.toLowerCase()}${addedWordToBotStatus(activity.type)}${activity.name}`,
           avatarURL: `${botUser.avatarURL()}`
         } as BotStatusOrUndefined<T>
       }
@@ -120,9 +120,9 @@ export function getBotStatus<T extends Presence>(botStatus?: T): BotStatusOrUnde
 function addedWordToBotStatus(activityType: ActivityType) {
   switch (activityType) {
     case 'LISTENING':
-      return 'to ';
+      return ' to ';
     case 'COMPETING':
-      return 'in ';
+      return ' in ';
     default:
       return ' ';
   }
@@ -140,7 +140,7 @@ function treeDisplayType(activityType: ActivityType) {
 export async function updateBotStatus(status?: string, options?: ActivityOptions) {
   let botStatus: Presence | undefined;
   if (status) {
-    console.log(`Updating bot status to  ${status}`);
+    console.log(`Updating bot status to ${status}`);
   }
   if (status) {
     botStatus = await bot.user?.setActivity(status, options);
