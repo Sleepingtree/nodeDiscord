@@ -77,17 +77,17 @@ async function checkToSendWhosOnline(channelId) {
     }
 }
 async function checkIfSateIsSame(oldState) {
-    if (oldState.channelID && oldState.guild != null && oldState.guild.id == THE_FOREST_ID) {
-        const channel = await discordLogIn_1.default.channels.fetch(oldState.channelID);
+    if (oldState.channelId && oldState.guild != null && oldState.guild.id == THE_FOREST_ID) {
+        const channel = await discordLogIn_1.default.channels.fetch(oldState.channelId);
         if (channel instanceof discord_js_1.GuildChannel) {
             if (oldState.member) {
                 if (channel.members.has(oldState.member.id)) {
-                    checkToSendWhosOnline(oldState.channelID);
+                    checkToSendWhosOnline(oldState.channelId);
                 }
             }
         }
         else {
-            console.warn(`Channel ${oldState.channelID} is not a voice channel`);
+            console.warn(`Channel ${oldState.channelId} is not a voice channel`);
         }
     }
 }

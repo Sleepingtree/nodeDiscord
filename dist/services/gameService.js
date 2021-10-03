@@ -69,11 +69,15 @@ discordLogIn_1.default.on('message', msg => {
     }
 });
 async function startGame(msg) {
+    var _a, _b;
     if (msg.member) {
         const voiceChannel = msg.member.voice.channel;
-        startingChannel = voiceChannel;
-        if (!voiceChannel) {
+        if (!voiceChannel || (voiceChannel === null || voiceChannel === void 0 ? void 0 : voiceChannel.type) === "GUILD_STAGE_VOICE") {
             msg.channel.send(`Must be in a voice channel to start a game`);
+            return;
+        }
+        else {
+            startingChannel = voiceChannel;
         }
         try {
             const file = fs_1.default.readFileSync(mmrFileNme, 'utf8');
@@ -88,16 +92,8 @@ async function startGame(msg) {
             msg.channel.send(`game already started call !cancelGame first or !redWins !blueWins if done`);
             return;
         }
-        const userGameName = await discordLogIn_1.default.users
-            .fetch(msg.member.id)
-            .then(user => {
-            for (let activityId in user.presence.activities) {
-                if (user.presence.activities[activityId].type === 'PLAYING') {
-                    return user.presence.activities[activityId].name;
-                }
-            }
-        });
-        if (typeof userGameName === 'string') {
+        const userGameName = (_b = (_a = msg.member.presence) === null || _a === void 0 ? void 0 : _a.activities.find(activity => activity.type === 'PLAYING')) === null || _b === void 0 ? void 0 : _b.name;
+        if (userGameName) {
             GAME_NAME = userGameName;
             console.log(`${jsonFile}`);
             if (msg.content.includes("-manual")) {
