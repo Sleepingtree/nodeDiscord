@@ -1,17 +1,16 @@
 import ytdl from "ytdl-core";
 import { Message, Presence } from "discord.js";
-import { VoiceConnection, joinVoiceChannel, AudioPlayer, createAudioPlayer, createAudioResource } from '@discordjs/voice'
+import { joinVoiceChannel, AudioPlayer, createAudioPlayer, createAudioResource, getVoiceConnection } from '@discordjs/voice'
 import bot, { BOT_PREFIX, getBotStatus, updateBotStatus } from './discordLogIn';
 import { google } from 'googleapis';
 import SongQueueItem from "../model/songQueue";
 
-const voiceConnectionMap = new Map<string, VoiceConnection>();
 const voicePlayerMap = new Map<string, AudioPlayer>();
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
 const playQueue = new Map<string, SongQueueItem[]>();
 const MULTI_SERVER_PLACE_HOLDER = '%NUMB%';
-const MULTI_SERVER_STATUS = `on ${MULTI_SERVER_PLACE_HOLDER} servers`;
+const MULTI_SERVER_STATUS = `to songs on ${MULTI_SERVER_PLACE_HOLDER} servers`;
 
 
 const service = google.youtube({
@@ -34,6 +33,8 @@ bot.on('message', msg => {
         handleNotInGuild(msg, (guildId) => puase(guildId));
     } else if (msg.content.startsWith(BOT_PREFIX + 'clearQueue')) {
         handleNotInGuild(msg, (guildId) => closeVoiceConnection(guildId));
+    } else if (msg.content.startsWith(BOT_PREFIX + 'join')) {
+        handleNotInGuild(msg, (guildId) => getConnection(guildId, msg));
     }
 });
 
@@ -75,7 +76,7 @@ function getPlayerResource(url: string) {
 }
 
 function getConnection(guildId: string, msg?: Message) {
-    const existingConnection = voiceConnectionMap.get(guildId);
+    const existingConnection = getVoiceConnection(guildId);
     if (existingConnection) {
         return existingConnection;
     }
@@ -95,9 +96,7 @@ function getConnection(guildId: string, msg?: Message) {
                     selfMute: false,
                     adapterCreator: channel.guild.voiceAdapterCreator,
                 }
-                const tempConnection = joinVoiceChannel(voiceConnectionConfig)
-                voiceConnectionMap.set(guildId, tempConnection);
-                return tempConnection;
+                return joinVoiceChannel(voiceConnectionConfig);
             }
         }
     }
@@ -180,16 +179,15 @@ function getNextSong(guildId: string) {
 }
 
 function closeVoiceConnection(guildId: string, error?: Error) {
-    let localVoicConnection = voiceConnectionMap.get(guildId);
-    if (localVoicConnection) {
-        localVoicConnection.destroy();
+    let localVoicePlayer = voicePlayerMap.get(guildId);
+    if (localVoicePlayer) {
+        localVoicePlayer.stop();
     }
     if (error) {
         console.error(error);
     }
     playQueue.delete(guildId);
     checkAndUpdateBot();
-    voiceConnectionMap.delete(guildId);
     voicePlayerMap.delete(guildId);
 }
 
