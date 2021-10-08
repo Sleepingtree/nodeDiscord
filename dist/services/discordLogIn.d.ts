@@ -10,6 +10,6 @@ export declare function whosOnline(channelId?: Snowflake): Promise<string[]>;
 export declare function whoIs(msg: Message): void;
 declare type BotStatusOrUndefined<T extends BotStatus | Presence | undefined | null> = T extends undefined | null ? undefined : BotStatus;
 export declare function getBotStatus<T extends Presence>(botStatus?: T): BotStatusOrUndefined<T>;
-export declare function updateBotStatus(status?: string, options?: ActivityOptions): Promise<void>;
+export declare function updateBotStatus(status?: string, options?: ActivityOptions): void;
 export declare function postMessageInChannel(message: string, channelName: string): Promise<void>;
 export default bot;

@@ -24,7 +24,7 @@ let redTeamMmr = 0;
 let blueTeamMmr = 0;
 let startingChannel: VoiceChannel | null;
 
-bot.on('message', msg => {
+bot.on('messageCreate', msg => {
     if (msg.content.startsWith(BOT_PREFIX + 'startGame')) {
         startGame(msg);
     } else if (msg.content.startsWith(BOT_PREFIX + 'gameStart')) {

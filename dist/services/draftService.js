@@ -27,7 +27,7 @@ const discordLogIn_1 = __importStar(require("./discordLogIn"));
 const blueTeamEmoji = '🔵';
 const redTeamEmoji = '🔴';
 const draftWait = 60000;
-discordLogIn_1.default.on('message', msg => {
+discordLogIn_1.default.on('messageCreate', msg => {
     if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'draft')) {
         createDraftPost(msg);
     }

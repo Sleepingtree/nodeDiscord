@@ -28,7 +28,20 @@ const discord_js_1 = __importStar(require("discord.js"));
 const fs_1 = __importDefault(require("fs"));
 const botStatusEmitter_1 = __importDefault(require("../model/botStatusEmitter"));
 const throwIfUndefinedOrNull_1 = __importDefault(require("../util/throwIfUndefinedOrNull"));
-const bot = new discord_js_1.default.Client({ intents: [discord_js_1.Intents.FLAGS.GUILDS, discord_js_1.Intents.FLAGS.DIRECT_MESSAGES] });
+const bot = new discord_js_1.default.Client({
+    intents: [
+        discord_js_1.Intents.FLAGS.GUILDS,
+        discord_js_1.Intents.FLAGS.GUILD_MEMBERS,
+        discord_js_1.Intents.FLAGS.GUILD_MESSAGES,
+        discord_js_1.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+        discord_js_1.Intents.FLAGS.GUILD_PRESENCES,
+        discord_js_1.Intents.FLAGS.GUILD_INTEGRATIONS,
+        discord_js_1.Intents.FLAGS.GUILD_VOICE_STATES,
+        discord_js_1.Intents.FLAGS.DIRECT_MESSAGES,
+        discord_js_1.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
+    ],
+    partials: ["CHANNEL"]
+});
 exports.botStatusEmitter = new botStatusEmitter_1.default();
 const deletedMessageFile = 'deletedMessageFile.json';
 const TOKEN = process.env.DISCORD_BOT_KEY;
@@ -43,8 +56,9 @@ bot.on('ready', () => {
     var _a;
     console.info(`Logged in as ${(_a = bot.user) === null || _a === void 0 ? void 0 : _a.tag}!`);
 });
-bot.on('message', msg => {
+bot.on('messageCreate', msg => {
     if (msg.content === 'ping') {
+        console.log('ping');
         msg.reply('pong');
         msg.channel.send('pong');
     }
@@ -80,8 +94,9 @@ exports.getChannelNameFromId = getChannelNameFromId;
 async function whosOnline(channelId) {
     let usersOnline = [];
     const theForrest = await bot.guilds.fetch(THE_FOREST_ID);
-    theForrest.channels.cache
-        .filter(channel => !channelId || channel.id === channelId)
+    const channels = await theForrest.channels.fetch();
+    channels
+        .filter(channel => typeof channelId === 'undefined' || channel.id === channelId)
         .forEach(channel => {
         if (channel.isVoice()) {
             channel.members.forEach(member => usersOnline.push(member.user.username));
@@ -113,7 +128,7 @@ function getBotStatus(botStatus) {
     else {
         const activity = botStatus ? botStatus.activities[0] : botUser.presence.activities[0];
         if (activity) {
-            if (activity.type === 'CUSTOM_STATUS') {
+            if (activity.type === 'CUSTOM') {
                 return {
                     message: `${botUser.username}'s status is: ${activity.name}`,
                     avatarURL: `${botUser.avatarURL()}`
@@ -153,17 +168,17 @@ function treeDisplayType(activityType) {
             return activityType.toLocaleLowerCase().replace('ing', '');
     }
 }
-async function updateBotStatus(status, options) {
+function updateBotStatus(status, options) {
     var _a, _b;
     let botStatus;
     if (status) {
         console.log(`Updating bot status to  ${status}`);
     }
     if (status) {
-        botStatus = await ((_a = bot.user) === null || _a === void 0 ? void 0 : _a.setActivity(status, options));
+        botStatus = (_a = bot.user) === null || _a === void 0 ? void 0 : _a.setActivity(status, options);
     }
     else {
-        botStatus = await ((_b = bot.user) === null || _b === void 0 ? void 0 : _b.setActivity(options));
+        botStatus = (_b = bot.user) === null || _b === void 0 ? void 0 : _b.setActivity();
     }
     if (botStatus) {
         exports.botStatusEmitter.emit('botStatusChange', getBotStatus(botStatus));

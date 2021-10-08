@@ -1,5 +1,5 @@
 import ytdl from "ytdl-core";
-import { Message, Presence } from "discord.js";
+import { Message } from "discord.js";
 import { joinVoiceChannel, AudioPlayer, createAudioPlayer, createAudioResource, getVoiceConnection } from '@discordjs/voice'
 import bot, { BOT_PREFIX, getBotStatus, updateBotStatus } from './discordLogIn';
 import { google } from 'googleapis';
@@ -18,7 +18,7 @@ const service = google.youtube({
     auth: GOOGLE_API_KEY
 });
 
-bot.on('message', msg => {
+bot.on('messageCreate', msg => {
     if (msg.content.startsWith(BOT_PREFIX + 'play ')) {
         handleNotInGuild(msg, (guildId) => searchAndAddYoutube(guildId, msg, msg.content.split(BOT_PREFIX + 'play ')[1]));
     } else if (msg.content.startsWith(BOT_PREFIX + 'play')) {
@@ -34,7 +34,7 @@ bot.on('message', msg => {
     } else if (msg.content.startsWith(BOT_PREFIX + 'clearQueue')) {
         handleNotInGuild(msg, (guildId) => closeVoiceConnection(guildId));
     } else if (msg.content.startsWith(BOT_PREFIX + 'join')) {
-        handleNotInGuild(msg, (guildId) => getConnection(guildId, msg));
+        handleNotInGuild(msg, (guildId) => getConnection(guildId, msg, true));
     }
 });
 
@@ -48,36 +48,41 @@ function handleNotInGuild(msg: Message, cb: (guildId: string) => void) {
 
 function playYoutube(url: string, songName: string, guildId: string, msg?: Message) {
     const tempConnection = getConnection(guildId, msg);
-    const resource = getPlayerResource(url);
-    const player = createAudioPlayer();
-    player.play(resource);
-    player.on('stateChange', (_oldState, newState) => {
-        if (newState.status === 'idle') {
+    if (tempConnection) {
+        const resource = getPlayerResource(url);
+        resource.volume?.setVolume(0.1);
+        const player = createAudioPlayer();
+        player.play(resource);
+        player.on('stateChange', (_oldState, newState) => {
+            if (newState.status === 'idle') {
+                const newSong = getNextSong(guildId);
+                if (newSong) {
+                    player.play(newSong);
+                }
+            }
+        });
+        player.on("error", (error) => {
+            console.error(error);
             const newSong = getNextSong(guildId);
             if (newSong) {
                 player.play(newSong);
             }
-        }
-    });
-    player.on("error", (error) => {
-        console.error(error);
-        const newSong = getNextSong(guildId);
-        if (newSong) {
-            player.play(newSong);
-        }
-    });
-    tempConnection.subscribe(player);
-    voicePlayerMap.set(guildId, player);
-    checkAndUpdateBot(songName);
+        });
+        tempConnection.subscribe(player);
+        voicePlayerMap.set(guildId, player);
+        checkAndUpdateBot(songName);
+    }
 }
 
 function getPlayerResource(url: string) {
-    return createAudioResource(ytdl(url, { quality: 'highestaudio', filter: (video) => video.hasAudio }));
+    const resource = createAudioResource(ytdl(url, { quality: 'highestaudio', filter: (video) => video.hasAudio }), { inlineVolume: true });
+    resource.volume?.setVolume(0.1);
+    return resource;
 }
 
-function getConnection(guildId: string, msg?: Message) {
+function getConnection(guildId: string, msg?: Message, getNew?: boolean) {
     const existingConnection = getVoiceConnection(guildId);
-    if (existingConnection) {
+    if (existingConnection && !getNew) {
         return existingConnection;
     }
     if (msg?.member) {
@@ -89,19 +94,16 @@ function getConnection(guildId: string, msg?: Message) {
             if (channel.guild.id !== guildId || channel.type === 'GUILD_STAGE_VOICE') {
                 msg.channel.send('You need to be in one server for this to work!');
             } else {
-                const voiceConnectionConfig = {
+                return joinVoiceChannel({
                     guildId: guildId,
                     channelId: channel.id,
                     selfDeaf: false,
                     selfMute: false,
                     adapterCreator: channel.guild.voiceAdapterCreator,
-                }
-                return joinVoiceChannel(voiceConnectionConfig);
+                });
             }
         }
     }
-    //If connection was not gotten throw caller needs to handle it
-    throw `Either member was not in a channel or was unable to get a voice connection`;
 }
 
 async function searchYoutube(msg: Message, search: string): Promise<SongQueueItem | void> {
@@ -181,6 +183,7 @@ function getNextSong(guildId: string) {
 function closeVoiceConnection(guildId: string, error?: Error) {
     let localVoicePlayer = voicePlayerMap.get(guildId);
     if (localVoicePlayer) {
+        localVoicePlayer.playable.forEach(player => player.disconnect());
         localVoicePlayer.stop();
     }
     if (error) {
@@ -246,7 +249,7 @@ function removeItemFromQueue(guildId: string, msg: Message, itemToRemove: string
 
 function checkAndUpdateBot(songName?: string) {
     //get bot status
-    let presense = new Presence(bot);
+    let presense = bot.user?.presence;
     const botStatus = getBotStatus(presense);
     const serversListening = [...voicePlayerMap].length;
     const newSeverCountMessage = MULTI_SERVER_STATUS.replace(MULTI_SERVER_PLACE_HOLDER, `${serversListening}`);
@@ -255,7 +258,7 @@ function checkAndUpdateBot(songName?: string) {
         updateBotStatus(songName, { type: "LISTENING" });
     } else if (serversListening > 1 && botStatus.message !== newSeverCountMessage) {
         updateBotStatus(newSeverCountMessage, { type: "LISTENING" });
-    } else {
+    } else if (!presense?.activities.find(act => act.type !== "LISTENING")) {
         updateBotStatus();
     } ``
 }

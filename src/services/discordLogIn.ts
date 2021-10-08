@@ -6,7 +6,22 @@ import BotStatusEmitter from '../model/botStatusEmitter';
 import BotStatus from '../model/botStatus';
 import throwIfNull from '../util/throwIfUndefinedOrNull';
 
-const bot = new Discord.Client({ intents: [Intents.FLAGS.GUILDS, Intents.FLAGS.DIRECT_MESSAGES] });
+
+const bot = new Discord.Client({
+  intents:
+    [
+      Intents.FLAGS.GUILDS,
+      Intents.FLAGS.GUILD_MEMBERS,
+      Intents.FLAGS.GUILD_MESSAGES,
+      Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+      Intents.FLAGS.GUILD_PRESENCES,
+      Intents.FLAGS.GUILD_INTEGRATIONS,
+      Intents.FLAGS.GUILD_VOICE_STATES,
+      Intents.FLAGS.DIRECT_MESSAGES,
+      Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
+    ],
+  partials: ["CHANNEL"]
+});
 
 export const botStatusEmitter = new BotStatusEmitter();
 
@@ -28,8 +43,9 @@ bot.on('ready', () => {
   console.info(`Logged in as ${bot.user?.tag}!`);
 });
 
-bot.on('message', msg => {
+bot.on('messageCreate', msg => {
   if (msg.content === 'ping') {
+    console.log('ping');
     msg.reply('pong');
     msg.channel.send('pong');
   } else if (msg.content.startsWith(BOT_PREFIX + 'whoIs')) {
@@ -65,8 +81,9 @@ export async function getChannelNameFromId(channelId: Snowflake) {
 export async function whosOnline(channelId?: Snowflake) {
   let usersOnline: string[] = [];
   const theForrest = await bot.guilds.fetch(THE_FOREST_ID);
-  theForrest.channels.cache
-    .filter(channel => !channelId || channel.id === channelId)
+  const channels = await theForrest.channels.fetch();
+  channels
+    .filter(channel => typeof channelId === 'undefined' || channel.id === channelId)
     .forEach(channel => {
       if (channel.isVoice()) {
         channel.members.forEach(member => usersOnline.push(member.user.username))
@@ -98,7 +115,7 @@ export function getBotStatus<T extends Presence>(botStatus?: T): BotStatusOrUnde
   } else {
     const activity = botStatus ? botStatus.activities[0] : botUser.presence.activities[0];
     if (activity) {
-      if (activity.type === 'CUSTOM_STATUS') {
+      if (activity.type === 'CUSTOM') {
         return {
           message: `${botUser.username}'s status is: ${activity.name}`,
           avatarURL: `${botUser.avatarURL()}`
@@ -138,15 +155,15 @@ function treeDisplayType(activityType: ActivityType) {
   }
 }
 
-export async function updateBotStatus(status?: string, options?: ActivityOptions) {
+export function updateBotStatus(status?: string, options?: ActivityOptions) {
   let botStatus: Presence | undefined;
   if (status) {
     console.log(`Updating bot status to  ${status}`);
   }
   if (status) {
-    botStatus = await bot.user?.setActivity(status, options);
+    botStatus = bot.user?.setActivity(status, options);
   } else {
-    botStatus = await bot.user?.setActivity(options);
+    botStatus = bot.user?.setActivity();
   }
   if (botStatus) {
     botStatusEmitter.emit('botStatusChange', getBotStatus(botStatus));

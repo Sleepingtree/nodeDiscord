@@ -7,7 +7,7 @@ const blueTeamEmoji = '🔵';
 const redTeamEmoji = '🔴';
 const draftWait = 60000;
 
-bot.on('message', msg => {
+bot.on('messageCreate', msg => {
   if (msg.content.startsWith(BOT_PREFIX + 'draft')) {
     createDraftPost(msg)
   }

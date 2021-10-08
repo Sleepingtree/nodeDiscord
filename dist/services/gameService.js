@@ -45,7 +45,7 @@ let jsonFile;
 let redTeamMmr = 0;
 let blueTeamMmr = 0;
 let startingChannel;
-discordLogIn_1.default.on('message', msg => {
+discordLogIn_1.default.on('messageCreate', msg => {
     if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'startGame')) {
         startGame(msg);
     }

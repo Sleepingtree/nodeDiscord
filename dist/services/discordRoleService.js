@@ -23,7 +23,7 @@ const discordLogIn_1 = __importStar(require("./discordLogIn"));
 const roles = process.env.DISCORD_BOT_ROLES ? process.env.DISCORD_BOT_ROLES.split('|') : [];
 const THE_FOREST_ID = process.env.THE_FOREST_ID;
 const joinCommand = `${discordLogIn_1.BOT_PREFIX}join -`;
-discordLogIn_1.default.on('message', msg => {
+discordLogIn_1.default.on('messageCreate', msg => {
     if (msg.content.startsWith('!roles')) {
         listRoles(msg, joinCommand);
     }

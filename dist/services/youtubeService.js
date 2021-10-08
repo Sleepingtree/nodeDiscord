@@ -23,21 +23,19 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const ytdl_core_1 = __importDefault(require("ytdl-core"));
-const discord_js_1 = require("discord.js");
 const voice_1 = require("@discordjs/voice");
 const discordLogIn_1 = __importStar(require("./discordLogIn"));
 const googleapis_1 = require("googleapis");
-const voiceConnectionMap = new Map();
 const voicePlayerMap = new Map();
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 const playQueue = new Map();
 const MULTI_SERVER_PLACE_HOLDER = '%NUMB%';
-const MULTI_SERVER_STATUS = `on ${MULTI_SERVER_PLACE_HOLDER} servers`;
+const MULTI_SERVER_STATUS = `to songs on ${MULTI_SERVER_PLACE_HOLDER} servers`;
 const service = googleapis_1.google.youtube({
     version: 'v3',
     auth: GOOGLE_API_KEY
 });
-discordLogIn_1.default.on('message', msg => {
+discordLogIn_1.default.on('messageCreate', msg => {
     if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'play ')) {
         handleNotInGuild(msg, (guildId) => searchAndAddYoutube(guildId, msg, msg.content.split(discordLogIn_1.BOT_PREFIX + 'play ')[1]));
     }
@@ -59,6 +57,9 @@ discordLogIn_1.default.on('message', msg => {
     else if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'clearQueue')) {
         handleNotInGuild(msg, (guildId) => closeVoiceConnection(guildId));
     }
+    else if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'join')) {
+        handleNotInGuild(msg, (guildId) => getConnection(guildId, msg, true));
+    }
 });
 function handleNotInGuild(msg, cb) {
     var _a;
@@ -70,35 +71,42 @@ function handleNotInGuild(msg, cb) {
     }
 }
 function playYoutube(url, songName, guildId, msg) {
+    var _a;
     const tempConnection = getConnection(guildId, msg);
-    const resource = getPlayerResource(url);
-    const player = (0, voice_1.createAudioPlayer)();
-    player.play(resource);
-    player.on('stateChange', (_oldState, newState) => {
-        if (newState.status === 'idle') {
+    if (tempConnection) {
+        const resource = getPlayerResource(url);
+        (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.2);
+        const player = (0, voice_1.createAudioPlayer)();
+        player.play(resource);
+        player.on('stateChange', (_oldState, newState) => {
+            if (newState.status === 'idle') {
+                const newSong = getNextSong(guildId);
+                if (newSong) {
+                    player.play(newSong);
+                }
+            }
+        });
+        player.on("error", (error) => {
+            console.error(error);
             const newSong = getNextSong(guildId);
             if (newSong) {
                 player.play(newSong);
             }
-        }
-    });
-    player.on("error", (error) => {
-        console.error(error);
-        const newSong = getNextSong(guildId);
-        if (newSong) {
-            player.play(newSong);
-        }
-    });
-    tempConnection.subscribe(player);
-    voicePlayerMap.set(guildId, player);
-    checkAndUpdateBot(songName);
+        });
+        tempConnection.subscribe(player);
+        voicePlayerMap.set(guildId, player);
+        checkAndUpdateBot(songName);
+    }
 }
 function getPlayerResource(url) {
-    return (0, voice_1.createAudioResource)((0, ytdl_core_1.default)(url, { quality: 'highestaudio', filter: (video) => video.hasAudio }));
+    var _a;
+    const resource = (0, voice_1.createAudioResource)((0, ytdl_core_1.default)(url, { quality: 'highestaudio', filter: (video) => video.hasAudio }), { inlineVolume: true });
+    (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.1);
+    return resource;
 }
-function getConnection(guildId, msg) {
-    const existingConnection = voiceConnectionMap.get(guildId);
-    if (existingConnection) {
+function getConnection(guildId, msg, getNew) {
+    const existingConnection = (0, voice_1.getVoiceConnection)(guildId);
+    if (existingConnection && !getNew) {
         return existingConnection;
     }
     if (msg === null || msg === void 0 ? void 0 : msg.member) {
@@ -112,21 +120,16 @@ function getConnection(guildId, msg) {
                 msg.channel.send('You need to be in one server for this to work!');
             }
             else {
-                const voiceConnectionConfig = {
+                return (0, voice_1.joinVoiceChannel)({
                     guildId: guildId,
                     channelId: channel.id,
                     selfDeaf: false,
                     selfMute: false,
                     adapterCreator: channel.guild.voiceAdapterCreator,
-                };
-                const tempConnection = (0, voice_1.joinVoiceChannel)(voiceConnectionConfig);
-                voiceConnectionMap.set(guildId, tempConnection);
-                return tempConnection;
+                });
             }
         }
     }
-    //If connection was not gotten throw caller needs to handle it
-    throw `Either member was not in a channel or was unable to get a voice connection`;
 }
 async function searchYoutube(msg, search) {
     var _a, _b;
@@ -205,16 +208,15 @@ function getNextSong(guildId) {
     }
 }
 function closeVoiceConnection(guildId, error) {
-    let localVoicConnection = voiceConnectionMap.get(guildId);
-    if (localVoicConnection) {
-        localVoicConnection.destroy();
+    let localVoicePlayer = voicePlayerMap.get(guildId);
+    if (localVoicePlayer) {
+        localVoicePlayer.stop();
     }
     if (error) {
         console.error(error);
     }
     playQueue.delete(guildId);
     checkAndUpdateBot();
-    voiceConnectionMap.delete(guildId);
     voicePlayerMap.delete(guildId);
 }
 function listQueue(guildId, msg) {
@@ -274,8 +276,9 @@ function removeItemFromQueue(guildId, msg, itemToRemove) {
     }
 }
 function checkAndUpdateBot(songName) {
+    var _a;
     //get bot status
-    let presense = new discord_js_1.Presence(discordLogIn_1.default);
+    let presense = (_a = discordLogIn_1.default.user) === null || _a === void 0 ? void 0 : _a.presence;
     const botStatus = (0, discordLogIn_1.getBotStatus)(presense);
     const serversListening = [...voicePlayerMap].length;
     const newSeverCountMessage = MULTI_SERVER_STATUS.replace(MULTI_SERVER_PLACE_HOLDER, `${serversListening}`);

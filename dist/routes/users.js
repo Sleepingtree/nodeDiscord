@@ -20,10 +20,11 @@ var __importStar = (this && this.__importStar) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express = __importStar(require("express"));
+const discordLogIn_1 = require("../services/discordLogIn");
 const router = express.Router();
 /* GET users listing. */
-router.get('/', function (_req, res) {
-    res.send('respond with a resource');
+router.get('/', async function (_req, res) {
+    res.json(await (0, discordLogIn_1.whosOnline)());
 });
 exports.default = router;
 //# sourceMappingURL=users.js.map
