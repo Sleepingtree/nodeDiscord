@@ -1,7 +1,7 @@
 import ytdl from "ytdl-core";
 import { Message } from "discord.js";
 import { joinVoiceChannel, AudioPlayer, createAudioPlayer, createAudioResource, getVoiceConnection } from '@discordjs/voice'
-import bot, { BOT_PREFIX, getBotStatus, updateBotStatus } from './discordLogIn';
+import bot, { BOT_PREFIX, updateBotStatus } from './discordLogIn';
 import { google } from 'googleapis';
 import SongQueueItem from "../model/songQueue";
 
@@ -48,6 +48,7 @@ function handleNotInGuild(msg: Message, cb: (guildId: string) => void) {
 
 function playYoutube(url: string, songName: string, guildId: string, msg?: Message) {
     const tempConnection = getConnection(guildId, msg);
+
     if (tempConnection) {
         const resource = getPlayerResource(url);
         resource.volume?.setVolume(0.1);
@@ -57,7 +58,8 @@ function playYoutube(url: string, songName: string, guildId: string, msg?: Messa
             if (newState.status === 'idle') {
                 const newSong = getNextSong(guildId);
                 if (newSong) {
-                    player.play(newSong);
+                    player.play(newSong.resorce);
+                    checkAndUpdateBot(newSong.songname);
                 }
             }
         });
@@ -65,7 +67,8 @@ function playYoutube(url: string, songName: string, guildId: string, msg?: Messa
             console.error(error);
             const newSong = getNextSong(guildId);
             if (newSong) {
-                player.play(newSong);
+                player.play(newSong.resorce);
+                checkAndUpdateBot(newSong.songname);
             }
         });
         tempConnection.subscribe(player);
@@ -75,14 +78,14 @@ function playYoutube(url: string, songName: string, guildId: string, msg?: Messa
 }
 
 function getPlayerResource(url: string) {
-    const resource = createAudioResource(ytdl(url, { quality: 'highestaudio', filter: (video) => video.hasAudio }), { inlineVolume: true });
+    const resource = createAudioResource(ytdl(url, { quality: 'highestaudio', filter: (video) => video.hasAudio, highWaterMark: 1 << 25 }), { inlineVolume: true });
     resource.volume?.setVolume(0.1);
     return resource;
 }
 
 function getConnection(guildId: string, msg?: Message, getNew?: boolean) {
     const existingConnection = getVoiceConnection(guildId);
-    if (existingConnection && !getNew) {
+    if (existingConnection && existingConnection.state.status !== 'disconnected' && !getNew) {
         return existingConnection;
     }
     if (msg?.member) {
@@ -160,7 +163,8 @@ function checkAndIncrmentQueue(guildId: string) {
     if (nextSong) {
         const localPlayer = voicePlayerMap.get(guildId);
         if (localPlayer) {
-            localPlayer.play(nextSong);
+            localPlayer.play(nextSong.resorce);
+            updateBotStatus(nextSong.songname);
         } else {
             closeVoiceConnection(guildId);
         }
@@ -173,7 +177,7 @@ function getNextSong(guildId: string) {
         localQueue.shift();
         playQueue.set(guildId, localQueue);
         if (localQueue.length > 0) {
-            return getPlayerResource(localQueue[0].url);
+            return { resorce: getPlayerResource(localQueue[0].url), songname: localQueue[0].title };
         } else {
             closeVoiceConnection(guildId);
         }
@@ -190,8 +194,8 @@ function closeVoiceConnection(guildId: string, error?: Error) {
         console.error(error);
     }
     playQueue.delete(guildId);
-    checkAndUpdateBot();
     voicePlayerMap.delete(guildId);
+    checkAndUpdateBot();
 }
 
 function listQueue(guildId: string, msg: Message) {
@@ -250,15 +254,15 @@ function removeItemFromQueue(guildId: string, msg: Message, itemToRemove: string
 function checkAndUpdateBot(songName?: string) {
     //get bot status
     let presense = bot.user?.presence;
-    const botStatus = getBotStatus(presense);
+    const botStatus = presense?.activities[0]?.name;
     const serversListening = [...voicePlayerMap].length;
     const newSeverCountMessage = MULTI_SERVER_STATUS.replace(MULTI_SERVER_PLACE_HOLDER, `${serversListening}`);
 
-    if (serversListening === 1) {
+    if (serversListening === 1 && songName) {
         updateBotStatus(songName, { type: "LISTENING" });
-    } else if (serversListening > 1 && botStatus.message !== newSeverCountMessage) {
+    } else if (serversListening > 1 && botStatus !== newSeverCountMessage) {
         updateBotStatus(newSeverCountMessage, { type: "LISTENING" });
-    } else if (!presense?.activities.find(act => act.type !== "LISTENING")) {
+    } else {
         updateBotStatus();
     } ``
 }

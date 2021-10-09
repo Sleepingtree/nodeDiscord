@@ -75,14 +75,15 @@ function playYoutube(url, songName, guildId, msg) {
     const tempConnection = getConnection(guildId, msg);
     if (tempConnection) {
         const resource = getPlayerResource(url);
-        (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.2);
+        (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.1);
         const player = (0, voice_1.createAudioPlayer)();
         player.play(resource);
         player.on('stateChange', (_oldState, newState) => {
             if (newState.status === 'idle') {
                 const newSong = getNextSong(guildId);
                 if (newSong) {
-                    player.play(newSong);
+                    player.play(newSong.resorce);
+                    checkAndUpdateBot(newSong.songname);
                 }
             }
         });
@@ -90,7 +91,8 @@ function playYoutube(url, songName, guildId, msg) {
             console.error(error);
             const newSong = getNextSong(guildId);
             if (newSong) {
-                player.play(newSong);
+                player.play(newSong.resorce);
+                checkAndUpdateBot(newSong.songname);
             }
         });
         tempConnection.subscribe(player);
@@ -100,13 +102,13 @@ function playYoutube(url, songName, guildId, msg) {
 }
 function getPlayerResource(url) {
     var _a;
-    const resource = (0, voice_1.createAudioResource)((0, ytdl_core_1.default)(url, { quality: 'highestaudio', filter: (video) => video.hasAudio }), { inlineVolume: true });
+    const resource = (0, voice_1.createAudioResource)((0, ytdl_core_1.default)(url, { quality: 'highestaudio', filter: (video) => video.hasAudio, highWaterMark: 1 << 25 }), { inlineVolume: true });
     (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.1);
     return resource;
 }
 function getConnection(guildId, msg, getNew) {
     const existingConnection = (0, voice_1.getVoiceConnection)(guildId);
-    if (existingConnection && !getNew) {
+    if (existingConnection && existingConnection.state.status !== 'disconnected' && !getNew) {
         return existingConnection;
     }
     if (msg === null || msg === void 0 ? void 0 : msg.member) {
@@ -187,7 +189,8 @@ function checkAndIncrmentQueue(guildId) {
     if (nextSong) {
         const localPlayer = voicePlayerMap.get(guildId);
         if (localPlayer) {
-            localPlayer.play(nextSong);
+            localPlayer.play(nextSong.resorce);
+            (0, discordLogIn_1.updateBotStatus)(nextSong.songname);
         }
         else {
             closeVoiceConnection(guildId);
@@ -200,7 +203,7 @@ function getNextSong(guildId) {
         localQueue.shift();
         playQueue.set(guildId, localQueue);
         if (localQueue.length > 0) {
-            return getPlayerResource(localQueue[0].url);
+            return { resorce: getPlayerResource(localQueue[0].url), songname: localQueue[0].title };
         }
         else {
             closeVoiceConnection(guildId);
@@ -210,14 +213,15 @@ function getNextSong(guildId) {
 function closeVoiceConnection(guildId, error) {
     let localVoicePlayer = voicePlayerMap.get(guildId);
     if (localVoicePlayer) {
+        localVoicePlayer.playable.forEach(player => player.disconnect());
         localVoicePlayer.stop();
     }
     if (error) {
         console.error(error);
     }
     playQueue.delete(guildId);
-    checkAndUpdateBot();
     voicePlayerMap.delete(guildId);
+    checkAndUpdateBot();
 }
 function listQueue(guildId, msg) {
     var _a;
@@ -276,16 +280,16 @@ function removeItemFromQueue(guildId, msg, itemToRemove) {
     }
 }
 function checkAndUpdateBot(songName) {
-    var _a;
+    var _a, _b;
     //get bot status
     let presense = (_a = discordLogIn_1.default.user) === null || _a === void 0 ? void 0 : _a.presence;
-    const botStatus = (0, discordLogIn_1.getBotStatus)(presense);
+    const botStatus = (_b = presense === null || presense === void 0 ? void 0 : presense.activities[0]) === null || _b === void 0 ? void 0 : _b.name;
     const serversListening = [...voicePlayerMap].length;
     const newSeverCountMessage = MULTI_SERVER_STATUS.replace(MULTI_SERVER_PLACE_HOLDER, `${serversListening}`);
-    if (serversListening === 1) {
+    if (serversListening === 1 && songName) {
         (0, discordLogIn_1.updateBotStatus)(songName, { type: "LISTENING" });
     }
-    else if (serversListening > 1 && botStatus.message !== newSeverCountMessage) {
+    else if (serversListening > 1 && botStatus !== newSeverCountMessage) {
         (0, discordLogIn_1.updateBotStatus)(newSeverCountMessage, { type: "LISTENING" });
     }
     else {
