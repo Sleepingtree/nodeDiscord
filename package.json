@@ -16,6 +16,7 @@
     "test": "jest --detectOpenHandles"
   },
   "dependencies": {
+    "@discordjs/builders": "^0.6.0",
     "@discordjs/opus": "^0.5.3",
     "@discordjs/voice": "^0.6.0",
     "ask-sdk-core": "^2.10.2",

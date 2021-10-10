@@ -22,6 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.resume = exports.searchAndAddYoutube = exports.handleNotInGuild = void 0;
 const ytdl_core_1 = __importDefault(require("ytdl-core"));
 const voice_1 = require("@discordjs/voice");
 const discordLogIn_1 = __importStar(require("./discordLogIn"));
@@ -37,10 +38,10 @@ const service = googleapis_1.google.youtube({
 });
 discordLogIn_1.default.on('messageCreate', msg => {
     if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'play ')) {
-        handleNotInGuild(msg, (guildId) => searchAndAddYoutube(guildId, msg, msg.content.split(discordLogIn_1.BOT_PREFIX + 'play ')[1]));
+        //handleNotInGuild(msg, (guildId) => searchAndAddYoutube(guildId, msg, msg.content.split(BOT_PREFIX + 'play ')[1]));
     }
     else if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'play')) {
-        handleNotInGuild(msg, (guildId) => resume(guildId, msg));
+        handleNotInGuild(msg, (guildId) => resume(guildId, msg.channel));
     }
     else if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'skip')) {
         handleNotInGuild(msg, (guildId) => checkAndIncrmentQueue(guildId));
@@ -58,7 +59,7 @@ discordLogIn_1.default.on('messageCreate', msg => {
         handleNotInGuild(msg, (guildId) => closeVoiceConnection(guildId));
     }
     else if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'join')) {
-        handleNotInGuild(msg, (guildId) => getConnection(guildId, msg, true));
+        handleNotInGuild(msg, (guildId) => getConnection(guildId, msg.member, msg.channel, true));
     }
 });
 function handleNotInGuild(msg, cb) {
@@ -70,9 +71,10 @@ function handleNotInGuild(msg, cb) {
         cb(msg.guild.id);
     }
 }
-function playYoutube(url, songName, guildId, msg) {
+exports.handleNotInGuild = handleNotInGuild;
+function playYoutube(url, songName, guildId, member, channel) {
     var _a;
-    const tempConnection = getConnection(guildId, msg);
+    const tempConnection = getConnection(guildId, member !== null && member !== void 0 ? member : null, channel);
     if (tempConnection) {
         const resource = getPlayerResource(url);
         (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.1);
@@ -106,20 +108,20 @@ function getPlayerResource(url) {
     (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.1);
     return resource;
 }
-function getConnection(guildId, msg, getNew) {
+function getConnection(guildId, member, channel, getNew) {
     const existingConnection = (0, voice_1.getVoiceConnection)(guildId);
     if (existingConnection && existingConnection.state.status !== 'disconnected' && !getNew) {
         return existingConnection;
     }
-    if (msg === null || msg === void 0 ? void 0 : msg.member) {
-        const channel = msg.member.voice.channel;
-        if (!channel) {
+    if (member && channel) {
+        const voiceChannel = member.voice.channel;
+        if (!voiceChannel) {
             closeVoiceConnection(guildId);
-            msg.channel.send('you must be in a voice channel!');
+            channel.send('you must be in a voice channel!');
         }
         else {
-            if (channel.guild.id !== guildId || channel.type === 'GUILD_STAGE_VOICE') {
-                msg.channel.send('You need to be in one server for this to work!');
+            if (channel.type === 'DM') {
+                channel.send('You need to be in one server for this to work!');
             }
             else {
                 return (0, voice_1.joinVoiceChannel)({
@@ -133,7 +135,7 @@ function getConnection(guildId, msg, getNew) {
         }
     }
 }
-async function searchYoutube(msg, search) {
+async function searchYoutube(channel, search) {
     var _a, _b;
     console.log(search);
     try {
@@ -150,7 +152,7 @@ async function searchYoutube(msg, search) {
                 });
                 if (innerSearch.data.items && ((_b = innerSearch.data.items[0].snippet) === null || _b === void 0 ? void 0 : _b.title)) {
                     const title = innerSearch.data.items[0].snippet.title;
-                    msg.channel.send(`added: ${title}`);
+                    channel.send(`added: ${title}`);
                     return {
                         url: `https://www.youtube.com/watch?v=${searchResults.data.items[0].id.videoId}`,
                         title: title
@@ -165,25 +167,26 @@ async function searchYoutube(msg, search) {
             }
         }
         else {
-            msg.channel.send('You need to search on something!');
+            channel.send('You need to search on something!');
         }
     }
     catch (error) {
         console.error(error);
     }
 }
-async function searchAndAddYoutube(guildId, msg, search) {
+async function searchAndAddYoutube(guildId, channel, member, search) {
     var _a;
-    const queueItem = await searchYoutube(msg, search);
+    const queueItem = await searchYoutube(channel, search);
     const localQueue = (_a = playQueue.get(guildId)) !== null && _a !== void 0 ? _a : [];
     if (queueItem) {
         localQueue.push(queueItem);
         playQueue.set(guildId, localQueue);
         if (localQueue.length === 1) {
-            playYoutube(queueItem.url, queueItem.title, guildId, msg);
+            playYoutube(queueItem.url, queueItem.title, guildId, member, channel);
         }
     }
 }
+exports.searchAndAddYoutube = searchAndAddYoutube;
 function checkAndIncrmentQueue(guildId) {
     const nextSong = getNextSong(guildId);
     if (nextSong) {
@@ -243,15 +246,16 @@ function puase(guildId) {
         localVoiceStream.pause();
     }
 }
-function resume(guildId, msg) {
+function resume(guildId, channel) {
     const localVoiceStream = voicePlayerMap.get(guildId);
     if (localVoiceStream) {
         localVoiceStream.unpause();
     }
     else {
-        msg.channel.send('Nothing is in the queue');
+        channel.send('Nothing is in the queue');
     }
 }
+exports.resume = resume;
 function removeItemFromQueue(guildId, msg, itemToRemove) {
     var _a, _b;
     const numberItemToRemove = Number(itemToRemove);

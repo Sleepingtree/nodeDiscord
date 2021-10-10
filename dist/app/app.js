@@ -20,7 +20,7 @@ require("../services/discordRoleService");
 require("../services/waniKaniService");
 require("../services/alexaService");
 require("../services/gameService");
-require("../services/youtubeService");
+require("../services/slashcomandUpdater");
 require("../services/draftService");
 require("../services/clashPlaningService");
 const app = (0, express_1.default)();

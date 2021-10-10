@@ -17,7 +17,7 @@ import '../services/discordRoleService';
 import '../services/waniKaniService';
 import '../services/alexaService';
 import '../services/gameService'
-import '../services/youtubeService'
+import '../services/slashcomandUpdater'
 import '../services/draftService'
 import '../services/clashPlaningService'
 
@@ -36,7 +36,7 @@ app.use(logger('dev'));
 
 //hide info from scripting attacks
 app.use((_req, res, next) => {
-  res.header('X-Powered-By','Electricity');
+  res.header('X-Powered-By', 'Electricity');
   next();
 });
 

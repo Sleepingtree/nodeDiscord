@@ -1,5 +1,5 @@
 import ytdl from "ytdl-core";
-import { Message } from "discord.js";
+import { GuildMember, Message, TextBasedChannels } from "discord.js";
 import { joinVoiceChannel, AudioPlayer, createAudioPlayer, createAudioResource, getVoiceConnection } from '@discordjs/voice'
 import bot, { BOT_PREFIX, updateBotStatus } from './discordLogIn';
 import { google } from 'googleapis';
@@ -20,9 +20,9 @@ const service = google.youtube({
 
 bot.on('messageCreate', msg => {
     if (msg.content.startsWith(BOT_PREFIX + 'play ')) {
-        handleNotInGuild(msg, (guildId) => searchAndAddYoutube(guildId, msg, msg.content.split(BOT_PREFIX + 'play ')[1]));
+        //handleNotInGuild(msg, (guildId) => searchAndAddYoutube(guildId, msg, msg.content.split(BOT_PREFIX + 'play ')[1]));
     } else if (msg.content.startsWith(BOT_PREFIX + 'play')) {
-        handleNotInGuild(msg, (guildId) => resume(guildId, msg));
+        handleNotInGuild(msg, (guildId) => resume(guildId, msg.channel));
     } else if (msg.content.startsWith(BOT_PREFIX + 'skip')) {
         handleNotInGuild(msg, (guildId) => checkAndIncrmentQueue(guildId));
     } else if (msg.content.startsWith(BOT_PREFIX + 'remove ')) {
@@ -34,11 +34,11 @@ bot.on('messageCreate', msg => {
     } else if (msg.content.startsWith(BOT_PREFIX + 'clearQueue')) {
         handleNotInGuild(msg, (guildId) => closeVoiceConnection(guildId));
     } else if (msg.content.startsWith(BOT_PREFIX + 'join')) {
-        handleNotInGuild(msg, (guildId) => getConnection(guildId, msg, true));
+        handleNotInGuild(msg, (guildId) => getConnection(guildId, msg.member, msg.channel, true));
     }
 });
 
-function handleNotInGuild(msg: Message, cb: (guildId: string) => void) {
+export function handleNotInGuild(msg: Message, cb: (guildId: string) => void) {
     if (!msg.guild?.id) {
         msg.channel.send('You must send messages in a server channel');
     } else {
@@ -46,8 +46,8 @@ function handleNotInGuild(msg: Message, cb: (guildId: string) => void) {
     }
 }
 
-function playYoutube(url: string, songName: string, guildId: string, msg?: Message) {
-    const tempConnection = getConnection(guildId, msg);
+function playYoutube(url: string, songName: string, guildId: string, member?: GuildMember, channel?: TextBasedChannels) {
+    const tempConnection = getConnection(guildId, member ?? null, channel);
 
     if (tempConnection) {
         const resource = getPlayerResource(url);
@@ -83,19 +83,19 @@ function getPlayerResource(url: string) {
     return resource;
 }
 
-function getConnection(guildId: string, msg?: Message, getNew?: boolean) {
+function getConnection(guildId: string, member: GuildMember | null, channel?: TextBasedChannels, getNew?: boolean) {
     const existingConnection = getVoiceConnection(guildId);
     if (existingConnection && existingConnection.state.status !== 'disconnected' && !getNew) {
         return existingConnection;
     }
-    if (msg?.member) {
-        const channel = msg.member.voice.channel;
-        if (!channel) {
+    if (member && channel) {
+        const voiceChannel = member.voice.channel;
+        if (!voiceChannel) {
             closeVoiceConnection(guildId);
-            msg.channel.send('you must be in a voice channel!');
+            channel.send('you must be in a voice channel!');
         } else {
-            if (channel.guild.id !== guildId || channel.type === 'GUILD_STAGE_VOICE') {
-                msg.channel.send('You need to be in one server for this to work!');
+            if (channel.type === 'DM') {
+                channel.send('You need to be in one server for this to work!');
             } else {
                 return joinVoiceChannel({
                     guildId: guildId,
@@ -109,7 +109,7 @@ function getConnection(guildId: string, msg?: Message, getNew?: boolean) {
     }
 }
 
-async function searchYoutube(msg: Message, search: string): Promise<SongQueueItem | void> {
+async function searchYoutube(channel: TextBasedChannels, search: string): Promise<SongQueueItem | void> {
     console.log(search);
     try {
         if (search) {
@@ -127,7 +127,7 @@ async function searchYoutube(msg: Message, search: string): Promise<SongQueueIte
 
                 if (innerSearch.data.items && innerSearch.data.items[0].snippet?.title) {
                     const title = innerSearch.data.items[0].snippet.title;
-                    msg.channel.send(`added: ${title}`);
+                    channel.send(`added: ${title}`);
                     return {
                         url: `https://www.youtube.com/watch?v=${searchResults.data.items[0].id.videoId}`,
                         title: title
@@ -139,21 +139,21 @@ async function searchYoutube(msg: Message, search: string): Promise<SongQueueIte
                 console.error(`Search results status was ${searchResults.status} data ${searchResults.data.items}`);
             }
         } else {
-            msg.channel.send('You need to search on something!');
+            channel.send('You need to search on something!');
         }
     } catch (error) {
         console.error(error);
     }
 }
 
-async function searchAndAddYoutube(guildId: string, msg: Message, search: string) {
-    const queueItem = await searchYoutube(msg, search);
+export async function searchAndAddYoutube(guildId: string, channel: TextBasedChannels, member: GuildMember, search: string) {
+    const queueItem = await searchYoutube(channel, search);
     const localQueue = playQueue.get(guildId) ?? [];
     if (queueItem) {
         localQueue.push(queueItem);
         playQueue.set(guildId, localQueue);
         if (localQueue.length === 1) {
-            playYoutube(queueItem.url, queueItem.title, guildId, msg);
+            playYoutube(queueItem.url, queueItem.title, guildId, member, channel);
         }
     }
 }
@@ -219,12 +219,12 @@ function puase(guildId: string) {
     }
 }
 
-function resume(guildId: string, msg: Message) {
+export function resume(guildId: string, channel: TextBasedChannels) {
     const localVoiceStream = voicePlayerMap.get(guildId);
     if (localVoiceStream) {
         localVoiceStream.unpause();
     } else {
-        msg.channel.send('Nothing is in the queue');
+        channel.send('Nothing is in the queue');
     }
 }
 
