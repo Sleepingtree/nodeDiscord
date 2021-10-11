@@ -1,7 +1,9 @@
-declare const _default: {
-    name: string;
-    description: string;
-    options: import("discord-api-types").APIApplicationCommandOption[];
-    default_permission: boolean | undefined;
-}[];
+import { SlashCommandBuilder } from "@discordjs/builders";
+import CommandModel from "../model/commandModel";
+declare class youtubCommands implements CommandModel {
+    commands: [{
+        slashCommand: SlashCommandBuilder;
+    }];
+}
+declare const _default: youtubCommands;
 export default _default;

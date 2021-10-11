@@ -1,5 +1,5 @@
 import ytdl from "ytdl-core";
-import { GuildMember, Message, TextBasedChannels } from "discord.js";
+import { CommandInteraction, GuildMember, Message, TextBasedChannels } from "discord.js";
 import { joinVoiceChannel, AudioPlayer, createAudioPlayer, createAudioResource, getVoiceConnection } from '@discordjs/voice'
 import bot, { BOT_PREFIX, updateBotStatus } from './discordLogIn';
 import { google } from 'googleapis';
@@ -37,6 +37,35 @@ bot.on('messageCreate', msg => {
         handleNotInGuild(msg, (guildId) => getConnection(guildId, msg.member, msg.channel, true));
     }
 });
+
+const songNameOption = 'song';
+
+const notInGuildMessage = 'You must send messages in a server channel';
+
+bot.on('interaction', (interaction) => {
+    if (interaction.isCommand()) {
+        if (interaction.commandName === 'play') {
+            handlePlayCommand(interaction);
+        }
+    }
+})
+
+const handlePlayCommand = (interaction: CommandInteraction) => {
+    const songName = interaction.options.getString(songNameOption);
+    if (interaction.guildId && interaction.channel?.isText()) {
+        if (songName) {
+            if (interaction.member instanceof GuildMember) {
+                searchAndAddYoutube(interaction.guildId, interaction.channel, interaction.member, songName)
+            } else {
+                console.warn('user is an api user?')
+            }
+        } else {
+            resume(interaction.guildId, interaction.channel);
+        }
+    } else {
+        interaction.reply(notInGuildMessage)
+    }
+}
 
 export function handleNotInGuild(msg: Message, cb: (guildId: string) => void) {
     if (!msg.guild?.id) {

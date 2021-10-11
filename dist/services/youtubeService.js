@@ -24,6 +24,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.resume = exports.searchAndAddYoutube = exports.handleNotInGuild = void 0;
 const ytdl_core_1 = __importDefault(require("ytdl-core"));
+const discord_js_1 = require("discord.js");
 const voice_1 = require("@discordjs/voice");
 const discordLogIn_1 = __importStar(require("./discordLogIn"));
 const googleapis_1 = require("googleapis");
@@ -62,6 +63,35 @@ discordLogIn_1.default.on('messageCreate', msg => {
         handleNotInGuild(msg, (guildId) => getConnection(guildId, msg.member, msg.channel, true));
     }
 });
+const songNameOption = 'song';
+const notInGuildMessage = 'You must send messages in a server channel';
+discordLogIn_1.default.on('interaction', (interaction) => {
+    if (interaction.isCommand()) {
+        if (interaction.commandName === 'play') {
+            handlePlayCommand(interaction);
+        }
+    }
+});
+const handlePlayCommand = (interaction) => {
+    var _a;
+    const songName = interaction.options.getString(songNameOption);
+    if (interaction.guildId && ((_a = interaction.channel) === null || _a === void 0 ? void 0 : _a.isText())) {
+        if (songName) {
+            if (interaction.member instanceof discord_js_1.GuildMember) {
+                searchAndAddYoutube(interaction.guildId, interaction.channel, interaction.member, songName);
+            }
+            else {
+                console.warn('user is an api user?');
+            }
+        }
+        else {
+            resume(interaction.guildId, interaction.channel);
+        }
+    }
+    else {
+        interaction.reply(notInGuildMessage);
+    }
+};
 function handleNotInGuild(msg, cb) {
     var _a;
     if (!((_a = msg.guild) === null || _a === void 0 ? void 0 : _a.id)) {
