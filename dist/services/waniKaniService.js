@@ -26,8 +26,12 @@ const TREE_USER_ID = process.env.TREE_USER_ID;
 let lastSummery;
 let reviewMessageSent = true;
 const checkWaniKaniInterval = 1000 * 60;
+<<<<<<< HEAD
+discordLogIn_1.default.on('messageCreate', msg => {
+=======
 const url = "https://api.wanikani.com/v2/summary";
 discordLogIn_1.default.on('message', msg => {
+>>>>>>> master
     if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'wani')) {
         sendReviewcount();
     }

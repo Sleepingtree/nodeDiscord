@@ -1,4 +1,4 @@
-import Discord, { ActivityOptions, ActivityType, GuildChannel, Message, Snowflake, TextChannel } from 'discord.js';
+import Discord, { ActivityOptions, ActivityType, GuildChannel, Intents, Message, Snowflake } from 'discord.js';
 import fs from 'fs';
 import { Presence } from 'discord.js';
 
@@ -6,7 +6,22 @@ import BotStatusEmitter from '../model/botStatusEmitter';
 import BotStatus from '../model/botStatus';
 import throwIfNull from '../util/throwIfUndefinedOrNull';
 
-const bot = new Discord.Client();
+
+const bot = new Discord.Client({
+  intents:
+    [
+      Intents.FLAGS.GUILDS,
+      Intents.FLAGS.GUILD_MEMBERS,
+      Intents.FLAGS.GUILD_MESSAGES,
+      Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+      Intents.FLAGS.GUILD_PRESENCES,
+      Intents.FLAGS.GUILD_INTEGRATIONS,
+      Intents.FLAGS.GUILD_VOICE_STATES,
+      Intents.FLAGS.DIRECT_MESSAGES,
+      Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
+    ],
+  partials: ["CHANNEL"]
+});
 
 export const botStatusEmitter = new BotStatusEmitter();
 
@@ -28,8 +43,9 @@ bot.on('ready', () => {
   console.info(`Logged in as ${bot.user?.tag}!`);
 });
 
-bot.on('message', msg => {
+bot.on('messageCreate', msg => {
   if (msg.content === 'ping') {
+    console.log('ping');
     msg.reply('pong');
     msg.channel.send('pong');
   } else if (msg.content.startsWith(BOT_PREFIX + 'whoIs')) {
@@ -65,11 +81,13 @@ export async function getChannelNameFromId(channelId: Snowflake) {
 export async function whosOnline(channelId?: Snowflake) {
   let usersOnline: string[] = [];
   const theForrest = await bot.guilds.fetch(THE_FOREST_ID);
-  theForrest.channels.cache
-    .filter(channel => channel.type === 'voice')
-    .filter(channel => !channelId || channel.id === channelId)
+  const channels = await theForrest.channels.fetch();
+  channels
+    .filter(channel => typeof channelId === 'undefined' || channel.id === channelId)
     .forEach(channel => {
-      channel.members.forEach(member => usersOnline.push(member.user.username))
+      if (channel.isVoice()) {
+        channel.members.forEach(member => usersOnline.push(member.user.username))
+      }
     });
   return usersOnline;
 }
@@ -97,7 +115,7 @@ export function getBotStatus<T extends Presence>(botStatus?: T): BotStatusOrUnde
   } else {
     const activity = botStatus ? botStatus.activities[0] : botUser.presence.activities[0];
     if (activity) {
-      if (activity.type === 'CUSTOM_STATUS') {
+      if (activity.type === 'CUSTOM') {
         return {
           message: `${botUser.username}'s status is: ${activity.name}`,
           avatarURL: `${botUser.avatarURL()}`
@@ -130,22 +148,22 @@ function addedWordToBotStatus(activityType: ActivityType) {
 
 function treeDisplayType(activityType: ActivityType) {
   switch (activityType) {
-    case 'CUSTOM_STATUS':
+    case 'CUSTOM':
       return '';
     default:
       return activityType.toLocaleLowerCase().replace('ing', '');
   }
 }
 
-export async function updateBotStatus(status?: string, options?: ActivityOptions) {
+export function updateBotStatus(status?: string, options?: ActivityOptions) {
   let botStatus: Presence | undefined;
   if (status) {
     console.log(`Updating bot status to ${status}`);
   }
   if (status) {
-    botStatus = await bot.user?.setActivity(status, options);
+    botStatus = bot.user?.setActivity(status, options);
   } else {
-    botStatus = await bot.user?.setActivity(options);
+    botStatus = bot.user?.setActivity();
   }
   if (botStatus) {
     botStatusEmitter.emit('botStatusChange', getBotStatus(botStatus));
@@ -157,15 +175,14 @@ export async function postMessageInChannel(message: string, channelName: string)
   const channel = theForest.channels.cache
     .filter(channel => channel.name.replace('-', ' ').toLowerCase() === channelName)
     .first();
-  const canPost = channel?.isText();
-  if (canPost) {
-    (channel as TextChannel).send(message);
+  if (channel?.isText()) {
+    channel.send(message);
   }
 }
 
-bot.on('presenceUpdate', (oldSatus: Presence | undefined, newStatus: Presence) => {
+bot.on('presenceUpdate', (oldSatus, newStatus) => {
   //Check if the user is me, and if there is a real staus change
-  if (newStatus.userID === TREE_USER_ID && newStatus.activities !== oldSatus?.activities) {
+  if (newStatus.member?.id === TREE_USER_ID && newStatus.activities !== oldSatus?.activities) {
     const botStatus = bot.user?.presence.activities[0];
     if (!botStatus || botStatus.type === 'WATCHING') {
       const treeStatus = newStatus.activities[0];

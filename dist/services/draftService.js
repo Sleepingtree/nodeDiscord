@@ -27,7 +27,7 @@ const discordLogIn_1 = __importStar(require("./discordLogIn"));
 const blueTeamEmoji = '🔵';
 const redTeamEmoji = '🔴';
 const draftWait = 60000;
-discordLogIn_1.default.on('message', msg => {
+discordLogIn_1.default.on('messageCreate', msg => {
     if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'draft')) {
         createDraftPost(msg);
     }
@@ -42,10 +42,10 @@ async function createDraftPost(msg) {
     const urls = draft();
     console.log(urls);
     const redFilter = (reaction, user) => {
-        return [redTeamEmoji].includes(reaction.emoji.name) && user.id != post.author.id;
+        return redTeamEmoji === reaction.emoji.name && user.id != post.author.id;
     };
     const blueFilter = (reaction, user) => {
-        return [blueTeamEmoji].includes(reaction.emoji.name) && user.id != post.author.id;
+        return blueTeamEmoji === reaction.emoji.name && user.id != post.author.id;
     };
     const bluePromise = sendLink(post, blueFilter);
     const redPromise = sendLink(post, redFilter);
@@ -54,10 +54,10 @@ async function createDraftPost(msg) {
         handleCaptianPromise(values[1], post, values[2][0], discordLogIn_1.default);
         msg.channel.send("Draft link: " + values[2][2]);
     });
-    post.delete({ timeout: draftWait });
+    setTimeout(post.delete, draftWait);
 }
 function sendLink(post, filter) {
-    return post.awaitReactions(filter, { max: 1, time: draftWait, errors: ['time'] });
+    return post.awaitReactions({ filter: filter, max: 1, time: draftWait, errors: ['time'] });
 }
 function handleCaptianPromise(collection, post, url, bot) {
     const reaction = collection.first();

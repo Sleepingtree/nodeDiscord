@@ -9,13 +9,27 @@ let reviewMessageSent: boolean = true;
 const checkWaniKaniInterval = 1000 * 60;
 const url = "https://api.wanikani.com/v2/summary";
 
+<<<<<<< HEAD
+bot.on('messageCreate', msg => {
+=======
 bot.on('message', msg => {
+>>>>>>> master
   if (msg.content.startsWith(BOT_PREFIX + 'wani')) {
     sendReviewcount();
   }
 });
 
 async function getSummery() {
+<<<<<<< HEAD
+  const url = "https://api.wanikani.com/v2/summary";
+  let res = await fetch(url, {
+    method: 'get',
+    headers: { 'Authorization': `Bearer ${WANIKANI_API_KEY}` },
+  });
+  const summery = await res.json() as WaniKaniSummary;
+  if (summery) {
+    lastSummery = summery;
+=======
   try {
     let res = await fetch(url, {
       method: 'get',
@@ -32,6 +46,7 @@ async function getSummery() {
     } else {
       console.error(`Caught unhandled error ${e}`)
     }
+>>>>>>> master
   }
 }
 

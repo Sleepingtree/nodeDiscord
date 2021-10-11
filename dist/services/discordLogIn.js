@@ -1,15 +1,47 @@
 "use strict";
+var __createBinding = (this && this.__createBinding) || (Object.create ? (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+}) : (function(o, m, k, k2) {
+    if (k2 === undefined) k2 = k;
+    o[k2] = m[k];
+}));
+var __setModuleDefault = (this && this.__setModuleDefault) || (Object.create ? (function(o, v) {
+    Object.defineProperty(o, "default", { enumerable: true, value: v });
+}) : function(o, v) {
+    o["default"] = v;
+});
+var __importStar = (this && this.__importStar) || function (mod) {
+    if (mod && mod.__esModule) return mod;
+    var result = {};
+    if (mod != null) for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+    __setModuleDefault(result, mod);
+    return result;
+};
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.postMessageInChannel = exports.updateBotStatus = exports.getBotStatus = exports.whoIs = exports.whosOnline = exports.getChannelNameFromId = exports.BOT_PREFIX = exports.botStatusEmitter = void 0;
-const discord_js_1 = __importDefault(require("discord.js"));
+const discord_js_1 = __importStar(require("discord.js"));
 const fs_1 = __importDefault(require("fs"));
 const botStatusEmitter_1 = __importDefault(require("../model/botStatusEmitter"));
 const throwIfUndefinedOrNull_1 = __importDefault(require("../util/throwIfUndefinedOrNull"));
-const bot = new discord_js_1.default.Client();
+const bot = new discord_js_1.default.Client({
+    intents: [
+        discord_js_1.Intents.FLAGS.GUILDS,
+        discord_js_1.Intents.FLAGS.GUILD_MEMBERS,
+        discord_js_1.Intents.FLAGS.GUILD_MESSAGES,
+        discord_js_1.Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
+        discord_js_1.Intents.FLAGS.GUILD_PRESENCES,
+        discord_js_1.Intents.FLAGS.GUILD_INTEGRATIONS,
+        discord_js_1.Intents.FLAGS.GUILD_VOICE_STATES,
+        discord_js_1.Intents.FLAGS.DIRECT_MESSAGES,
+        discord_js_1.Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
+    ],
+    partials: ["CHANNEL"]
+});
 exports.botStatusEmitter = new botStatusEmitter_1.default();
 const deletedMessageFile = 'deletedMessageFile.json';
 const TOKEN = process.env.DISCORD_BOT_KEY;
@@ -24,8 +56,9 @@ bot.on('ready', () => {
     var _a;
     console.info(`Logged in as ${(_a = bot.user) === null || _a === void 0 ? void 0 : _a.tag}!`);
 });
-bot.on('message', msg => {
+bot.on('messageCreate', msg => {
     if (msg.content === 'ping') {
+        console.log('ping');
         msg.reply('pong');
         msg.channel.send('pong');
     }
@@ -61,11 +94,17 @@ exports.getChannelNameFromId = getChannelNameFromId;
 async function whosOnline(channelId) {
     let usersOnline = [];
     const theForrest = await bot.guilds.fetch(THE_FOREST_ID);
-    theForrest.channels.cache
-        .filter(channel => channel.type === 'voice')
-        .filter(channel => !channelId || channel.id === channelId)
+    const channels = await theForrest.channels.fetch();
+    channels
+        .filter(channel => typeof channelId === 'undefined' || channel.id === channelId)
         .forEach(channel => {
+<<<<<<< HEAD
+        if (channel.isVoice()) {
+            channel.members.forEach(member => usersOnline.push(member.user.username));
+        }
+=======
         channel.members.forEach(member => usersOnline.push(member.user.username));
+>>>>>>> master
     });
     return usersOnline;
 }
@@ -93,7 +132,7 @@ function getBotStatus(botStatus) {
     else {
         const activity = botStatus ? botStatus.activities[0] : botUser.presence.activities[0];
         if (activity) {
-            if (activity.type === 'CUSTOM_STATUS') {
+            if (activity.type === 'CUSTOM') {
                 return {
                     message: `${botUser.username}'s status is: ${activity.name}`,
                     avatarURL: `${botUser.avatarURL()}`
@@ -127,23 +166,23 @@ function addedWordToBotStatus(activityType) {
 }
 function treeDisplayType(activityType) {
     switch (activityType) {
-        case 'CUSTOM_STATUS':
+        case 'CUSTOM':
             return '';
         default:
             return activityType.toLocaleLowerCase().replace('ing', '');
     }
 }
-async function updateBotStatus(status, options) {
+function updateBotStatus(status, options) {
     var _a, _b;
     let botStatus;
     if (status) {
         console.log(`Updating bot status to ${status}`);
     }
     if (status) {
-        botStatus = await ((_a = bot.user) === null || _a === void 0 ? void 0 : _a.setActivity(status, options));
+        botStatus = (_a = bot.user) === null || _a === void 0 ? void 0 : _a.setActivity(status, options);
     }
     else {
-        botStatus = await ((_b = bot.user) === null || _b === void 0 ? void 0 : _b.setActivity(options));
+        botStatus = (_b = bot.user) === null || _b === void 0 ? void 0 : _b.setActivity();
     }
     if (botStatus) {
         exports.botStatusEmitter.emit('botStatusChange', getBotStatus(botStatus));
@@ -155,17 +194,16 @@ async function postMessageInChannel(message, channelName) {
     const channel = theForest.channels.cache
         .filter(channel => channel.name.replace('-', ' ').toLowerCase() === channelName)
         .first();
-    const canPost = channel === null || channel === void 0 ? void 0 : channel.isText();
-    if (canPost) {
+    if (channel === null || channel === void 0 ? void 0 : channel.isText()) {
         channel.send(message);
     }
 }
 exports.postMessageInChannel = postMessageInChannel;
 bot.on('presenceUpdate', (oldSatus, newStatus) => {
-    var _a;
+    var _a, _b;
     //Check if the user is me, and if there is a real staus change
-    if (newStatus.userID === TREE_USER_ID && newStatus.activities !== (oldSatus === null || oldSatus === void 0 ? void 0 : oldSatus.activities)) {
-        const botStatus = (_a = bot.user) === null || _a === void 0 ? void 0 : _a.presence.activities[0];
+    if (((_a = newStatus.member) === null || _a === void 0 ? void 0 : _a.id) === TREE_USER_ID && newStatus.activities !== (oldSatus === null || oldSatus === void 0 ? void 0 : oldSatus.activities)) {
+        const botStatus = (_b = bot.user) === null || _b === void 0 ? void 0 : _b.presence.activities[0];
         if (!botStatus || botStatus.type === 'WATCHING') {
             const treeStatus = newStatus.activities[0];
             if (treeStatus) {

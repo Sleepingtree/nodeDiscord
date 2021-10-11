@@ -1,10 +1,10 @@
 import * as express from 'express';
+import { whosOnline } from '../services/discordLogIn';
 const router = express.Router();
 
 /* GET users listing. */
-router.get('/', function(_req, res) {
-  res.send('respond with a resource');
+router.get('/', async function (_req, res) {
+  res.json(await whosOnline());
 });
 
 export default router;
- 

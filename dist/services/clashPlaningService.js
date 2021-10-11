@@ -22,7 +22,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const discordLogIn_1 = __importStar(require("./discordLogIn"));
 const CLASH_PLANING_TEXT_CHANNEL = process.env.CLASH_PLANING_TEXT_CHANNEL;
 const TREE_USER_ID = process.env.TREE_USER_ID;
-discordLogIn_1.default.on('message', msg => {
+discordLogIn_1.default.on('messageCreate', msg => {
     if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'clashMessage')) {
         addClashTime(msg);
     }
