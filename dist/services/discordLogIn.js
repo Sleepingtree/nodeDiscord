@@ -98,9 +98,13 @@ async function whosOnline(channelId) {
     channels
         .filter(channel => typeof channelId === 'undefined' || channel.id === channelId)
         .forEach(channel => {
+<<<<<<< HEAD
         if (channel.isVoice()) {
             channel.members.forEach(member => usersOnline.push(member.user.username));
         }
+=======
+        channel.members.forEach(member => usersOnline.push(member.user.username));
+>>>>>>> master
     });
     return usersOnline;
 }
@@ -136,7 +140,7 @@ function getBotStatus(botStatus) {
             }
             else {
                 return {
-                    message: `${botUser.username} is ${activity.type.toLowerCase()} ${addedWordToBotStatus(activity.type)}${activity.name}`,
+                    message: `${botUser.username} is ${activity.type.toLowerCase()}${addedWordToBotStatus(activity.type)}${activity.name}`,
                     avatarURL: `${botUser.avatarURL()}`
                 };
             }
@@ -153,9 +157,9 @@ exports.getBotStatus = getBotStatus;
 function addedWordToBotStatus(activityType) {
     switch (activityType) {
         case 'LISTENING':
-            return 'to ';
+            return ' to ';
         case 'COMPETING':
-            return 'in ';
+            return ' in ';
         default:
             return ' ';
     }
@@ -172,7 +176,7 @@ function updateBotStatus(status, options) {
     var _a, _b;
     let botStatus;
     if (status) {
-        console.log(`Updating bot status to  ${status}`);
+        console.log(`Updating bot status to ${status}`);
     }
     if (status) {
         botStatus = (_a = bot.user) === null || _a === void 0 ? void 0 : _a.setActivity(status, options);
