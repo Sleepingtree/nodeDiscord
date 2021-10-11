@@ -98,13 +98,9 @@ async function whosOnline(channelId) {
     channels
         .filter(channel => typeof channelId === 'undefined' || channel.id === channelId)
         .forEach(channel => {
-<<<<<<< HEAD
         if (channel.isVoice()) {
             channel.members.forEach(member => usersOnline.push(member.user.username));
         }
-=======
-        channel.members.forEach(member => usersOnline.push(member.user.username));
->>>>>>> master
     });
     return usersOnline;
 }
