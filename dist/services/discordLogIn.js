@@ -49,8 +49,7 @@ const TREE_USER_ID = process.env.TREE_USER_ID;
 const THE_FOREST_ID = (_a = process.env.THE_FOREST_ID) !== null && _a !== void 0 ? _a : (0, throwIfUndefinedOrNull_1.default)('Discord server ID is undefined');
 const WHISS_USER_ID = process.env.WHISS_USER_ID;
 exports.BOT_PREFIX = '!';
-const commands = [exports.BOT_PREFIX + 'startGame', exports.BOT_PREFIX + 'cancelGame', exports.BOT_PREFIX + 'redWins', exports.BOT_PREFIX + 'blueWins',
-    exports.BOT_PREFIX + 'mmr', exports.BOT_PREFIX + 'map', exports.BOT_PREFIX + 'join', exports.BOT_PREFIX + 'roles', exports.BOT_PREFIX + 'okite'];
+const commands = [exports.BOT_PREFIX + 'play', `${exports.BOT_PREFIX}skip`, `${exports.BOT_PREFIX}remove %number%`, `${exports.BOT_PREFIX}queue`, `${exports.BOT_PREFIX}pause`, `${exports.BOT_PREFIX}clearQueue`, `${exports.BOT_PREFIX}join`];
 bot.login(TOKEN);
 bot.on('ready', () => {
     var _a;

@@ -34,8 +34,7 @@ const WHISS_USER_ID = process.env.WHISS_USER_ID;
 
 export const BOT_PREFIX = '!'
 
-const commands = [BOT_PREFIX + 'startGame', BOT_PREFIX + 'cancelGame', BOT_PREFIX + 'redWins', BOT_PREFIX + 'blueWins',
-BOT_PREFIX + 'mmr', BOT_PREFIX + 'map', BOT_PREFIX + 'join', BOT_PREFIX + 'roles', BOT_PREFIX + 'okite'];
+const commands = [BOT_PREFIX + 'play', `${BOT_PREFIX}skip`, `${BOT_PREFIX}remove %number%`, `${BOT_PREFIX}queue`, `${BOT_PREFIX}pause`, `${BOT_PREFIX}clearQueue`, `${BOT_PREFIX}join`];
 
 bot.login(TOKEN);
 
