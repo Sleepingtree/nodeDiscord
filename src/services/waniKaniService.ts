@@ -1,4 +1,4 @@
-import fetch from 'node-fetch';
+import fetch, { FetchError } from 'node-fetch';
 import WaniKaniSummary from '../model/waniKaniSummary';
 import bot, { BOT_PREFIX } from './discordLogIn';
 
@@ -7,22 +7,33 @@ const TREE_USER_ID = process.env.TREE_USER_ID;
 let lastSummery: WaniKaniSummary | undefined;
 let reviewMessageSent: boolean = true;
 const checkWaniKaniInterval = 1000 * 60;
+const url = "https://api.wanikani.com/v2/summary";
 
 bot.on('messageCreate', msg => {
+
   if (msg.content.startsWith(BOT_PREFIX + 'wani')) {
     sendReviewcount();
   }
 });
 
 async function getSummery() {
-  const url = "https://api.wanikani.com/v2/summary";
-  let res = await fetch(url, {
-    method: 'get',
-    headers: { 'Authorization': `Bearer ${WANIKANI_API_KEY}` },
-  });
-  const summery = await res.json() as WaniKaniSummary;
-  if (summery) {
-    lastSummery = summery;
+  try {
+    let res = await fetch(url, {
+      method: 'get',
+      headers: { 'Authorization': `Bearer ${WANIKANI_API_KEY}` },
+    });
+    const summery = await res.json() as WaniKaniSummary;
+    if (summery) {
+      lastSummery = summery;
+    }
+  } catch (e) {
+    if (e instanceof FetchError) {
+      console.error(`Caught fetch error: ${e.code} ${e.message}`);
+      console.log(`${e}`)
+    } else {
+      console.error(`Caught unhandled error ${e}`)
+    }
+
   }
 }
 

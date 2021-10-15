@@ -32,8 +32,7 @@ const WHISS_USER_ID = process.env.WHISS_USER_ID;
 
 export const BOT_PREFIX = '!'
 
-const commands = [BOT_PREFIX + 'startGame', BOT_PREFIX + 'cancelGame', BOT_PREFIX + 'redWins', BOT_PREFIX + 'blueWins',
-BOT_PREFIX + 'mmr', BOT_PREFIX + 'map', BOT_PREFIX + 'join', BOT_PREFIX + 'roles', BOT_PREFIX + 'okite'];
+const commands = [BOT_PREFIX + 'play', `${BOT_PREFIX}skip`, `${BOT_PREFIX}remove %number%`, `${BOT_PREFIX}queue`, `${BOT_PREFIX}pause`, `${BOT_PREFIX}clearQueue`, `${BOT_PREFIX}join`];
 
 bot.login(TOKEN);
 
@@ -120,7 +119,7 @@ export function getBotStatus<T extends Presence>(botStatus?: T): BotStatusOrUnde
         } as BotStatusOrUndefined<T>
       } else {
         return {
-          message: `${botUser.username} is ${activity.type.toLowerCase()} ${addedWordToBotStatus(activity.type)}${activity.name}`,
+          message: `${botUser.username} is ${activity.type.toLowerCase()}${addedWordToBotStatus(activity.type)}${activity.name}`,
           avatarURL: `${botUser.avatarURL()}`
         } as BotStatusOrUndefined<T>
       }
@@ -136,9 +135,9 @@ export function getBotStatus<T extends Presence>(botStatus?: T): BotStatusOrUnde
 function addedWordToBotStatus(activityType: ActivityType) {
   switch (activityType) {
     case 'LISTENING':
-      return 'to ';
+      return ' to ';
     case 'COMPETING':
-      return 'in ';
+      return ' in ';
     default:
       return ' ';
   }
@@ -156,7 +155,7 @@ function treeDisplayType(activityType: ActivityType) {
 export function updateBotStatus(status?: string, options?: ActivityOptions) {
   let botStatus: Presence | undefined;
   if (status) {
-    console.log(`Updating bot status to  ${status}`);
+    console.log(`Updating bot status to ${status}`);
   }
   if (status) {
     botStatus = bot.user?.setActivity(status, options);

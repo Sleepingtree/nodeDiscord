@@ -18,31 +18,39 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
-const node_fetch_1 = __importDefault(require("node-fetch"));
+const node_fetch_1 = __importStar(require("node-fetch"));
 const discordLogIn_1 = __importStar(require("./discordLogIn"));
 const WANIKANI_API_KEY = process.env.WANIKANI_API_KEY;
 const TREE_USER_ID = process.env.TREE_USER_ID;
 let lastSummery;
 let reviewMessageSent = true;
 const checkWaniKaniInterval = 1000 * 60;
+const url = "https://api.wanikani.com/v2/summary";
 discordLogIn_1.default.on('messageCreate', msg => {
     if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'wani')) {
         sendReviewcount();
     }
 });
 async function getSummery() {
-    const url = "https://api.wanikani.com/v2/summary";
-    let res = await (0, node_fetch_1.default)(url, {
-        method: 'get',
-        headers: { 'Authorization': `Bearer ${WANIKANI_API_KEY}` },
-    });
-    const summery = await res.json();
-    if (summery) {
-        lastSummery = summery;
+    try {
+        let res = await (0, node_fetch_1.default)(url, {
+            method: 'get',
+            headers: { 'Authorization': `Bearer ${WANIKANI_API_KEY}` },
+        });
+        const summery = await res.json();
+        if (summery) {
+            lastSummery = summery;
+        }
+    }
+    catch (e) {
+        if (e instanceof node_fetch_1.FetchError) {
+            console.error(`Caught fetch error: ${e.code} ${e.message}`);
+            console.log(`${e}`);
+        }
+        else {
+            console.error(`Caught unhandled error ${e}`);
+        }
     }
 }
 function getReviewCount() {
