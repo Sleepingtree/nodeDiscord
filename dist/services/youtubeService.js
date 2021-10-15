@@ -31,7 +31,6 @@ const googleapis_1 = require("googleapis");
 const voicePlayerMap = new Map();
 const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 const playQueue = new Map();
-const voiceConnectionMap = new Map();
 const MULTI_SERVER_PLACE_HOLDER = '%NUMB%';
 const MULTI_SERVER_STATUS = `to songs on ${MULTI_SERVER_PLACE_HOLDER} servers`;
 const service = googleapis_1.google.youtube({
@@ -116,13 +115,11 @@ function playYoutube(url, songName, guildId, member, channel) {
         (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.1);
         const player = (0, voice_1.createAudioPlayer)();
         player.play(resource);
-        player.on('stateChange', (_oldState, newState) => {
-            if (newState.status === 'idle') {
-                const newSong = getNextSong(guildId);
-                if (newSong) {
-                    player.play(newSong.resorce);
-                    checkAndUpdateBot(newSong.songname);
-                }
+        player.on(voice_1.AudioPlayerStatus.Idle, () => {
+            const newSong = getNextSong(guildId);
+            if (newSong) {
+                player.play(newSong.resorce);
+                checkAndUpdateBot(newSong.songname);
             }
         });
         player.on("error", (error) => {
@@ -145,7 +142,7 @@ function getPlayerResource(url) {
     return resource;
 }
 function getConnection(guildId, member, channel, getNew) {
-    const existingConnection = voiceConnectionMap.get(guildId);
+    const existingConnection = (0, voice_1.getVoiceConnection)(guildId);
     if (existingConnection && (existingConnection.state.status === 'signalling' || existingConnection.state.status === 'ready') && !getNew) {
         return existingConnection;
     }
@@ -160,16 +157,14 @@ function getConnection(guildId, member, channel, getNew) {
                 channel.send('You need to be in one server for this to work!');
             }
             else {
-                const newConnection = (0, voice_1.joinVoiceChannel)({
+                return (0, voice_1.joinVoiceChannel)({
                     guildId: guildId,
                     channelId: channel.id,
                     selfDeaf: false,
                     selfMute: false,
-                    group: 'bot group',
                     adapterCreator: channel.guild.voiceAdapterCreator,
+                    debug: true
                 });
-                voiceConnectionMap.set(guildId, newConnection);
-                return newConnection;
             }
         }
     }
@@ -184,7 +179,6 @@ async function searchYoutube(search) {
                 part: ['snippet'],
                 maxResults: 1
             });
-            console.log('got search response');
             if (searchResults.data.items && ((_a = searchResults.data.items[0].id) === null || _a === void 0 ? void 0 : _a.videoId)) {
                 const innerSearch = await service.videos.list({
                     id: [searchResults.data.items[0].id.videoId],
@@ -261,11 +255,6 @@ function closeVoiceConnection(guildId, error) {
     }
     playQueue.delete(guildId);
     voicePlayerMap.delete(guildId);
-    const tempConnection = voiceConnectionMap.get(guildId);
-    if (tempConnection) {
-        tempConnection.destroy();
-    }
-    voiceConnectionMap.delete(guildId);
     checkAndUpdateBot();
 }
 function listQueue(guildId, msg) {
