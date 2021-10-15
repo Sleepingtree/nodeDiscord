@@ -143,6 +143,3 @@ const handleShutdowns = () => {
 }
 
 process.on('SIGTERM', handleShutdowns);
-
-process.on('SIGKILL', handleShutdowns);
-

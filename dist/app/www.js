@@ -135,5 +135,4 @@ const handleShutdowns = () => {
     }, 10000);
 };
 process.on('SIGTERM', handleShutdowns);
-process.on('SIGKILL', handleShutdowns);
 //# sourceMappingURL=www.js.map
