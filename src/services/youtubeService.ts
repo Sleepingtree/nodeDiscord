@@ -113,6 +113,10 @@ async function searchYoutube(msg: Message, search: string): Promise<SongQueueIte
     console.log(search);
     try {
         if (search) {
+            if (search.includes('youtube.com') && search.includes('v=')) {
+                const videoId = search.split('v=')[1].split('&')[0];
+                search = videoId;
+            }
             const searchResults = await service.search.list({
                 q: search,
                 part: ['snippet'],
