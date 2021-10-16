@@ -103,7 +103,7 @@ function playYoutube(url, songName, guildId, msg) {
 function getPlayerResource(url) {
     var _a;
     const resource = (0, voice_1.createAudioResource)((0, ytdl_core_1.default)(url, { quality: 'highestaudio', filter: (video) => video.hasAudio, highWaterMark: 1 << 25 }), { inlineVolume: true });
-    (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.1);
+    (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.2);
     return resource;
 }
 function getConnection(guildId, msg, getNew) {

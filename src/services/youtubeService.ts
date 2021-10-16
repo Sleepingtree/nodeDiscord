@@ -79,7 +79,7 @@ function playYoutube(url: string, songName: string, guildId: string, msg?: Messa
 
 function getPlayerResource(url: string) {
     const resource = createAudioResource(ytdl(url, { quality: 'highestaudio', filter: (video) => video.hasAudio, highWaterMark: 1 << 25 }), { inlineVolume: true });
-    resource.volume?.setVolume(0.1);
+    resource.volume?.setVolume(0.2);
     return resource;
 }
 
