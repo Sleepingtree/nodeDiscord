@@ -5,6 +5,7 @@ declare class PingSlashCommands implements CommandModel {
     commands: {
         slashCommand: SlashCommandBuilder;
         cb: (interaction: CommandInteraction) => Promise<void>;
+        needsUpdate: boolean;
     }[];
 }
 declare const _default: PingSlashCommands;

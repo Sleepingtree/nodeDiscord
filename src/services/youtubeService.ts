@@ -1,5 +1,5 @@
 import ytdl from "ytdl-core";
-import { CommandInteraction, GuildMember, Message, TextBasedChannels } from "discord.js";
+import { CommandInteraction, GuildMember, Message } from "discord.js";
 import { joinVoiceChannel, AudioPlayer, createAudioResource, getVoiceConnection, AudioPlayerStatus, createAudioPlayer } from '@discordjs/voice'
 import bot, { BOT_PREFIX, updateBotStatus } from './discordLogIn';
 import { google } from 'googleapis';
@@ -22,26 +22,40 @@ bot.on('messageCreate', msg => {
     if (msg.content.startsWith(BOT_PREFIX + 'play ')) {
         const tempMember = msg.member;
         if (msg.channel.isText() && tempMember) {
-            handleNotInGuild(msg, (guildId) => searchAndAddYoutube(guildId, msg.channel, tempMember, msg.content.split(BOT_PREFIX + 'play ')[1]));
+            handleNotInGuild(msg, (guildId) => searchAndAddYoutube(guildId, tempMember, msg.content.split(BOT_PREFIX + 'play ')[1]));
         }
     } else if (msg.content.startsWith(BOT_PREFIX + 'play')) {
-        handleNotInGuild(msg, (guildId) => resume(guildId, msg.channel));
+        handleNotInGuild(msg, (guildId) => resume(guildId));
     } else if (msg.content.startsWith(BOT_PREFIX + 'skip')) {
         handleNotInGuild(msg, (guildId) => checkAndIncrmentQueue(guildId));
     } else if (msg.content.startsWith(BOT_PREFIX + 'remove ')) {
-        handleNotInGuild(msg, (guildId) => removeItemFromQueue(guildId, msg, msg.content.split(BOT_PREFIX + 'remove ')[1]));
+        handleNotInGuild(msg, (guildId) => {
+            const response = removeItemFromQueue(guildId, msg.content.split(BOT_PREFIX + 'remove ')[1]);
+            if (response) {
+                msg.channel.send(response);
+            }
+        });
     } else if (msg.content.startsWith(BOT_PREFIX + 'queue')) {
-        handleNotInGuild(msg, (guildId) => listQueue(guildId, msg));
+        handleNotInGuild(msg, (guildId) => {
+            const response = listQueue(guildId);
+            msg.channel.send(response);
+        });
     } else if (msg.content.startsWith(BOT_PREFIX + 'pause')) {
         handleNotInGuild(msg, (guildId) => puase(guildId));
     } else if (msg.content.startsWith(BOT_PREFIX + 'clearQueue')) {
         handleNotInGuild(msg, (guildId) => closeVoiceConnection(guildId));
     } else if (msg.content.startsWith(BOT_PREFIX + 'join')) {
-        handleNotInGuild(msg, (guildId) => getConnection(guildId, msg.member, msg.channel, true));
+        handleNotInGuild(msg, (guildId) => {
+            const message = getConnection(guildId, msg.member, true);
+            if (typeof message === 'string') {
+                msg.channel.send(message);
+            }
+        });
     }
 });
 
-const songNameOption = 'song';
+export const songNameOption = 'song';
+export const removeNameOption = 'song-number';
 
 const notInGuildMessage = 'You must send messages in a server channel';
 
@@ -51,7 +65,7 @@ export const handlePlayCommand = async (interaction: CommandInteraction) => {
         if (songName) {
             if (interaction.member instanceof GuildMember) {
                 await interaction.deferReply();
-                const youtubeSong = await searchAndAddYoutube(interaction.guildId, interaction.channel, interaction.member, songName);
+                const youtubeSong = await searchAndAddYoutube(interaction.guildId, interaction.member, songName);
                 if (youtubeSong) {
                     interaction.editReply(`added ${youtubeSong}`)
                 } else {
@@ -64,7 +78,83 @@ export const handlePlayCommand = async (interaction: CommandInteraction) => {
             interaction.reply({ ephemeral: true });
         }
     } else {
-        interaction.reply(notInGuildMessage)
+        interaction.reply(notInGuildMessage);
+    }
+}
+
+export const handleSkipCommand = async (interaction: CommandInteraction) => {
+    if (interaction.guildId) {
+        checkAndIncrmentQueue(interaction.guildId);
+        interaction.reply('skipping')
+    } else {
+        interaction.reply(notInGuildMessage);
+    }
+
+}
+
+export const handleRemoveCommand = async (interaction: CommandInteraction) => {
+    const itemToRemove = interaction.options.getNumber(removeNameOption);
+    if (interaction.guildId) {
+        const response = removeItemFromQueue(interaction.guildId, itemToRemove?.toString())
+        if (response) {
+            interaction.reply(response);
+        }
+        interaction.reply({ ephemeral: true });
+    } else {
+        interaction.reply(notInGuildMessage);
+    }
+}
+
+export const handleQueueCommand = async (interaction: CommandInteraction) => {
+    if (interaction.guildId) {
+        interaction.reply(listQueue(interaction.guildId));
+    } else {
+        interaction.reply(notInGuildMessage);
+    }
+}
+
+export const handlePauseCommand = async (interaction: CommandInteraction) => {
+    if (interaction.guildId) {
+        puase(interaction.guildId);
+        interaction.reply('pausing');
+    } else {
+        interaction.reply(notInGuildMessage);
+    }
+}
+
+export const handleResumeCommand = async (interaction: CommandInteraction) => {
+    if (interaction.guildId) {
+        const response = resume(interaction.guildId);
+        interaction.reply(response ?? 'Playing');
+    } else {
+        interaction.reply(notInGuildMessage);
+    }
+}
+
+export const handleClearQueue = async (interaction: CommandInteraction) => {
+    if (interaction.guildId) {
+        closeVoiceConnection(interaction.guildId);
+        interaction.reply('cleared queue');
+    } else {
+        interaction.reply(notInGuildMessage);
+    }
+}
+
+export const handleJoinCommand = async (interaction: CommandInteraction) => {
+    if (interaction.guildId && interaction.channel?.isText()) {
+        if (interaction.member instanceof GuildMember) {
+            const connectionOrMessage = getConnection(interaction.guildId, interaction.member, true);
+            if (typeof connectionOrMessage === 'string') {
+                interaction.reply(connectionOrMessage);
+            } else {
+                interaction.reply('Joined');
+            }
+        } else {
+            console.warn('user is an api user?');
+            interaction.reply('bot broke');
+        }
+    } else {
+        interaction.reply(notInGuildMessage);
     }
 }
 
@@ -76,11 +166,10 @@ export function handleNotInGuild(msg: Message, cb: (guildId: string) => void) {
     }
 }
 
-function playYoutube(url: string, songName: string, guildId: string, member?: GuildMember, channel?: TextBasedChannels) {
-    const tempConnection = getConnection(guildId, member ?? null, channel);
-    if (tempConnection) {
+function playYoutube(url: string, songName: string, guildId: string, member?: GuildMember) {
+    const tempConnection = getConnection(guildId, member ?? null);
+    if (typeof tempConnection !== 'string') {
         const resource = getPlayerResource(url);
-        console.log(`playing youtube resource: ${resource}`)
         resource.volume?.setVolume(0.1);
         const player = createAudioPlayer();
         player.play(resource);
@@ -102,6 +191,8 @@ function playYoutube(url: string, songName: string, guildId: string, member?: Gu
         tempConnection.subscribe(player);
         voicePlayerMap.set(guildId, player);
         checkAndUpdateBot(songName);
+    } else {
+        return tempConnection;
     }
 }
 
@@ -111,30 +202,32 @@ function getPlayerResource(url: string) {
     return resource;
 }
 
-function getConnection(guildId: string, member: GuildMember | null, channel?: TextBasedChannels, getNew?: boolean) {
+function getConnection(guildId: string, member: GuildMember | null, getNew?: boolean) {
     const existingConnection = getVoiceConnection(guildId);
     if (existingConnection && (existingConnection.state.status === 'signalling' || existingConnection.state.status === 'ready') && !getNew) {
         return existingConnection;
     }
-    if (member && channel) {
+    if (member) {
         const voiceChannel = member.voice.channel;
         if (!voiceChannel) {
             closeVoiceConnection(guildId);
-            channel.send('you must be in a voice channel!');
+            return 'you must be in a voice channel!';
         } else {
-            if (channel.type === 'DM') {
-                channel.send('You need to be in one server for this to work!');
+            if (voiceChannel.type === 'GUILD_STAGE_VOICE') {
+                return 'You need to be in one server for this to work!';
             } else {
                 return joinVoiceChannel({
                     guildId: guildId,
-                    channelId: channel.id,
+                    channelId: voiceChannel.id,
                     selfDeaf: false,
                     selfMute: false,
-                    adapterCreator: channel.guild.voiceAdapterCreator,
+                    adapterCreator: voiceChannel.guild.voiceAdapterCreator,
                     debug: true
                 });
             }
         }
+    } else {
+        return notInGuildMessage
     }
 }
 
@@ -171,20 +264,20 @@ async function searchYoutube(search: string): Promise<SongQueueItem | void> {
     }
 }
 
-export async function searchAndAddYoutube(guildId: string, channel: TextBasedChannels, member: GuildMember, search: string) {
+export async function searchAndAddYoutube(guildId: string, member: GuildMember, search: string) {
     const queueItem = await searchYoutube(search);
     const localQueue = playQueue.get(guildId) ?? [];
     if (queueItem) {
         localQueue.push(queueItem);
         playQueue.set(guildId, localQueue);
         if (localQueue.length === 1) {
-            playYoutube(queueItem.url, queueItem.title, guildId, member, channel);
+            playYoutube(queueItem.url, queueItem.title, guildId, member);
         }
     }
-    return queueItem?.title;
+    return queueItem?.title ?? 'Error adding song';
 }
 
-function checkAndIncrmentQueue(guildId: string) {
+export function checkAndIncrmentQueue(guildId: string) {
     const nextSong = getNextSong(guildId);
     if (nextSong) {
         const localPlayer = voicePlayerMap.get(guildId);
@@ -194,6 +287,8 @@ function checkAndIncrmentQueue(guildId: string) {
         } else {
             closeVoiceConnection(guildId);
         }
+    } else {
+        closeVoiceConnection(guildId);
     }
 }
 
@@ -216,6 +311,7 @@ function closeVoiceConnection(guildId: string, error?: Error) {
         localVoicePlayer.playable.forEach(player => player.disconnect());
         localVoicePlayer.stop();
     }
+    getVoiceConnection(guildId)?.destroy()
     if (error) {
         console.error(error);
     }
@@ -224,8 +320,8 @@ function closeVoiceConnection(guildId: string, error?: Error) {
     checkAndUpdateBot();
 }
 
-function listQueue(guildId: string, msg: Message) {
-    let response = `no songs in the queue, use ${BOT_PREFIX}play to add songs`;
+function listQueue(guildId: string) {
+    let response = `no songs in the queue, use ${BOT_PREFIX}play or /play to add songs`;
     const localPlayQueue = playQueue.get(guildId) ?? [];
     if (localPlayQueue.length > 0) {
         response = 'Songs in queue: ```';
@@ -235,7 +331,7 @@ function listQueue(guildId: string, msg: Message) {
         }
         response += '```';
     }
-    msg.channel.send(response);
+    return response;
 }
 
 function puase(guildId: string) {
@@ -245,35 +341,35 @@ function puase(guildId: string) {
     }
 }
 
-export function resume(guildId: string, channel: TextBasedChannels) {
+function resume(guildId: string) {
     const localVoiceStream = voicePlayerMap.get(guildId);
     if (localVoiceStream) {
         localVoiceStream.unpause();
     } else {
-        channel.send('Nothing is in the queue');
+        return 'Nothing is in the queue';
     }
 }
 
-function removeItemFromQueue(guildId: string, msg: Message, itemToRemove: string) {
+function removeItemFromQueue(guildId: string, itemToRemove?: string) {
     const numberItemToRemove = Number(itemToRemove);
     const localPlayQueue = playQueue.get(guildId) ?? [];
     if (Number.isNaN(numberItemToRemove)) {
-        msg.channel.send(`the message '${BOT_PREFIX}remove ' must be followed by the number of a song in queue`);
+        return `the message '${BOT_PREFIX}remove ' must be followed by the number of a song in queue`;
     } else if (localPlayQueue[numberItemToRemove]) {
         if (numberItemToRemove == 0) {
             playQueue.get(guildId)?.shift();
             checkAndIncrmentQueue(guildId);
         } else {
             const removedItems = localPlayQueue.splice(numberItemToRemove, 1);
-            msg.channel.send(`removed: ${removedItems[0].title}`)
             if (localPlayQueue.length == 0) {
                 closeVoiceConnection(guildId);
             } else {
                 playQueue.set(guildId, localPlayQueue);
             }
+            return `removed: ${removedItems[0].title}`;
         }
     } else {
-        msg.channel.send(`${itemToRemove} is not a spot in the queue`);
+        return `${itemToRemove} is not a spot in the queue`;
     }
 }
 

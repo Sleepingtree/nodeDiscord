@@ -8,7 +8,8 @@ class PingSlashCommands implements CommandModel {
             slashCommand: new SlashCommandBuilder()
                 .setName('ping')
                 .setDescription('see if the bot is alive'),
-            cb: (interaction: CommandInteraction) => interaction.reply('Pong!')
+            cb: (interaction: CommandInteraction) => interaction.reply('Pong!'),
+            needsUpdate: false
         }
     ];
 }

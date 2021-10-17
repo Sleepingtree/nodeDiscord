@@ -17,7 +17,7 @@ const APPLICATION_ID = (_b = process.env.DISCORD_APPLICATION_ID) !== null && _b 
         const fileCommands = require(`../discordCommands/${file}`).default;
         fileCommands.commands.forEach(async (item) => {
             commandMap.set(item.slashCommand.name, item.cb);
-            if (process.env.UPDATE_COMMANDS === "true") {
+            if (item.needsUpdate) {
                 const result = await (0, node_fetch_1.default)(`https://discord.com/api/v9/applications/${APPLICATION_ID}/commands`, {
                     headers: {
                         "Authorization": `Bot ${TOKEN}`,
