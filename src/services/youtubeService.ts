@@ -198,7 +198,7 @@ function playYoutube(url: string, songName: string, guildId: string, member?: Gu
 
 function getPlayerResource(url: string) {
     const resource = createAudioResource(ytdl(url, { quality: 'highestaudio', filter: (video) => video.hasAudio, highWaterMark: 1 << 25 }), { inlineVolume: true });
-    resource.volume?.setVolume(0.1);
+    resource.volume?.setVolume(0.2);
     return resource;
 }
 
@@ -235,6 +235,10 @@ async function searchYoutube(search: string): Promise<SongQueueItem | void> {
     console.log(search);
     try {
         if (search) {
+            if (search.includes('youtube.com') && search.includes('v=')) {
+                const videoId = search.split('v=')[1].split('&')[0];
+                search = videoId;
+            }
             const searchResults = await service.search.list({
                 q: search,
                 part: ['snippet'],

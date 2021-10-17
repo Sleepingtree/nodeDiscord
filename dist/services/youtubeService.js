@@ -239,7 +239,7 @@ function playYoutube(url, songName, guildId, member) {
 function getPlayerResource(url) {
     var _a;
     const resource = (0, voice_1.createAudioResource)((0, ytdl_core_1.default)(url, { quality: 'highestaudio', filter: (video) => video.hasAudio, highWaterMark: 1 << 25 }), { inlineVolume: true });
-    (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.1);
+    (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.2);
     return resource;
 }
 function getConnection(guildId, member, getNew) {
@@ -278,6 +278,10 @@ async function searchYoutube(search) {
     console.log(search);
     try {
         if (search) {
+            if (search.includes('youtube.com') && search.includes('v=')) {
+                const videoId = search.split('v=')[1].split('&')[0];
+                search = videoId;
+            }
             const searchResults = await service.search.list({
                 q: search,
                 part: ['snippet'],
