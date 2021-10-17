@@ -1,13 +1,11 @@
-import Discord, { ActivityOptions, ActivityType, GuildChannel, Intents, Message, Snowflake } from 'discord.js';
+import discord, { ActivityOptions, ActivityType, GuildChannel, Intents, Message, Snowflake } from 'discord.js';
 import fs from 'fs';
 import { Presence } from 'discord.js';
-
 import BotStatusEmitter from '../model/botStatusEmitter';
 import BotStatus from '../model/botStatus';
 import throwIfNull from '../util/throwIfUndefinedOrNull';
 
-
-const bot = new Discord.Client({
+const bot = new discord.Client({
   intents:
     [
       Intents.FLAGS.GUILDS,

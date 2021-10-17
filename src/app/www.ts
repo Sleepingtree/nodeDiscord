@@ -9,8 +9,8 @@ import debug from 'debug';
 import https from 'https';
 import http, { Server } from 'http';
 import fs from 'fs';
-import {Server as SocketServer, Socket} from 'socket.io';
-import { botStatusEmitter } from '../services/discordLogIn';
+import { Server as SocketServer, Socket } from 'socket.io';
+import bot, { botStatusEmitter } from '../services/discordLogIn';
 import BotStatus from '../model/botStatus';
 import { getBotStatus } from '../services/discordLogIn';
 
@@ -31,19 +31,19 @@ app.set('port', port);
 
 let server: Server;
 
-if(devlopment){
+if (devlopment) {
   server = http.createServer(app);
-}else{
-  const privateKey  = fs.readFileSync('server.key', 'utf8');
+} else {
+  const privateKey = fs.readFileSync('server.key', 'utf8');
   const certificate = fs.readFileSync('server.cert', 'utf8');
   const caCert = fs.readFileSync('root.pem', 'utf8');
 
   const credentials = {
-    key: privateKey, 
+    key: privateKey,
     cert: certificate,
     ca: caCert
   };
-  
+
   server = https.createServer(credentials, app);
 }
 
@@ -106,37 +106,40 @@ const io = new SocketServer(server, {
 
 io.on("connection", (socket: Socket) => {
 
-  function handleStatusUpdate(status: BotStatus | undefined){
+  function handleStatusUpdate(status: BotStatus | undefined) {
     socket.emit('botStatus', status);
   }
-  
+
   handleStatusUpdate(getBotStatus());
 
   botStatusEmitter.on('botStatusChange', handleStatusUpdate);
 
-  socket.on('disconnect', () =>{
+  socket.on('disconnect', () => {
     botStatusEmitter.off('botStatusChange', handleStatusUpdate);
   });
 });
 
-function handleCloseEvent(serverType: string, error?: Error){
-  if(error){
+function handleCloseEvent(serverType: string, error?: Error) {
+  if (error) {
     console.error(`Unexpected error on shutdown of ${serverType} server, Error: ${error}`)
-  }else{
+  } else {
     console.log(`closed ${serverType} server`);
   }
 }
 
-process.on('SIGTERM', ()=>{
-  server.close(error =>{
+const handleShutdowns = () => {
+  server.close(error => {
     handleCloseEvent('http(s)', error);
   });
-  io.close(error =>{
+  io.close(error => {
     handleCloseEvent('socket', error);
-  })
-  console.log('waiting 10 secounds for requests to close')
+  });
+  bot.destroy();
+  console.log('waiting 10 secounds for requests to close');
   setInterval(() => {
     console.log('process exit')
     process.exit();
-  }, 10000)
-});
+  }, 10000);
+}
+
+process.on('SIGTERM', handleShutdowns);

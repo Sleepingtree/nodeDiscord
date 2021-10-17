@@ -1,8 +1,8 @@
-import Discord, { ActivityOptions, Message, Snowflake } from 'discord.js';
+import discord, { ActivityOptions, Message, Snowflake } from 'discord.js';
 import { Presence } from 'discord.js';
 import BotStatusEmitter from '../model/botStatusEmitter';
 import BotStatus from '../model/botStatus';
-declare const bot: Discord.Client<boolean>;
+declare const bot: discord.Client<boolean>;
 export declare const botStatusEmitter: BotStatusEmitter;
 export declare const BOT_PREFIX = "!";
 export declare function getChannelNameFromId(channelId: Snowflake): Promise<string | void>;
