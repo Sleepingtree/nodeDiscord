@@ -109,7 +109,7 @@ exports.handleNotInGuild = handleNotInGuild;
 function playYoutube(url, songName, guildId, member, channel) {
     var _a;
     const tempConnection = getConnection(guildId, member !== null && member !== void 0 ? member : null, channel);
-    if (tempConnection) {
+    if (tempConnection instanceof voice_1.VoiceConnection) {
         const resource = getPlayerResource(url);
         console.log(`playing youtube resource: ${resource}`);
         (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.1);
@@ -134,6 +134,7 @@ function playYoutube(url, songName, guildId, member, channel) {
         voicePlayerMap.set(guildId, player);
         checkAndUpdateBot(songName);
     }
+    return tempConnection;
 }
 function getPlayerResource(url) {
     var _a;
@@ -153,10 +154,10 @@ function getConnection(guildId, member, channel, getNew) {
             channel.send('you must be in a voice channel!');
         }
         else {
-            if (channel.type === 'DM') {
+            if (channel.type === 'DM' || !channel.isVoice()) {
                 channel.send('You need to be in one server for this to work!');
             }
-            else {
+            else if (channel.joinable) {
                 return (0, voice_1.joinVoiceChannel)({
                     guildId: guildId,
                     channelId: channel.id,
@@ -165,6 +166,9 @@ function getConnection(guildId, member, channel, getNew) {
                     adapterCreator: channel.guild.voiceAdapterCreator,
                     debug: true
                 });
+            }
+            else {
+                return "I can't join that channel!";
             }
         }
     }
@@ -208,14 +212,18 @@ async function searchAndAddYoutube(guildId, channel, member, search) {
     var _a;
     const queueItem = await searchYoutube(search);
     const localQueue = (_a = playQueue.get(guildId)) !== null && _a !== void 0 ? _a : [];
+    let response;
     if (queueItem) {
         localQueue.push(queueItem);
         playQueue.set(guildId, localQueue);
         if (localQueue.length === 1) {
-            playYoutube(queueItem.url, queueItem.title, guildId, member, channel);
+            const playResponse = playYoutube(queueItem.url, queueItem.title, guildId, member, channel);
+            if (typeof playResponse === 'string') {
+                response = playResponse;
+            }
         }
     }
-    return queueItem === null || queueItem === void 0 ? void 0 : queueItem.title;
+    return response !== null && response !== void 0 ? response : `added ${queueItem === null || queueItem === void 0 ? void 0 : queueItem.title}`;
 }
 exports.searchAndAddYoutube = searchAndAddYoutube;
 function checkAndIncrmentQueue(guildId) {

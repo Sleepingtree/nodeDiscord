@@ -1,6 +1,6 @@
 import ytdl from "ytdl-core";
 import { CommandInteraction, GuildMember, Message, TextBasedChannels } from "discord.js";
-import { joinVoiceChannel, AudioPlayer, createAudioResource, getVoiceConnection, AudioPlayerStatus, createAudioPlayer } from '@discordjs/voice'
+import { joinVoiceChannel, AudioPlayer, createAudioResource, getVoiceConnection, AudioPlayerStatus, createAudioPlayer, VoiceConnection } from '@discordjs/voice'
 import bot, { BOT_PREFIX, updateBotStatus } from './discordLogIn';
 import { google } from 'googleapis';
 import SongQueueItem from "../model/songQueue";
@@ -78,7 +78,7 @@ export function handleNotInGuild(msg: Message, cb: (guildId: string) => void) {
 
 function playYoutube(url: string, songName: string, guildId: string, member?: GuildMember, channel?: TextBasedChannels) {
     const tempConnection = getConnection(guildId, member ?? null, channel);
-    if (tempConnection) {
+    if (tempConnection instanceof VoiceConnection) {
         const resource = getPlayerResource(url);
         console.log(`playing youtube resource: ${resource}`)
         resource.volume?.setVolume(0.1);
@@ -103,6 +103,7 @@ function playYoutube(url: string, songName: string, guildId: string, member?: Gu
         voicePlayerMap.set(guildId, player);
         checkAndUpdateBot(songName);
     }
+    return tempConnection;
 }
 
 function getPlayerResource(url: string) {
@@ -122,9 +123,9 @@ function getConnection(guildId: string, member: GuildMember | null, channel?: Te
             closeVoiceConnection(guildId);
             channel.send('you must be in a voice channel!');
         } else {
-            if (channel.type === 'DM') {
+            if (channel.type === 'DM' || !channel.isVoice()) {
                 channel.send('You need to be in one server for this to work!');
-            } else {
+            } else if (channel.joinable) {
                 return joinVoiceChannel({
                     guildId: guildId,
                     channelId: channel.id,
@@ -133,6 +134,8 @@ function getConnection(guildId: string, member: GuildMember | null, channel?: Te
                     adapterCreator: channel.guild.voiceAdapterCreator,
                     debug: true
                 });
+            } else {
+                return "I can't join that channel!";
             }
         }
     }
@@ -174,14 +177,18 @@ async function searchYoutube(search: string): Promise<SongQueueItem | void> {
 export async function searchAndAddYoutube(guildId: string, channel: TextBasedChannels, member: GuildMember, search: string) {
     const queueItem = await searchYoutube(search);
     const localQueue = playQueue.get(guildId) ?? [];
+    let response;
     if (queueItem) {
         localQueue.push(queueItem);
         playQueue.set(guildId, localQueue);
         if (localQueue.length === 1) {
-            playYoutube(queueItem.url, queueItem.title, guildId, member, channel);
+            const playResponse = playYoutube(queueItem.url, queueItem.title, guildId, member, channel);
+            if (typeof playResponse === 'string') {
+                response = playResponse;
+            }
         }
     }
-    return queueItem?.title;
+    return response ?? `added ${queueItem?.title}`;
 }
 
 function checkAndIncrmentQueue(guildId: string) {
