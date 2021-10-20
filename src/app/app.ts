@@ -56,10 +56,10 @@ app.use('/botStatus', botStatusRouter);
 
 // catch 404 and forward to error handler
 app.use(function (req, res, next) {
-  if (req.path.startsWith('/io')) {
-    res.status(418).send('I am not a coffee machine');
-  } else {
+  if (req.path.startsWith('/io/')) {
     next();
+  } else {
+    res.status(418).send('I am not a coffee machine');
   }
 
 });
