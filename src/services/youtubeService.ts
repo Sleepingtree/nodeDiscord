@@ -67,9 +67,9 @@ export const handlePlayCommand = async (interaction: CommandInteraction) => {
                 await interaction.deferReply();
                 const youtubeSong = await searchAndAddYoutube(interaction.guildId, interaction.member, songName);
                 if (youtubeSong) {
-                    interaction.editReply(`added ${youtubeSong}`)
+                    interaction.editReply(youtubeSong)
                 } else {
-                    interaction.reply(`No song found!`);
+                    interaction.editReply(`No song found!`);
                 }
             } else {
                 console.warn('user is an api user?')
@@ -194,6 +194,7 @@ function playYoutube(url: string, songName: string, guildId: string, member?: Gu
     } else {
         return tempConnection;
     }
+    return tempConnection;
 }
 
 function getPlayerResource(url: string) {
@@ -215,7 +216,7 @@ function getConnection(guildId: string, member: GuildMember | null, getNew?: boo
         } else {
             if (voiceChannel.type === 'GUILD_STAGE_VOICE') {
                 return 'You need to be in one server for this to work!';
-            } else {
+            } else if (voiceChannel.joinable) {
                 return joinVoiceChannel({
                     guildId: guildId,
                     channelId: voiceChannel.id,
@@ -224,6 +225,8 @@ function getConnection(guildId: string, member: GuildMember | null, getNew?: boo
                     adapterCreator: voiceChannel.guild.voiceAdapterCreator,
                     debug: true
                 });
+            } else {
+                return "I can't join that channel!";
             }
         }
     } else {
@@ -271,14 +274,18 @@ async function searchYoutube(search: string): Promise<SongQueueItem | void> {
 export async function searchAndAddYoutube(guildId: string, member: GuildMember, search: string) {
     const queueItem = await searchYoutube(search);
     const localQueue = playQueue.get(guildId) ?? [];
+    let response;
     if (queueItem) {
         localQueue.push(queueItem);
         playQueue.set(guildId, localQueue);
         if (localQueue.length === 1) {
-            playYoutube(queueItem.url, queueItem.title, guildId, member);
+            const playResponse = playYoutube(queueItem.url, queueItem.title, guildId, member);
+            if (typeof playResponse === 'string') {
+                response = playResponse;
+            }
         }
     }
-    return queueItem?.title ?? 'Error adding song';
+    return response ?? `added ${queueItem?.title}`;
 }
 
 export function checkAndIncrmentQueue(guildId: string) {
