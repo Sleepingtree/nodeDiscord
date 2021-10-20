@@ -1,6 +1,6 @@
 import ytdl from "ytdl-core";
-import { CommandInteraction, GuildMember, Message, TextBasedChannels } from "discord.js";
-import { joinVoiceChannel, AudioPlayer, createAudioResource, getVoiceConnection, AudioPlayerStatus, createAudioPlayer, VoiceConnection } from '@discordjs/voice'
+import { CommandInteraction, GuildMember, Message } from "discord.js";
+import { joinVoiceChannel, AudioPlayer, createAudioResource, getVoiceConnection, AudioPlayerStatus, createAudioPlayer } from '@discordjs/voice'
 import bot, { BOT_PREFIX, updateBotStatus } from './discordLogIn';
 import { google } from 'googleapis';
 import SongQueueItem from "../model/songQueue";

@@ -10,10 +10,5 @@ export declare const handleResumeCommand: (interaction: CommandInteraction) => P
 export declare const handleClearQueue: (interaction: CommandInteraction) => Promise<void>;
 export declare const handleJoinCommand: (interaction: CommandInteraction) => Promise<void>;
 export declare function handleNotInGuild(msg: Message, cb: (guildId: string) => void): void;
-<<<<<<< HEAD
-export declare function searchAndAddYoutube(guildId: string, channel: TextBasedChannels, member: GuildMember, search: string): Promise<string>;
-export declare function resume(guildId: string, channel: TextBasedChannels): void;
-=======
 export declare function searchAndAddYoutube(guildId: string, member: GuildMember, search: string): Promise<string>;
 export declare function checkAndIncrmentQueue(guildId: string): void;
->>>>>>> master

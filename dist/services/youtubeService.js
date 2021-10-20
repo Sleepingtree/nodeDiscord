@@ -207,13 +207,8 @@ function handleNotInGuild(msg, cb) {
 exports.handleNotInGuild = handleNotInGuild;
 function playYoutube(url, songName, guildId, member) {
     var _a;
-<<<<<<< HEAD
-    const tempConnection = getConnection(guildId, member !== null && member !== void 0 ? member : null, channel);
-    if (tempConnection instanceof voice_1.VoiceConnection) {
-=======
     const tempConnection = getConnection(guildId, member !== null && member !== void 0 ? member : null);
     if (typeof tempConnection !== 'string') {
->>>>>>> master
         const resource = getPlayerResource(url);
         (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.1);
         const player = (0, voice_1.createAudioPlayer)();
@@ -237,13 +232,10 @@ function playYoutube(url, songName, guildId, member) {
         voicePlayerMap.set(guildId, player);
         checkAndUpdateBot(songName);
     }
-<<<<<<< HEAD
-    return tempConnection;
-=======
     else {
         return tempConnection;
     }
->>>>>>> master
+    return tempConnection;
 }
 function getPlayerResource(url) {
     var _a;
@@ -263,15 +255,10 @@ function getConnection(guildId, member, getNew) {
             return 'you must be in a voice channel!';
         }
         else {
-<<<<<<< HEAD
-            if (channel.type === 'DM' || !channel.isVoice()) {
-                channel.send('You need to be in one server for this to work!');
-=======
             if (voiceChannel.type === 'GUILD_STAGE_VOICE') {
                 return 'You need to be in one server for this to work!';
->>>>>>> master
             }
-            else if (channel.joinable) {
+            else if (voiceChannel.joinable) {
                 return (0, voice_1.joinVoiceChannel)({
                     guildId: guildId,
                     channelId: voiceChannel.id,
@@ -330,7 +317,7 @@ async function searchYoutube(search) {
     }
 }
 async function searchAndAddYoutube(guildId, member, search) {
-    var _a, _b;
+    var _a;
     const queueItem = await searchYoutube(search);
     const localQueue = (_a = playQueue.get(guildId)) !== null && _a !== void 0 ? _a : [];
     let response;
@@ -338,20 +325,13 @@ async function searchAndAddYoutube(guildId, member, search) {
         localQueue.push(queueItem);
         playQueue.set(guildId, localQueue);
         if (localQueue.length === 1) {
-<<<<<<< HEAD
-            const playResponse = playYoutube(queueItem.url, queueItem.title, guildId, member, channel);
+            const playResponse = playYoutube(queueItem.url, queueItem.title, guildId, member);
             if (typeof playResponse === 'string') {
                 response = playResponse;
             }
         }
     }
     return response !== null && response !== void 0 ? response : `added ${queueItem === null || queueItem === void 0 ? void 0 : queueItem.title}`;
-=======
-            playYoutube(queueItem.url, queueItem.title, guildId, member);
-        }
-    }
-    return (_b = queueItem === null || queueItem === void 0 ? void 0 : queueItem.title) !== null && _b !== void 0 ? _b : 'Error adding song';
->>>>>>> master
 }
 exports.searchAndAddYoutube = searchAndAddYoutube;
 function checkAndIncrmentQueue(guildId) {
