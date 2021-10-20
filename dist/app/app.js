@@ -48,8 +48,13 @@ app.use('/users', users_1.default);
 app.use('/whosOnline', alexaRouter_1.default);
 app.use('/botStatus', botStatus_1.default);
 // catch 404 and forward to error handler
-app.use(function (_req, res, _next) {
-    res.status(418).send('I am not a coffee machine');
+app.use(function (req, res, next) {
+    if (req.path.startsWith('/io')) {
+        res.status(418).send('I am not a coffee machine');
+    }
+    else {
+        next();
+    }
 });
 // error handler
 app.use(function (err, req, res, _next) {
