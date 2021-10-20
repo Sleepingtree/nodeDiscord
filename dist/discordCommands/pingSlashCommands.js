@@ -8,7 +8,8 @@ class PingSlashCommands {
                 slashCommand: new builders_1.SlashCommandBuilder()
                     .setName('ping')
                     .setDescription('see if the bot is alive'),
-                cb: (interaction) => interaction.reply('Pong!')
+                cb: (interaction) => interaction.reply('Pong!'),
+                needsUpdate: false
             }
         ];
     }
