@@ -53,9 +53,9 @@ export const handlePlayCommand = async (interaction: CommandInteraction) => {
                 await interaction.deferReply();
                 const youtubeSong = await searchAndAddYoutube(interaction.guildId, interaction.channel, interaction.member, songName);
                 if (youtubeSong) {
-                    interaction.editReply(`added ${youtubeSong}`)
+                    interaction.editReply(youtubeSong)
                 } else {
-                    interaction.reply(`No song found!`);
+                    interaction.editReply(`No song found!`);
                 }
             } else {
                 console.warn('user is an api user?')
