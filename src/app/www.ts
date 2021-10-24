@@ -44,6 +44,7 @@ if (devlopment) {
     ca: caCert
   };
   server = https.createServer(credentials, app);
+  app.listen(port);
 }
 
 

@@ -56,6 +56,7 @@ else {
         ca: caCert
     };
     server = https_1.default.createServer(credentials, app_1.default);
+    app_1.default.listen(port);
 }
 /**
  * Listen on provided port, on all network interfaces.
