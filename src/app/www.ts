@@ -7,7 +7,7 @@
 import app from './app';
 import debug from 'debug';
 import https from 'https';
-import http, { Server } from 'http';
+import { Server } from 'http';
 import fs from 'fs';
 import { Server as SocketServer, Socket } from 'socket.io';
 import bot, { botStatusEmitter } from '../services/discordLogIn';
@@ -32,7 +32,7 @@ app.set('port', port);
 let server: Server;
 
 if (devlopment) {
-  server = http.createServer(app);
+  server = app.listen(port);
 } else {
   const privateKey = fs.readFileSync('server.key', 'utf8');
   const certificate = fs.readFileSync('server.cert', 'utf8');
@@ -43,7 +43,6 @@ if (devlopment) {
     cert: certificate,
     ca: caCert
   };
-
   server = https.createServer(credentials, app);
 }
 
@@ -52,7 +51,6 @@ if (devlopment) {
  * Listen on provided port, on all network interfaces.
  */
 
-server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 

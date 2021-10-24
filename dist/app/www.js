@@ -29,7 +29,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const app_1 = __importDefault(require("./app"));
 const debug_1 = __importDefault(require("debug"));
 const https_1 = __importDefault(require("https"));
-const http_1 = __importDefault(require("http"));
 const fs_1 = __importDefault(require("fs"));
 const socket_io_1 = require("socket.io");
 const discordLogIn_1 = __importStar(require("../services/discordLogIn"));
@@ -45,7 +44,7 @@ app_1.default.set('port', port);
  */
 let server;
 if (devlopment) {
-    server = http_1.default.createServer(app_1.default);
+    server = app_1.default.listen(port);
 }
 else {
     const privateKey = fs_1.default.readFileSync('server.key', 'utf8');
@@ -61,7 +60,6 @@ else {
 /**
  * Listen on provided port, on all network interfaces.
  */
-server.listen(port);
 server.on('error', onError);
 server.on('listening', onListening);
 /**
