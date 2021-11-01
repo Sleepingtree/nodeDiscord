@@ -1,11 +1,16 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
-import { CommandInteraction } from "discord.js";
+import { SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from "@discordjs/builders";
+import { ButtonInteraction, CommandInteraction } from "discord.js";
 declare type commandType = {
-    slashCommand: SlashCommandBuilder;
+    slashCommand: SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder;
     cb: (interaction: CommandInteraction) => Promise<void>;
-    needsUpdate: boolean;
+    needsUpdate?: boolean;
+};
+declare type buttonCommands = {
+    name: string;
+    cb: (ineraction: ButtonInteraction) => Promise<void>;
 };
 export default interface CommandModel {
     commands: commandType[];
+    buttonCommands?: buttonCommands[];
 }
 export {};

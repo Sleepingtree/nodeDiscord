@@ -5,7 +5,12 @@ import {
     restartCommand,
     joinGiveawayButton,
     endGiveawayButton,
-    handleJoinCommand
+    handleJoinCommand,
+    handleEndCommand,
+    handlePrize,
+    giveGiveawayPrize,
+    noPrize,
+    handleNoPrize
 } from "../services/giveawayService";
 import CommandModel from "../model/commandModel";
 
@@ -29,6 +34,18 @@ class giveawaySlashCommands implements CommandModel {
         {
             name: joinGiveawayButton,
             cb: handleJoinCommand
+        },
+        {
+            name: endGiveawayButton,
+            cb: handleEndCommand
+        },
+        {
+            name: giveGiveawayPrize,
+            cb: handlePrize
+        },
+        {
+            name: noPrize,
+            cb: handleNoPrize
         }
     ]
 }

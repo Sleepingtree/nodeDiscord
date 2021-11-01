@@ -52,7 +52,7 @@ const APPLICATION_ID = process.env.DISCORD_APPLICATION_ID ?? throwIfNull('discor
                 console.log(`calling command ${interaction.commandName}`);
                 cb(interaction);
             } else {
-                console.error('no cb function defined!');
+                console.error('no command cb function defined!');
             }
         } else if (interaction.isButton()) {
             const cb = buttonCommandMap.get(interaction.customId);
@@ -60,7 +60,7 @@ const APPLICATION_ID = process.env.DISCORD_APPLICATION_ID ?? throwIfNull('discor
                 console.log(`calling button command ${interaction.customId}`);
                 cb(interaction);
             } else {
-                console.error('no cb function defined!');
+                console.error('no button cb function defined!');
             }
         } else {
             console.warn('interaction, but not command or button');
