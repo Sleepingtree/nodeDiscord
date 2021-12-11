@@ -1,26 +1,34 @@
-import { ButtonInteraction, CommandInteraction, MessageActionRow, MessageButton } from "discord.js";
+import { ButtonInteraction, CommandInteraction, Message, MessageActionRow, MessageButton } from "discord.js";
 import bot from '../services/discordLogIn';
 import fs from 'fs';
 
 export const startCommand = 'start';
 export const restartCommand = 'restart';
+export const addingMoreItemsCommand = 'additional-prizes';
+export const numberOfItemsAdded = 'number-of-prizes';
+export const numberOfItemsToGiveAway = 'items-in-bank';
 
 export const joinGiveawayButton = 'joinGiveaway';
 export const endGiveawayButton = 'endGiveaway';
 export const giveGiveawayPrize = 'givePrize';
 export const noPrize = 'noPrize';
 
+const guildRoleName = 'It lives!';
+
 const giveawayFile = 'giveaway.json'
 
 type GiveawayFile = {
-    [key: string]: {
-        startedUser: string,
-        joinedUsers: {
-            userId: string
-            won: boolean
-            roll: number
-        }[]
-    } | undefined
+    [key: string]: Giveaway | undefined
+}
+
+type Giveaway = {
+    startedUser: string,
+    numberOfItems: number,
+    joinedUsers: {
+        userId: string
+        won: boolean
+        requestSlot: number
+    }[]
 }
 
 const notInGuildMesage = { ephemeral: true, content: 'You must be in a discord server to use this!' };
@@ -31,6 +39,8 @@ export const handleGiveAwayCommand = async (interaction: CommandInteraction) => 
         handleStart(interaction);
     } else if (realCommand === restartCommand) {
         handleRestartCommand(interaction);
+    } else if (realCommand === addingMoreItemsCommand) {
+
     } else {
         console.log('Unhandled giveAway command');
     }
@@ -38,7 +48,8 @@ export const handleGiveAwayCommand = async (interaction: CommandInteraction) => 
 
 const handleStart = async (interaction: CommandInteraction) => {
     const guildId = interaction.guildId;
-    if (!guildId) {
+    const startingItemCount = interaction.options.getNumber(numberOfItemsToGiveAway);
+    if (!guildId || !startingItemCount) {
         interaction.reply(notInGuildMesage);
         return;
     }
@@ -55,7 +66,11 @@ const handleStart = async (interaction: CommandInteraction) => {
             .setLabel('end giveaway')
             .setStyle('DANGER')
     )
-    convertedFile[guildId] = { startedUser: interaction.user.id, joinedUsers: [] };
+    convertedFile[guildId] = {
+        startedUser: interaction.user.id,
+        numberOfItems: startingItemCount,
+        joinedUsers: []
+    };
     fs.writeFileSync(giveawayFile, JSON.stringify(convertedFile, null, 2));
     interaction.editReply({
         content: 'Raffle started! click on join to get your phat stacks',
@@ -72,6 +87,24 @@ export const handleJoinCommand = async (interaction: ButtonInteraction) => {
             return;
         }
         await interaction.deferReply({ ephemeral: true });
+        const roleId = (await bot.guilds.fetch(guildId)
+            .then(guild => guild.roles)
+            .then(roleMan => roleMan.fetch()))
+            .find(role => role.name === guildRoleName)?.id
+        const roles = interaction.member?.roles;
+        if (!roles || !roleId) {
+            console.error(`can't find role for user. roles: ${roles} roleId: ${roleId}`)
+            return;
+        }
+        const isGuildMember = roles instanceof Array ?
+            roles.find((role) => role === roleId) !== undefined :
+            roles.cache.has(roleId);
+
+        if (!isGuildMember) {
+            interaction.editReply('Sorry Guild members only!')
+            return;
+        }
+
         const file = fs.readFileSync(giveawayFile, 'utf-8');
         const convertedFile = JSON.parse(file) as GiveawayFile;
         const guildGiveaway = convertedFile[guildId];
@@ -86,26 +119,10 @@ export const handleJoinCommand = async (interaction: ButtonInteraction) => {
             if (user.won) {
                 interaction.editReply('You have already won something!')
             } else {
-                interaction.editReply(`You are already entered with a roll of ${user.roll} \r\n Either you didn't win yet or the giveaway team is busy!`);
+                darwOrRedrawForUser(interaction, guildGiveaway, convertedFile);
             }
         } else {
-            const roll = Math.floor((Math.random() * 100) + 1);
-            guildGiveaway.joinedUsers.push({ userId: interaction.user.id, won: false, roll: roll })
-            fs.writeFileSync(giveawayFile, JSON.stringify(convertedFile, null, 2));
-            const startedUser = await bot.users.fetch(guildGiveaway.startedUser);
-            const messageActionRow = new MessageActionRow().addComponents(
-                new MessageButton().setCustomId(giveGiveawayPrize)
-                    .setLabel(`I gave ${interaction.user.username} a prize!`)
-                    .setStyle('PRIMARY')
-                    .setEmoji('🎉')
-            ).addComponents(
-                new MessageButton().setCustomId(noPrize)
-                    .setLabel('No prize')
-                    .setStyle('DANGER')
-                    .setEmoji('😔')
-            )
-            startedUser.send({ content: `<@${interaction.user.id}> joined the giveway with a roll of ${roll} give them something nice for me!`, components: [messageActionRow] })
-            interaction.editReply(`You've been entered in the giveaway with a roll of ${roll}. \r\n I hope you get something good!`);
+            darwOrRedrawForUser(interaction, guildGiveaway, convertedFile);
         }
     } else {
         const randomSeed = Math.random();
@@ -114,18 +131,60 @@ export const handleJoinCommand = async (interaction: ButtonInteraction) => {
     }
 }
 
+const darwOrRedrawForUser = (interaction: ButtonInteraction, guildGiveaway: Giveaway, convertedFile: GiveawayFile) => {
+    interaction.editReply(`reply with a number between 1 and ${guildGiveaway.numberOfItems}`)
+    const filter = (m: Message) => interaction.user.id === m.author.id;
+    interaction.channel?.awaitMessages({ filter, time: 60000, max: 1, errors: ['time'] })
+        .then(async messages => {
+            const rawResponse = messages.first()?.content;
+            const numberResponse = Number(rawResponse);
+            if (numberResponse === NaN || numberResponse < 1 || numberResponse > guildGiveaway.numberOfItems) {
+                interaction.followUp({ content: `You've entered: ${messages.first()?.content}`, ephemeral: true });
+            } else {
+                await interaction.followUp(`You've entered: ${messages.first()?.content}`);
+
+                guildGiveaway.joinedUsers = guildGiveaway.joinedUsers.filter(user => user.userId !== interaction.user.id)
+                guildGiveaway.joinedUsers.push({ userId: interaction.user.id, won: false, requestSlot: numberResponse });
+
+                fs.writeFileSync(giveawayFile, JSON.stringify(convertedFile, null, 2));
+                const startedUser = await bot.users.fetch(guildGiveaway.startedUser);
+                const messageActionRow = new MessageActionRow().addComponents(
+                    new MessageButton().setCustomId(giveGiveawayPrize)
+                        .setLabel(`I gave ${interaction.user.username} a prize!`)
+                        .setStyle('PRIMARY')
+                        .setEmoji('🎉')
+                ).addComponents(
+                    new MessageButton().setCustomId(noPrize)
+                        .setLabel('No prize')
+                        .setStyle('DANGER')
+                        .setEmoji('😔')
+                )
+                startedUser.send({ content: `<@${interaction.user.id}> joined the giveway asking for item  ${numberResponse} give them something nice for me!`, components: [messageActionRow] })
+                interaction.editReply(`You've been entered in the giveaway with a the number ${numberResponse}. \r\n I hope you get something good!`);
+            }
+
+        })
+        .catch(() => {
+            interaction.followUp('You did not enter any input!');
+        });
+}
+
 export const handleEndCommand = async (interaction: ButtonInteraction) => {
     const parentInteraction = interaction.message;
+    await interaction.deferReply({ ephemeral: true });
     if ('guildId' in parentInteraction) {
         const guildId = parentInteraction.guildId;
         if (!guildId) {
             interaction.reply(notInGuildMesage);
             return;
         }
-        await interaction.deferReply({ ephemeral: true });
         const file = fs.readFileSync(giveawayFile, 'utf-8');
         const convertedFile = JSON.parse(file) as GiveawayFile;
         const giveaway = convertedFile[guildId];
+        if (interaction.message.author.id !== giveaway?.startedUser) {
+            interaction.editReply(`That's not up to you I'm telling!`);
+            console.log(`${interaction.user.username} tried to end the giveaway!`);
+        }
         const replyMessage = `Give away is over with ${giveaway?.joinedUsers.filter(user => user.won).length} winners out of ${giveaway?.joinedUsers.length} players`;
         convertedFile[guildId] = undefined;
         fs.writeFileSync(giveawayFile, JSON.stringify(convertedFile, null, 2));
@@ -172,11 +231,13 @@ export const handlePrize = async (interaction: ButtonInteraction) => {
                 const user = await bot.users.fetch(users.joinedUsers[userIndex].userId)
                 user.send('Hope you enjoy your gift!');
                 users.joinedUsers[userIndex].won = true;
+                --users.numberOfItems;
+                convertedFile[guildId] = users;
             }
         }
+        fs.writeFileSync(giveawayFile, JSON.stringify(convertedFile, null, 2));
+        interaction.editReply({ content: `I took all the credit for the gift 😊 there's ${users?.numberOfItems} left in the bank!`, components: [] });
     }
-    fs.writeFileSync(giveawayFile, JSON.stringify(convertedFile, null, 2));
-    interaction.editReply({ content: 'I took all the credit for the gift 😊', components: [] });
 }
 
 export const handleNoPrize = async (interaction: ButtonInteraction) => {

@@ -1,6 +1,9 @@
 import { ButtonInteraction, CommandInteraction } from "discord.js";
 export declare const startCommand = "start";
 export declare const restartCommand = "restart";
+export declare const addingMoreItemsCommand = "additional-prizes";
+export declare const numberOfItemsAdded = "number-of-prizes";
+export declare const numberOfItemsToGiveAway = "items-in-bank";
 export declare const joinGiveawayButton = "joinGiveaway";
 export declare const endGiveawayButton = "endGiveaway";
 export declare const giveGiveawayPrize = "givePrize";
