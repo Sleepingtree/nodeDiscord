@@ -181,9 +181,10 @@ export const handleEndCommand = async (interaction: ButtonInteraction) => {
         const file = fs.readFileSync(giveawayFile, 'utf-8');
         const convertedFile = JSON.parse(file) as GiveawayFile;
         const giveaway = convertedFile[guildId];
-        if (interaction.message.author.id !== giveaway?.startedUser) {
+        if (interaction.user.id !== giveaway?.startedUser) {
             interaction.editReply(`That's not up to you I'm telling!`);
             console.log(`${interaction.user.username} tried to end the giveaway!`);
+            return;
         }
         const replyMessage = `Give away is over with ${giveaway?.joinedUsers.filter(user => user.won).length} winners out of ${giveaway?.joinedUsers.length} players`;
         convertedFile[guildId] = undefined;

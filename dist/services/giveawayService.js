@@ -159,9 +159,10 @@ const handleEndCommand = async (interaction) => {
         const file = fs_1.default.readFileSync(giveawayFile, 'utf-8');
         const convertedFile = JSON.parse(file);
         const giveaway = convertedFile[guildId];
-        if (interaction.message.author.id !== (giveaway === null || giveaway === void 0 ? void 0 : giveaway.startedUser)) {
+        if (interaction.user.id !== (giveaway === null || giveaway === void 0 ? void 0 : giveaway.startedUser)) {
             interaction.editReply(`That's not up to you I'm telling!`);
             console.log(`${interaction.user.username} tried to end the giveaway!`);
+            return;
         }
         const replyMessage = `Give away is over with ${giveaway === null || giveaway === void 0 ? void 0 : giveaway.joinedUsers.filter(user => user.won).length} winners out of ${giveaway === null || giveaway === void 0 ? void 0 : giveaway.joinedUsers.length} players`;
         convertedFile[guildId] = undefined;
