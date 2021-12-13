@@ -13,7 +13,9 @@ const APPLICATION_ID = (_b = process.env.DISCORD_APPLICATION_ID) !== null && _b 
 (async () => {
     const commandFiles = (await promises_1.default.readdir('./dist/discordCommands')).filter(file => file.endsWith('.js'));
     const commandMap = new Map();
+    const buttonCommandMap = new Map();
     commandFiles.forEach(file => {
+        var _a;
         const fileCommands = require(`../discordCommands/${file}`).default;
         fileCommands.commands.forEach(async (item) => {
             commandMap.set(item.slashCommand.name, item.cb);
@@ -37,20 +39,33 @@ const APPLICATION_ID = (_b = process.env.DISCORD_APPLICATION_ID) !== null && _b 
                 }
             }
         });
+        (_a = fileCommands.buttonCommands) === null || _a === void 0 ? void 0 : _a.forEach(command => {
+            buttonCommandMap.set(command.name, command.cb);
+        });
     });
     discordLogIn_1.default.on('interactionCreate', (interaction) => {
         if (interaction.isCommand()) {
             const cb = commandMap.get(interaction.commandName);
-            if (typeof cb === 'function') {
+            if (cb) {
                 console.log(`calling command ${interaction.commandName}`);
                 cb(interaction);
             }
             else {
-                console.error('no cb function defined!');
+                console.error('no command cb function defined!');
+            }
+        }
+        else if (interaction.isButton()) {
+            const cb = buttonCommandMap.get(interaction.customId);
+            if (cb) {
+                console.log(`calling button command ${interaction.customId}`);
+                cb(interaction);
+            }
+            else {
+                console.error('no button cb function defined!');
             }
         }
         else {
-            console.log('interaction, but not command?');
+            console.warn('interaction, but not command or button');
         }
     });
 })();
