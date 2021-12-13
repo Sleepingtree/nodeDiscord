@@ -17,7 +17,7 @@ class giveawaySlashCommands {
                     .setDescription('clears all the winners to add new ones')
                     .addNumberOption(option => option.setName(giveawayService_1.numberOfItemsAdded).setDescription('The number of items being added to the giveaway').setRequired(true))),
                 cb: giveawayService_1.handleGiveAwayCommand,
-                needsUpdate: true
+                needsUpdate: false
             }
         ];
         this.buttonCommands = [

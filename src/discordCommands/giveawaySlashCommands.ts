@@ -36,7 +36,7 @@ class giveawaySlashCommands implements CommandModel {
                         .addNumberOption(option => option.setName(numberOfItemsAdded).setDescription('The number of items being added to the giveaway').setRequired(true))
                 ),
             cb: handleGiveAwayCommand,
-            needsUpdate: true
+            needsUpdate: false
         }
     ];
     buttonCommands = [
