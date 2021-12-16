@@ -1,1 +1,13 @@
-{}
+{
+  "726617515048042498": {
+    "startedUser": "249340200998666240",
+    "numberOfItems": 3,
+    "joinedUsers": [
+      {
+        "userId": "249340200998666240",
+        "won": true,
+        "requestSlot": 3
+      }
+    ]
+  }
+}

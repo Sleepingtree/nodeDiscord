@@ -13,7 +13,8 @@ import {
     handleNoPrize,
     numberOfItemsToGiveAway,
     addingMoreItemsCommand,
-    numberOfItemsAdded
+    numberOfItemsAdded,
+    subtractingItemsCommnad
 } from "../services/giveawayService";
 import CommandModel from "../model/commandModel";
 
@@ -32,8 +33,12 @@ class giveawaySlashCommands implements CommandModel {
                         .setDescription('clears all the winners to add new ones'))
                 .addSubcommand(subcommand =>
                     subcommand.setName(addingMoreItemsCommand)
-                        .setDescription('clears all the winners to add new ones')
+                        .setDescription('Adds more items to the bank in case you bought more')
                         .addNumberOption(option => option.setName(numberOfItemsAdded).setDescription('The number of items being added to the giveaway').setRequired(true))
+                ).addSubcommand(subcommand =>
+                    subcommand.setName(subtractingItemsCommnad)
+                        .setDescription('Removes items from the bank in case the count is off')
+                        .addNumberOption(option => option.setName(numberOfItemsAdded).setDescription('The number of items being removed from the giveaway').setRequired(true))
                 ),
             cb: handleGiveAwayCommand,
             needsUpdate: false
