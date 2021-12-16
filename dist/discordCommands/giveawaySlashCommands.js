@@ -14,10 +14,12 @@ class giveawaySlashCommands {
                     .addNumberOption(option => option.setName(giveawayService_1.numberOfItemsToGiveAway).setDescription('The number of items in the bank at the moment').setRequired(true))).addSubcommand(subcommand => subcommand.setName(giveawayService_1.restartCommand)
                     .setDescription('clears all the winners to add new ones'))
                     .addSubcommand(subcommand => subcommand.setName(giveawayService_1.addingMoreItemsCommand)
-                    .setDescription('clears all the winners to add new ones')
-                    .addNumberOption(option => option.setName(giveawayService_1.numberOfItemsAdded).setDescription('The number of items being added to the giveaway').setRequired(true))),
+                    .setDescription('Adds more items to the bank in case you bought more')
+                    .addNumberOption(option => option.setName(giveawayService_1.numberOfItemsAdded).setDescription('The number of items being added to the giveaway').setRequired(true))).addSubcommand(subcommand => subcommand.setName(giveawayService_1.subtractingItemsCommnad)
+                    .setDescription('Removes items from the bank in case the count is off')
+                    .addNumberOption(option => option.setName(giveawayService_1.numberOfItemsAdded).setDescription('The number of items being removed from the giveaway').setRequired(true))),
                 cb: giveawayService_1.handleGiveAwayCommand,
-                needsUpdate: false
+                needsUpdate: true
             }
         ];
         this.buttonCommands = [
