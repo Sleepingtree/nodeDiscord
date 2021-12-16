@@ -19,7 +19,7 @@ class giveawaySlashCommands {
                     .setDescription('Removes items from the bank in case the count is off')
                     .addNumberOption(option => option.setName(giveawayService_1.numberOfItemsAdded).setDescription('The number of items being removed from the giveaway').setRequired(true))),
                 cb: giveawayService_1.handleGiveAwayCommand,
-                needsUpdate: true
+                needsUpdate: false
             }
         ];
         this.buttonCommands = [
