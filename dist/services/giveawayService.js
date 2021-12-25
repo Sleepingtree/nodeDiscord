@@ -18,7 +18,9 @@ exports.endGiveawayButton = 'endGiveaway';
 exports.giveGiveawayPrize = 'givePrize';
 exports.noPrize = 'noPrize';
 const guildRoleName = 'It lives!';
+const officerRoleName = 'Officer';
 const giveawayFile = 'giveaway.json';
+const officerMessageMap = {};
 const notInGuildMesage = { ephemeral: true, content: 'You must be in a discord server to use this!' };
 const handleGiveAwayCommand = async (interaction) => {
     const realCommand = interaction.options.getSubcommand();
@@ -107,11 +109,11 @@ const handleJoinCommand = async (interaction) => {
                 interaction.editReply('You have already won something!');
             }
             else {
-                darwOrRedrawForUser(interaction, guildGiveaway, convertedFile);
+                darwOrRedrawForUser(interaction, guildGiveaway, convertedFile, guildId);
             }
         }
         else {
-            darwOrRedrawForUser(interaction, guildGiveaway, convertedFile);
+            darwOrRedrawForUser(interaction, guildGiveaway, convertedFile, guildId);
         }
     }
     else {
@@ -121,37 +123,82 @@ const handleJoinCommand = async (interaction) => {
     }
 };
 exports.handleJoinCommand = handleJoinCommand;
-const darwOrRedrawForUser = async (interaction, guildGiveaway, convertedFile) => {
-    const dmMessage = await interaction.user.send(`reply with a number between 1 and ${guildGiveaway.numberOfItems}`);
-    const filter = (m) => interaction.user.id === m.author.id;
-    dmMessage.channel.awaitMessages({ filter, time: 60000, max: 1, errors: ['time'] })
-        .then(async (messages) => {
-        var _a, _b, _c;
-        const rawResponse = (_a = messages.first()) === null || _a === void 0 ? void 0 : _a.content;
-        const numberResponse = Number(rawResponse);
-        if (numberResponse === NaN || numberResponse < 1 || numberResponse > guildGiveaway.numberOfItems) {
-            interaction.followUp({ content: `You've entered: ${(_b = messages.first()) === null || _b === void 0 ? void 0 : _b.content}`, ephemeral: true });
+const darwOrRedrawForUser = async (interaction, guildGiveaway, convertedFile, guildId) => {
+    try {
+        const dmMessage = await interaction.user.send(`reply with a number between 1 and ${guildGiveaway.numberOfItems}`);
+        interaction.followUp({ content: 'I slid into your DM, please reply there!', ephemeral: true });
+        const filter = (m) => interaction.user.id === m.author.id;
+        const officers = (await discordLogIn_1.default.guilds.fetch(guildId))
+            .members.cache.filter(member => member.roles.cache.filter(role => role.name === officerRoleName).size > 0);
+        console.log(`officers: ${officers.forEach(officer => officer)}`);
+        dmMessage.channel.awaitMessages({ filter, time: 60000, max: 1, errors: ['time'] })
+            .then(async (messages) => {
+            var _a;
+            const rawResponse = (_a = messages.first()) === null || _a === void 0 ? void 0 : _a.content;
+            const numberResponse = Number(rawResponse === null || rawResponse === void 0 ? void 0 : rawResponse.trim());
+            if (numberResponse === NaN || numberResponse < 1 || numberResponse > guildGiveaway.numberOfItems) {
+                interaction.followUp({ content: `You did not enter a number, please join again with only a number`, ephemeral: true });
+            }
+            else {
+                guildGiveaway.joinedUsers = guildGiveaway.joinedUsers.filter(user => user.userId !== interaction.user.id);
+                guildGiveaway.joinedUsers.push({ userId: interaction.user.id, won: false, requestSlot: numberResponse });
+                fs_1.default.writeFileSync(giveawayFile, JSON.stringify(convertedFile, null, 2));
+                const messageActionRow = new discord_js_1.MessageActionRow().addComponents(new discord_js_1.MessageButton().setCustomId(exports.giveGiveawayPrize)
+                    .setLabel(`I gave ${interaction.user.username} a prize!`)
+                    .setStyle('PRIMARY')
+                    .setEmoji('🎉')).addComponents(new discord_js_1.MessageButton().setCustomId(exports.noPrize)
+                    .setLabel('No prize')
+                    .setStyle('DANGER')
+                    .setEmoji('😔'));
+                officers.forEach(async (officer) => {
+                    console.log(`sending message to ${officer.user.username}`);
+                    const officerMessage = await officer.send({
+                        content: `<@${interaction.user.id}> joined the giveway asking for item  ${numberResponse} give them something nice for me! serverID:${guildId}`,
+                        components: [messageActionRow]
+                    });
+                    let otherOfficerMessages = officerMessageMap[guildId];
+                    if (otherOfficerMessages) {
+                        let userMessageMap = otherOfficerMessages[interaction.user.id];
+                        if (userMessageMap) {
+                            userMessageMap.officerMessages.push({ messageId: officerMessage.id, dmChannelId: officerMessage.channelId });
+                        }
+                        else {
+                            userMessageMap = { officerMessages: [{ messageId: officerMessage.id, dmChannelId: officerMessage.channelId }] };
+                        }
+                        otherOfficerMessages[interaction.user.id] = userMessageMap;
+                    }
+                    else {
+                        otherOfficerMessages = {
+                            [interaction.user.id]: {
+                                officerMessages: [
+                                    { messageId: officerMessage.id, dmChannelId: officerMessage.channelId }
+                                ]
+                            }
+                        };
+                    }
+                    officerMessageMap[guildId] = otherOfficerMessages;
+                });
+                const reponseMesage = `You've been entered in the giveaway with a the number ${numberResponse}. \r\n I hope you get something good!`;
+                interaction.followUp({ content: reponseMesage, ephemeral: true });
+                interaction.user.send(reponseMesage);
+            }
+        })
+            .catch(() => {
+            const response = 'Are you still there? If you are please click join again!';
+            interaction.followUp({ content: response, ephemeral: true });
+            interaction.user.send(response);
+        });
+    }
+    catch (error) {
+        interaction.followUp({ content: 'I tried to slide into your DMs, but you have me blocked! Please let me in I promise not to spam you.', ephemeral: true });
+        if (error instanceof Error) {
+            console.error(error.name);
+            console.error(error.message);
         }
         else {
-            await interaction.followUp(`You've entered: ${(_c = messages.first()) === null || _c === void 0 ? void 0 : _c.content}`);
-            guildGiveaway.joinedUsers = guildGiveaway.joinedUsers.filter(user => user.userId !== interaction.user.id);
-            guildGiveaway.joinedUsers.push({ userId: interaction.user.id, won: false, requestSlot: numberResponse });
-            fs_1.default.writeFileSync(giveawayFile, JSON.stringify(convertedFile, null, 2));
-            const startedUser = await discordLogIn_1.default.users.fetch(guildGiveaway.startedUser);
-            const messageActionRow = new discord_js_1.MessageActionRow().addComponents(new discord_js_1.MessageButton().setCustomId(exports.giveGiveawayPrize)
-                .setLabel(`I gave ${interaction.user.username} a prize!`)
-                .setStyle('PRIMARY')
-                .setEmoji('🎉')).addComponents(new discord_js_1.MessageButton().setCustomId(exports.noPrize)
-                .setLabel('No prize')
-                .setStyle('DANGER')
-                .setEmoji('😔'));
-            startedUser.send({ content: `<@${interaction.user.id}> joined the giveway asking for item  ${numberResponse} give them something nice for me!`, components: [messageActionRow] });
-            interaction.editReply(`You've been entered in the giveaway with a the number ${numberResponse}. \r\n I hope you get something good!`);
+            console.error(error);
         }
-    })
-        .catch(() => {
-        interaction.editReply('You did not enter any input!');
-    });
+    }
 };
 const handleEndCommand = async (interaction) => {
     const parentInteraction = interaction.message;
@@ -197,30 +244,52 @@ const handleRestartCommand = async (interaction) => {
     interaction.editReply(reply);
 };
 const handlePrize = async (interaction) => {
+    var _a;
     //I should fix this when I have time
     const winnerId = interaction.message.content.split('<@')[1].split('>')[0];
     if ('edit' in interaction.message) {
         interaction.message.edit({ components: [] });
     }
-    const ownerId = interaction.user.id;
     await interaction.deferReply({ ephemeral: true });
     const file = fs_1.default.readFileSync(giveawayFile, 'utf-8');
     const convertedFile = JSON.parse(file);
-    const guildId = Object.keys(convertedFile).find(id => { var _a; return ((_a = convertedFile[id]) === null || _a === void 0 ? void 0 : _a.startedUser) === ownerId; });
+    const guildId = interaction.message.content.split('serverID:')[1];
     if (guildId) {
-        const users = convertedFile[guildId];
-        if (users) {
-            const userIndex = users.joinedUsers.findIndex(user => user.userId === winnerId);
-            if (users.joinedUsers[userIndex]) {
-                const user = await discordLogIn_1.default.users.fetch(users.joinedUsers[userIndex].userId);
-                user.send('Hope you enjoy your gift!');
-                users.joinedUsers[userIndex].won = true;
-                --users.numberOfItems;
-                convertedFile[guildId] = users;
+        const officerInteractionMap = officerMessageMap[guildId];
+        if (officerInteractionMap) {
+            const users = convertedFile[guildId];
+            if (users) {
+                const userIndex = users.joinedUsers.findIndex(user => user.userId === winnerId);
+                if (users.joinedUsers[userIndex]) {
+                    const user = await discordLogIn_1.default.users.fetch(users.joinedUsers[userIndex].userId);
+                    user.send('Hope you enjoy your gift!');
+                    users.joinedUsers[userIndex].won = true;
+                    --users.numberOfItems;
+                    convertedFile[guildId] = users;
+                }
+                interaction.editReply({ content: `I took all the credit for the gift 😊 \r\n there's ${users === null || users === void 0 ? void 0 : users.numberOfItems} left in the bank!`, components: [] });
+                (_a = officerInteractionMap[winnerId]) === null || _a === void 0 ? void 0 : _a.officerMessages.forEach(message => {
+                    if (message.dmChannelId !== interaction.channelId) {
+                        discordLogIn_1.default.channels.fetch(message.dmChannelId)
+                            .then(async (channel) => {
+                            if (channel === null || channel === void 0 ? void 0 : channel.isText()) {
+                                const officerMessage = await channel.messages.fetch(message.messageId);
+                                if (officerMessage.editable) {
+                                    officerMessage.edit({ content: `Some other officer gave <@${winnerId}> a gift`, components: [] });
+                                }
+                            }
+                        });
+                    }
+                });
             }
+            fs_1.default.writeFileSync(giveawayFile, JSON.stringify(convertedFile, null, 2));
         }
-        fs_1.default.writeFileSync(giveawayFile, JSON.stringify(convertedFile, null, 2));
-        interaction.editReply({ content: `I took all the credit for the gift 😊 \r\n there's ${users === null || users === void 0 ? void 0 : users.numberOfItems} left in the bank!`, components: [] });
+        else {
+            console.error(`interaction map was ${officerInteractionMap}, guild ID is ${guildId}`);
+        }
+    }
+    else {
+        console.error(`Guild id is: ${guildId}`);
     }
 };
 exports.handlePrize = handlePrize;
