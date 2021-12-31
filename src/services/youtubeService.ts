@@ -92,14 +92,11 @@ export const handleSkipCommand = async (interaction: CommandInteraction) => {
 
 }
 
-export const handleRemoveCommand = async (interaction: CommandInteraction) => {
+export const handleRemoveCommand = (interaction: CommandInteraction) => {
     const itemToRemove = interaction.options.getNumber(removeNameOption);
     if (interaction.guildId) {
         const response = removeItemFromQueue(interaction.guildId, itemToRemove?.toString())
-        if (response) {
-            interaction.reply(response);
-        }
-        interaction.reply({ ephemeral: true });
+        interaction.reply(response);
     } else {
         interaction.reply(notInGuildMessage);
     }
@@ -370,6 +367,7 @@ function removeItemFromQueue(guildId: string, itemToRemove?: string) {
         if (numberItemToRemove == 0) {
             playQueue.get(guildId)?.shift();
             checkAndIncrmentQueue(guildId);
+            return 'Skipped last song'
         } else {
             const removedItems = localPlayQueue.splice(numberItemToRemove, 1);
             if (localPlayQueue.length == 0) {

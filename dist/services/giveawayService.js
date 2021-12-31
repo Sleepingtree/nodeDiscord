@@ -130,7 +130,6 @@ const darwOrRedrawForUser = async (interaction, guildGiveaway, convertedFile, gu
         const filter = (m) => interaction.user.id === m.author.id;
         const officers = (await discordLogIn_1.default.guilds.fetch(guildId))
             .members.cache.filter(member => member.roles.cache.filter(role => role.name === officerRoleName).size > 0);
-        console.log(`officers: ${officers.forEach(officer => officer)}`);
         dmMessage.channel.awaitMessages({ filter, time: 60000, max: 1, errors: ['time'] })
             .then(async (messages) => {
             var _a;

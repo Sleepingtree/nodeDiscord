@@ -3,7 +3,7 @@ import CommandModel from "../model/commandModel";
 declare class youtubCommands implements CommandModel {
     commands: {
         slashCommand: SlashCommandBuilder;
-        cb: (interaction: import("discord.js").CommandInteraction) => Promise<void>;
+        cb: (interaction: import("discord.js").CommandInteraction) => void;
         needsUpdate: boolean;
     }[];
 }

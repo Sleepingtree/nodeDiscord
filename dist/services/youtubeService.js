@@ -120,14 +120,11 @@ const handleSkipCommand = async (interaction) => {
     }
 };
 exports.handleSkipCommand = handleSkipCommand;
-const handleRemoveCommand = async (interaction) => {
+const handleRemoveCommand = (interaction) => {
     const itemToRemove = interaction.options.getNumber(exports.removeNameOption);
     if (interaction.guildId) {
         const response = removeItemFromQueue(interaction.guildId, itemToRemove === null || itemToRemove === void 0 ? void 0 : itemToRemove.toString());
-        if (response) {
-            interaction.reply(response);
-        }
-        interaction.reply({ ephemeral: true });
+        interaction.reply(response);
     }
     else {
         interaction.reply(notInGuildMessage);
@@ -419,6 +416,7 @@ function removeItemFromQueue(guildId, itemToRemove) {
         if (numberItemToRemove == 0) {
             (_b = playQueue.get(guildId)) === null || _b === void 0 ? void 0 : _b.shift();
             checkAndIncrmentQueue(guildId);
+            return 'Skipped last song';
         }
         else {
             const removedItems = localPlayQueue.splice(numberItemToRemove, 1);

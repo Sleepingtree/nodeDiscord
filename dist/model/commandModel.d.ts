@@ -2,12 +2,12 @@ import { SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder } from "@discor
 import { ButtonInteraction, CommandInteraction } from "discord.js";
 declare type commandType = {
     slashCommand: SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder;
-    cb: (interaction: CommandInteraction) => Promise<void>;
+    cb: (interaction: CommandInteraction) => Promise<void> | void;
     needsUpdate?: boolean;
 };
 declare type buttonCommands = {
     name: string;
-    cb: (ineraction: ButtonInteraction) => Promise<void>;
+    cb: (ineraction: ButtonInteraction) => Promise<void> | void;
 };
 export default interface CommandModel {
     commands: commandType[];
