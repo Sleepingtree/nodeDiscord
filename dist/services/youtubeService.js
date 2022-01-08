@@ -328,7 +328,7 @@ async function searchAndAddYoutube(guildId, member, search) {
             }
         }
     }
-    return response !== null && response !== void 0 ? response : `added ${queueItem === null || queueItem === void 0 ? void 0 : queueItem.title}`;
+    return response !== null && response !== void 0 ? response : `added ${localQueue.length}) ${queueItem === null || queueItem === void 0 ? void 0 : queueItem.title}`;
 }
 exports.searchAndAddYoutube = searchAndAddYoutube;
 function checkAndIncrmentQueue(guildId) {
