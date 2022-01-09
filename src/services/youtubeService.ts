@@ -282,7 +282,7 @@ export async function searchAndAddYoutube(guildId: string, member: GuildMember, 
             }
         }
     }
-    return response ?? `added ${localQueue.length === 1 ? 0 : localQueue.length}) ${queueItem?.title}`;
+    return response ?? `added ${localQueue.length - 1}) ${queueItem?.title}`;
 }
 
 export function checkAndIncrmentQueue(guildId: string) {
