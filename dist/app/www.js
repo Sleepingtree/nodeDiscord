@@ -52,7 +52,7 @@ else {
     server = https_1.default.createServer({
         key: privateKey,
         cert: certificate
-    }, app_1.default).listen(port);
+    }, app_1.default);
 }
 /**
  * Listen on provided port, on all network interfaces.
@@ -107,9 +107,6 @@ io.on("connection", (socket) => {
         discordLogIn_1.botStatusEmitter.off('botStatusChange', handleStatusUpdate);
     });
 });
-if (typeof port === 'number') {
-    io.listen(port);
-}
 function handleCloseEvent(serverType, error) {
     if (error) {
         console.error(`Unexpected error on shutdown of ${serverType} server, Error: ${error}`);
@@ -133,4 +130,7 @@ const handleShutdowns = () => {
     }, 10000);
 };
 process.on('SIGTERM', handleShutdowns);
+if (!devlopment) {
+    server.listen(port);
+}
 //# sourceMappingURL=www.js.map

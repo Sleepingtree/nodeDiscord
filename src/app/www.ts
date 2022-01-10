@@ -39,7 +39,7 @@ if (devlopment) {
   server = https.createServer({
     key: privateKey,
     cert: certificate
-  }, app).listen(port);
+  }, app);
 }
 
 
@@ -113,10 +113,6 @@ io.on("connection", (socket: Socket) => {
   });
 });
 
-if (typeof port === 'number') {
-  io.listen(port);
-}
-
 function handleCloseEvent(serverType: string, error?: Error) {
   if (error) {
     console.error(`Unexpected error on shutdown of ${serverType} server, Error: ${error}`)
@@ -141,3 +137,7 @@ const handleShutdowns = () => {
 }
 
 process.on('SIGTERM', handleShutdowns);
+
+if (!devlopment) {
+  server.listen(port);
+}
