@@ -39,7 +39,7 @@ if (devlopment) {
   server = https.createServer({
     key: privateKey,
     cert: certificate
-  }, app);
+  }, app).listen(port);
 }
 
 
@@ -98,6 +98,8 @@ const io = new SocketServer(server, {
   }
 });
 
+
+
 io.on("connection", (socket: Socket) => {
 
   function handleStatusUpdate(status: BotStatus | undefined) {
@@ -121,6 +123,8 @@ function handleCloseEvent(serverType: string, error?: Error) {
   }
 }
 
+io.listen(server);
+
 const handleShutdowns = () => {
   server.close(error => {
     handleCloseEvent('http(s)', error);
@@ -137,7 +141,3 @@ const handleShutdowns = () => {
 }
 
 process.on('SIGTERM', handleShutdowns);
-
-if (!devlopment) {
-  server.listen(port);
-}

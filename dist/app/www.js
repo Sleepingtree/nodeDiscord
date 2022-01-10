@@ -52,7 +52,7 @@ else {
     server = https_1.default.createServer({
         key: privateKey,
         cert: certificate
-    }, app_1.default);
+    }, app_1.default).listen(port);
 }
 /**
  * Listen on provided port, on all network interfaces.
@@ -115,6 +115,7 @@ function handleCloseEvent(serverType, error) {
         console.log(`closed ${serverType} server`);
     }
 }
+io.listen(server);
 const handleShutdowns = () => {
     server.close(error => {
         handleCloseEvent('http(s)', error);
@@ -130,7 +131,4 @@ const handleShutdowns = () => {
     }, 10000);
 };
 process.on('SIGTERM', handleShutdowns);
-if (!devlopment) {
-    server.listen(port);
-}
 //# sourceMappingURL=www.js.map
