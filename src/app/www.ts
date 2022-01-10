@@ -6,7 +6,7 @@
 
 import app from './app';
 import debug from 'debug';
-import https, { Server as HttpsServer } from 'https';
+import https from 'https';
 import { Server } from 'http';
 import fs from 'fs';
 import { Server as SocketServer, Socket } from 'socket.io';
@@ -29,7 +29,7 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-let server: Server | HttpsServer;
+let server: Server;
 
 if (devlopment) {
   server = app.listen(port);
@@ -112,6 +112,10 @@ io.on("connection", (socket: Socket) => {
     botStatusEmitter.off('botStatusChange', handleStatusUpdate);
   });
 });
+
+if (typeof port === 'number') {
+  io.listen(port);
+}
 
 function handleCloseEvent(serverType: string, error?: Error) {
   if (error) {

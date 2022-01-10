@@ -107,6 +107,9 @@ io.on("connection", (socket) => {
         discordLogIn_1.botStatusEmitter.off('botStatusChange', handleStatusUpdate);
     });
 });
+if (typeof port === 'number') {
+    io.listen(port);
+}
 function handleCloseEvent(serverType, error) {
     if (error) {
         console.error(`Unexpected error on shutdown of ${serverType} server, Error: ${error}`);
