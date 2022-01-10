@@ -49,14 +49,10 @@ if (devlopment) {
 else {
     const privateKey = fs_1.default.readFileSync('server.key', 'utf8');
     const certificate = fs_1.default.readFileSync('server.cert', 'utf8');
-    const caCert = fs_1.default.readFileSync('root.pem', 'utf8');
-    const credentials = {
+    server = https_1.default.createServer({
         key: privateKey,
-        cert: certificate,
-        ca: caCert
-    };
-    server = https_1.default.createServer(credentials, app_1.default);
-    app_1.default.listen(port);
+        cert: certificate
+    }, app_1.default);
 }
 /**
  * Listen on provided port, on all network interfaces.

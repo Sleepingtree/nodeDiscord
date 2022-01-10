@@ -6,7 +6,7 @@
 
 import app from './app';
 import debug from 'debug';
-import https from 'https';
+import https, { Server as HttpsServer } from 'https';
 import { Server } from 'http';
 import fs from 'fs';
 import { Server as SocketServer, Socket } from 'socket.io';
@@ -29,22 +29,17 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-let server: Server;
+let server: Server | HttpsServer;
 
 if (devlopment) {
   server = app.listen(port);
 } else {
   const privateKey = fs.readFileSync('server.key', 'utf8');
   const certificate = fs.readFileSync('server.cert', 'utf8');
-  const caCert = fs.readFileSync('root.pem', 'utf8');
-
-  const credentials = {
+  server = https.createServer({
     key: privateKey,
-    cert: certificate,
-    ca: caCert
-  };
-  server = https.createServer(credentials, app);
-  app.listen(port);
+    cert: certificate
+  }, app);
 }
 
 
