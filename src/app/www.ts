@@ -39,7 +39,7 @@ if (devlopment) {
   server = https.createServer({
     key: privateKey,
     cert: certificate
-  }, app);
+  }, app).listen(port);
 }
 
 
