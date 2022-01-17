@@ -49,14 +49,10 @@ if (devlopment) {
 else {
     const privateKey = fs_1.default.readFileSync('server.key', 'utf8');
     const certificate = fs_1.default.readFileSync('server.cert', 'utf8');
-    const caCert = fs_1.default.readFileSync('root.pem', 'utf8');
-    const credentials = {
+    server = https_1.default.createServer({
         key: privateKey,
-        cert: certificate,
-        ca: caCert
-    };
-    server = https_1.default.createServer(credentials, app_1.default);
-    app_1.default.listen(port);
+        cert: certificate
+    }, app_1.default).listen(port);
 }
 /**
  * Listen on provided port, on all network interfaces.
@@ -119,6 +115,7 @@ function handleCloseEvent(serverType, error) {
         console.log(`closed ${serverType} server`);
     }
 }
+io.listen(server);
 const handleShutdowns = () => {
     server.close(error => {
         handleCloseEvent('http(s)', error);

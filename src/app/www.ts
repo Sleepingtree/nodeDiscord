@@ -36,15 +36,10 @@ if (devlopment) {
 } else {
   const privateKey = fs.readFileSync('server.key', 'utf8');
   const certificate = fs.readFileSync('server.cert', 'utf8');
-  const caCert = fs.readFileSync('root.pem', 'utf8');
-
-  const credentials = {
+  server = https.createServer({
     key: privateKey,
-    cert: certificate,
-    ca: caCert
-  };
-  server = https.createServer(credentials, app);
-  app.listen(port);
+    cert: certificate
+  }, app).listen(port);
 }
 
 
@@ -103,6 +98,8 @@ const io = new SocketServer(server, {
   }
 });
 
+
+
 io.on("connection", (socket: Socket) => {
 
   function handleStatusUpdate(status: BotStatus | undefined) {
@@ -125,6 +122,8 @@ function handleCloseEvent(serverType: string, error?: Error) {
     console.log(`closed ${serverType} server`);
   }
 }
+
+io.listen(server);
 
 const handleShutdowns = () => {
   server.close(error => {
