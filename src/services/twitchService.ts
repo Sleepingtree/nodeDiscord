@@ -1,5 +1,6 @@
 import * as tmi from 'tmi.js';
 import * as gameService from './gameService';
+import bot from './discordLogIn';
 const TWITCH_USER_NAME = process.env.TWITCH_USER_NAME;
 const TWITCH_PASSWORD = process.env.TWITCH_PASSWORD;
 const TWITCH_CHANNEL_NAME = process.env.TWITCH_CHANNEL_NAME ?? "";
@@ -8,7 +9,7 @@ const botPrefix = '!';
 
 // Define configuration options
 const opts = {
-  connection:{
+  connection: {
     reconnect: true
   },
   identity: {
@@ -30,14 +31,14 @@ client.on('connected', onConnectedHandler);
 client.connect();
 
 // Called every time a message comes in
-function onMessageHandler (target: string, _context: tmi.ChatUserstate, msg: string, self: boolean) {
+function onMessageHandler(target: string, _context: tmi.ChatUserstate, msg: string, self: boolean) {
   if (self) { return; } // Ignore messages from the bot
 
 
   // Remove whitespace from chat message
   const commandName = msg.trim();
 
-  if(!commandName.startsWith(botPrefix)){
+  if (!commandName.startsWith(botPrefix)) {
     return;
   }
 
@@ -48,20 +49,36 @@ function onMessageHandler (target: string, _context: tmi.ChatUserstate, msg: str
     console.log(`* Executed ${commandName} command`);
   } else if (commandName.startsWith(botPrefix + 'teams')) {
     sendMessage(gameService.getTeamMessage());
-  }else {
+  } else if (commandName.startsWith(botPrefix + 'song')) {
+    handleSongCommand()
+  } else {
     console.log(`* Unknown command ${commandName}`);
   }
 }
 // Function called when the "dice" command is issued
-function rollDice () {
+function rollDice() {
   const sides = 6;
   return Math.floor(Math.random() * sides) + 1;
 }
 // Called every time the bot connects to Twitch chat
-function onConnectedHandler (addr: string, port: number) {
+function onConnectedHandler(addr: string, port: number) {
   console.log(`* Connected to ${addr}:${port}`);
 }
 
-export async function sendMessage(msg: string){
-    client.say(TWITCH_CHANNEL_NAME, msg);
+export async function sendMessage(msg: string) {
+  client.say(TWITCH_CHANNEL_NAME, msg);
+}
+
+const handleSongCommand = () => {
+  const botUser = bot.user;
+  if (botUser) {
+    const botStatus = botUser.presence.activities[0];
+    if (botStatus?.type === 'LISTENING') {
+      sendMessage(botStatus.name);
+    } else {
+      sendMessage('Tree isn\'t listening to anything');
+    }
+  } else {
+    return sendMessage('bot is having issues try again');
+  }
 }

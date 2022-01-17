@@ -18,11 +18,15 @@ var __importStar = (this && this.__importStar) || function (mod) {
     __setModuleDefault(result, mod);
     return result;
 };
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.sendMessage = void 0;
 const tmi = __importStar(require("tmi.js"));
 const gameService = __importStar(require("./gameService"));
+const discordLogIn_1 = __importDefault(require("./discordLogIn"));
 const TWITCH_USER_NAME = process.env.TWITCH_USER_NAME;
 const TWITCH_PASSWORD = process.env.TWITCH_PASSWORD;
 const TWITCH_CHANNEL_NAME = (_a = process.env.TWITCH_CHANNEL_NAME) !== null && _a !== void 0 ? _a : "";
@@ -66,6 +70,9 @@ function onMessageHandler(target, _context, msg, self) {
     else if (commandName.startsWith(botPrefix + 'teams')) {
         sendMessage(gameService.getTeamMessage());
     }
+    else if (commandName.startsWith(botPrefix + 'song')) {
+        handleSongCommand();
+    }
     else {
         console.log(`* Unknown command ${commandName}`);
     }
@@ -83,4 +90,19 @@ async function sendMessage(msg) {
     client.say(TWITCH_CHANNEL_NAME, msg);
 }
 exports.sendMessage = sendMessage;
+const handleSongCommand = () => {
+    const botUser = discordLogIn_1.default.user;
+    if (botUser) {
+        const botStatus = botUser.presence.activities[0];
+        if ((botStatus === null || botStatus === void 0 ? void 0 : botStatus.type) === 'LISTENING') {
+            sendMessage(botStatus.name);
+        }
+        else {
+            sendMessage('Tree isn\'t listening to anything');
+        }
+    }
+    else {
+        return sendMessage('bot is having issues try again');
+    }
+};
 //# sourceMappingURL=twitchService.js.map
