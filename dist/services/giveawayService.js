@@ -320,7 +320,9 @@ const handleAddOrRemoveItems = async (interaction, adding) => {
     const file = fs_1.default.readFileSync(giveawayFile, 'utf-8');
     const convertedFile = JSON.parse(file);
     const giveaway = convertedFile[guildId];
-    if (interaction.user.id !== (giveaway === null || giveaway === void 0 ? void 0 : giveaway.startedUser)) {
+    const officers = (await discordLogIn_1.default.guilds.fetch(guildId))
+        .members.cache.filter(member => member.roles.cache.filter(role => role.name === officerRoleName).size > 0);
+    if (interaction.user.id !== (giveaway === null || giveaway === void 0 ? void 0 : giveaway.startedUser) || officers.get(interaction.user.id)) {
         interaction.editReply(`That's not up to you I'm telling!`);
         console.log(`${interaction.user.username} tried to remove the items!`);
         return;

@@ -27,7 +27,7 @@ bot.on('messageCreate', msg => {
     } else if (msg.content.startsWith(BOT_PREFIX + 'play')) {
         handleNotInGuild(msg, (guildId) => resume(guildId));
     } else if (msg.content.startsWith(BOT_PREFIX + 'skip')) {
-        handleNotInGuild(msg, (guildId) => checkAndIncrmentQueue(guildId));
+        handleNotInGuild(msg, () => checkAndIncrmentQueue(''));
     } else if (msg.content.startsWith(BOT_PREFIX + 'remove ')) {
         handleNotInGuild(msg, (guildId) => {
             const response = removeItemFromQueue(guildId, msg.content.split(BOT_PREFIX + 'remove ')[1]);
@@ -66,6 +66,22 @@ export const handlePlayCommand = async (interaction: CommandInteraction) => {
             if (interaction.member instanceof GuildMember) {
                 await interaction.deferReply();
                 const youtubeSong = await searchAndAddYoutube(interaction.guildId, interaction.member, songName);
+
+                // const queueItem = await searchYoutube(songName);
+                // const localQueue = playQueue.get(interaction.guildId) ?? [];
+                // let response;
+                // if (queueItem) {
+                //     localQueue.push(queueItem);
+                //     playQueue.set(interaction.guildId, localQueue);
+                //     if (localQueue.length === 1) {
+                //         const playResponse = playYoutube(queueItem.url, queueItem.title, interaction.guildId, interaction.member);
+                //         if (typeof playResponse === 'string') {
+                //             response = playResponse;
+                //         }
+                //     }
+                // }
+                // return response ?? `added ${localQueue.length - 1}) ${queueItem?.title}`;
+
                 if (youtubeSong) {
                     interaction.editReply(youtubeSong)
                 } else {
@@ -158,6 +174,7 @@ export const handleJoinCommand = async (interaction: CommandInteraction) => {
 export function handleNotInGuild(msg: Message, cb: (guildId: string) => void) {
     if (!msg.guild?.id) {
         msg.channel.send('You must send messages in a server channel');
+        msg.author.username
     } else {
         cb(msg.guild.id);
     }
@@ -268,9 +285,10 @@ async function searchYoutube(search: string): Promise<SongQueueItem | void> {
     }
 }
 
-export async function searchAndAddYoutube(guildId: string, member: GuildMember, search: string) {
+export const searchAndAddYoutube = async (guildId: string, member: GuildMember, search: string) => {
     const queueItem = await searchYoutube(search);
     const localQueue = playQueue.get(guildId) ?? [];
+    guildId = 'test'
     let response;
     if (queueItem) {
         localQueue.push(queueItem);

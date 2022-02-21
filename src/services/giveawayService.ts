@@ -343,7 +343,9 @@ const handleAddOrRemoveItems = async (interaction: CommandInteraction, adding: b
     const file = fs.readFileSync(giveawayFile, 'utf-8');
     const convertedFile = JSON.parse(file) as GiveawayFile;
     const giveaway = convertedFile[guildId];
-    if (interaction.user.id !== giveaway?.startedUser) {
+    const officers = (await bot.guilds.fetch(guildId))
+        .members.cache.filter(member => member.roles.cache.filter(role => role.name === officerRoleName).size > 0);
+    if (interaction.user.id !== giveaway?.startedUser || officers.get(interaction.user.id)) {
         interaction.editReply(`That's not up to you I'm telling!`);
         console.log(`${interaction.user.username} tried to remove the items!`);
         return;
