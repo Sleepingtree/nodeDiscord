@@ -288,7 +288,6 @@ async function searchYoutube(search: string): Promise<SongQueueItem | void> {
 export const searchAndAddYoutube = async (guildId: string, member: GuildMember, search: string) => {
     const queueItem = await searchYoutube(search);
     const localQueue = playQueue.get(guildId) ?? [];
-    guildId = 'test'
     let response;
     if (queueItem) {
         localQueue.push(queueItem);

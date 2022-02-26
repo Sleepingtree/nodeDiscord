@@ -332,7 +332,6 @@ const searchAndAddYoutube = async (guildId, member, search) => {
     var _a;
     const queueItem = await searchYoutube(search);
     const localQueue = (_a = playQueue.get(guildId)) !== null && _a !== void 0 ? _a : [];
-    guildId = 'test';
     let response;
     if (queueItem) {
         localQueue.push(queueItem);
