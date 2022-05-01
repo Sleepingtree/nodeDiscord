@@ -90,20 +90,6 @@ const handlePlayCommand = async (interaction) => {
             if (interaction.member instanceof discord_js_1.GuildMember) {
                 await interaction.deferReply();
                 const youtubeSong = await (0, exports.searchAndAddYoutube)(interaction.guildId, interaction.member, songName);
-                // const queueItem = await searchYoutube(songName);
-                // const localQueue = playQueue.get(interaction.guildId) ?? [];
-                // let response;
-                // if (queueItem) {
-                //     localQueue.push(queueItem);
-                //     playQueue.set(interaction.guildId, localQueue);
-                //     if (localQueue.length === 1) {
-                //         const playResponse = playYoutube(queueItem.url, queueItem.title, interaction.guildId, interaction.member);
-                //         if (typeof playResponse === 'string') {
-                //             response = playResponse;
-                //         }
-                //     }
-                // }
-                // return response ?? `added ${localQueue.length - 1}) ${queueItem?.title}`;
                 if (youtubeSong) {
                     interaction.editReply(youtubeSong);
                 }
@@ -251,7 +237,7 @@ function playYoutube(url, songName, guildId, member) {
 }
 function getPlayerResource(url) {
     var _a;
-    const resource = (0, voice_1.createAudioResource)((0, ytdl_core_1.default)(url, { quality: 'highestaudio', filter: (video) => video.hasAudio, highWaterMark: 1 << 25 }), { inlineVolume: true });
+    const resource = (0, voice_1.createAudioResource)((0, ytdl_core_1.default)(url, { quality: 'highestaudio', filter: (video) => video.hasAudio, highWaterMark: 1 << 20 }), { inlineVolume: true });
     (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.2);
     return resource;
 }
