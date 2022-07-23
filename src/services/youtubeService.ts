@@ -68,13 +68,16 @@ export const handlePlayCommand = async (interaction: CommandInteraction) => {
                 const searchGenerator = searchAndAddYoutubeGenerator(interaction.guildId, interaction.member, songName);
                 console.log(`searchGenerator ${searchGenerator}`)
                 let nextVal = (await searchGenerator.next()).value
-                while (nextVal) {
+                do {
                     if (nextVal) {
+                        console.log(`got val ${nextVal}`)
                         interaction.editReply(nextVal)
+                        nextVal = (await searchGenerator.next()).value
+                        console.log(`got val 2 ${nextVal}`)
                     } else {
                         interaction.editReply(`No song found!`);
                     }
-                }
+                } while (nextVal)
             } else {
                 console.warn('user is an api user?')
             }
@@ -273,64 +276,67 @@ async function searchYoutube(search: string): Promise<SongQueueItem | void> {
     }
 }
 
-async function* searchYoutubePlaylist(listId: string) {
+async function* searchYoutubePlaylistGenerator(listId: string) {
     const maxResults = 10;
     let pageToken = undefined;
     try {
-        const playlistItems = await service.playlistItems.list({ playlistId: listId, part: ["snippet"], maxResults, pageToken });
-        if (playlistItems.data.items && playlistItems.data.items.length > 0) {
-            pageToken = playlistItems.data.nextPageToken;
-            const response = playlistItems.data.items
-                .map(item => {
-                    if (item.id && item.snippet?.title) {
-                        return {
-                            url: generateYouTubeURL(item.id),
-                            title: item.snippet.title
+        let playlistItems = undefined;
+        do {
+            playlistItems = await service.playlistItems.list({ playlistId: listId, part: ["snippet"], maxResults, pageToken });
+            if (playlistItems.data.items && playlistItems.data.items.length > 0) {
+                pageToken = playlistItems.data.nextPageToken;
+                yield playlistItems.data.items
+                    .map(item => {
+                        if (item.id && item.snippet?.title) {
+                            return {
+                                url: generateYouTubeURL(item.id),
+                                title: item.snippet.title
+                            }
+                        } else {
+                            return undefined
                         }
-                    } else {
-                        return undefined
-                    }
-                })
-                .filter((item): item is SongQueueItem => item !== undefined)
-            if (pageToken) yield response; else return response
-        } else {
-            return undefined
-        }
+                    })
+                    .filter((item): item is SongQueueItem => item !== undefined);
+
+            } else {
+                return undefined
+            }
+        } while (pageToken)
     } catch (e) {
         console.error(e)
         return undefined
     }
 }
 
+//TODO autoplay doesn't work
 async function* searchAndAddYoutubeGenerator(guildId: string, member: GuildMember, search: string) {
     const urlPrams = new URLSearchParams(search)
     const listId = urlPrams.get("list")
-    let response;
     const localQueue = playQueue.get(guildId) ?? [];
     if (listId) {
-        const playListResultGenerator = searchYoutubePlaylist(listId)
+        const playListResultGenerator = searchYoutubePlaylistGenerator(listId)
         console.log(`got gen ${playListResultGenerator}`)
-        const nextValues = (await playListResultGenerator.next()).value
-        console.log(`got value ${nextValues}`)
-        if (nextValues) {
-            localQueue.concat(nextValues)
-            response = `added ${nextValues.length} songs to the queue`
-        }
+        let item = (await playListResultGenerator.next()).value
+        do {
+            console.log(`got items ${item?.map(test => test.title).join('\n')}`)
+            yield `added ${item?.length} songs to the queue`
+            item = (await playListResultGenerator.next()).value
+        } while (item)
     } else {
         const queueItem = await searchYoutube(search);
         if (queueItem) {
             localQueue.push(queueItem)
-            response = `added ${localQueue.length - 1}) ${queueItem?.title}`
+            return `added ${localQueue.length - 1}) ${queueItem?.title}`
         }
     }
     playQueue.set(guildId, localQueue);
+    //TODO autoplay doesn't work fix here
     if (localQueue.length === 1) {
         const playResponse = playYoutube(localQueue[0].url, localQueue[0].title, guildId, member);
         if (typeof playResponse === 'string') {
-            response = playResponse;
+            return playResponse;
         }
     }
-    yield response;
 }
 
 export function checkAndIncrmentQueue(guildId: string) {
