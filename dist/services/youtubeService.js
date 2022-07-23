@@ -22,7 +22,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.checkAndIncrmentQueue = exports.searchAndAddYoutube = exports.handleNotInGuild = exports.handleJoinCommand = exports.handleClearQueue = exports.handleResumeCommand = exports.handlePauseCommand = exports.handleQueueCommand = exports.handleRemoveCommand = exports.handleSkipCommand = exports.handlePlayCommand = exports.removeNameOption = exports.songNameOption = void 0;
+exports.checkAndIncrmentQueue = exports.handleNotInGuild = exports.handleJoinCommand = exports.handleClearQueue = exports.handleResumeCommand = exports.handlePauseCommand = exports.handleQueueCommand = exports.handleRemoveCommand = exports.handleSkipCommand = exports.handlePlayCommand = exports.removeNameOption = exports.songNameOption = void 0;
 const ytdl_core_1 = __importDefault(require("ytdl-core"));
 const discord_js_1 = require("discord.js");
 const voice_1 = require("@discordjs/voice");
@@ -41,7 +41,7 @@ discordLogIn_1.default.on('messageCreate', msg => {
     if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'play ')) {
         const tempMember = msg.member;
         if (msg.channel.isText() && tempMember) {
-            handleNotInGuild(msg, (guildId) => (0, exports.searchAndAddYoutube)(guildId, tempMember, msg.content.split(discordLogIn_1.BOT_PREFIX + 'play ')[1]));
+            handleNotInGuild(msg, (guildId) => searchAndAddYoutubeGenerator(guildId, tempMember, msg.content.split(discordLogIn_1.BOT_PREFIX + 'play ')[1]));
         }
     }
     else if (msg.content.startsWith(discordLogIn_1.BOT_PREFIX + 'play')) {
@@ -89,12 +89,16 @@ const handlePlayCommand = async (interaction) => {
         if (songName) {
             if (interaction.member instanceof discord_js_1.GuildMember) {
                 await interaction.deferReply();
-                const youtubeSong = await (0, exports.searchAndAddYoutube)(interaction.guildId, interaction.member, songName);
-                if (youtubeSong) {
-                    interaction.editReply(youtubeSong);
-                }
-                else {
-                    interaction.editReply(`No song found!`);
+                const searchGenerator = searchAndAddYoutubeGenerator(interaction.guildId, interaction.member, songName);
+                console.log(`searchGenerator ${searchGenerator}`);
+                let nextVal = (await searchGenerator.next()).value;
+                while (nextVal) {
+                    if (nextVal) {
+                        interaction.editReply(nextVal);
+                    }
+                    else {
+                        interaction.editReply(`No song found!`);
+                    }
                 }
             }
             else {
@@ -237,7 +241,7 @@ function playYoutube(url, songName, guildId, member) {
 }
 function getPlayerResource(url) {
     var _a;
-    const resource = (0, voice_1.createAudioResource)((0, ytdl_core_1.default)(url, { quality: 'highestaudio', filter: (video) => video.hasAudio, highWaterMark: 1 << 20 }), { inlineVolume: true });
+    const resource = (0, voice_1.createAudioResource)((0, ytdl_core_1.default)(url, { quality: 'highestaudio', filter: (video) => video.hasAudio, highWaterMark: 1 << 25 }), { inlineVolume: true });
     (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.2);
     return resource;
 }
@@ -276,28 +280,28 @@ function getConnection(guildId, member, getNew) {
     }
 }
 async function searchYoutube(search) {
-    var _a, _b;
-    console.log(search);
+    var _a, _b, _c;
+    console.log(`Searching with value ${search}`);
     try {
         if (search) {
             if (search.includes('youtube.com') && search.includes('v=')) {
-                const videoId = search.split('v=')[1].split('&')[0];
-                search = videoId;
+                const params = new URLSearchParams(search);
+                search = (_a = params.get("v")) !== null && _a !== void 0 ? _a : search;
             }
             const searchResults = await service.search.list({
                 q: search,
                 part: ['snippet'],
                 maxResults: 1
             });
-            if (searchResults.data.items && ((_a = searchResults.data.items[0].id) === null || _a === void 0 ? void 0 : _a.videoId)) {
+            if (searchResults.data.items && ((_b = searchResults.data.items[0].id) === null || _b === void 0 ? void 0 : _b.videoId)) {
                 const innerSearch = await service.videos.list({
                     id: [searchResults.data.items[0].id.videoId],
                     part: ['snippet']
                 });
-                if (innerSearch.data.items && ((_b = innerSearch.data.items[0].snippet) === null || _b === void 0 ? void 0 : _b.title)) {
+                if (innerSearch.data.items && ((_c = innerSearch.data.items[0].snippet) === null || _c === void 0 ? void 0 : _c.title)) {
                     const title = innerSearch.data.items[0].snippet.title;
                     return {
-                        url: `https://www.youtube.com/watch?v=${searchResults.data.items[0].id.videoId}`,
+                        url: generateYouTubeURL(searchResults.data.items[0].id.videoId),
                         title: title
                     };
                 }
@@ -314,24 +318,73 @@ async function searchYoutube(search) {
         console.error(error);
     }
 }
-const searchAndAddYoutube = async (guildId, member, search) => {
-    var _a;
-    const queueItem = await searchYoutube(search);
-    const localQueue = (_a = playQueue.get(guildId)) !== null && _a !== void 0 ? _a : [];
-    let response;
-    if (queueItem) {
-        localQueue.push(queueItem);
-        playQueue.set(guildId, localQueue);
-        if (localQueue.length === 1) {
-            const playResponse = playYoutube(queueItem.url, queueItem.title, guildId, member);
-            if (typeof playResponse === 'string') {
-                response = playResponse;
-            }
+async function* searchYoutubePlaylist(listId) {
+    const maxResults = 10;
+    let pageToken = undefined;
+    try {
+        const playlistItems = await service.playlistItems.list({ playlistId: listId, part: ["snippet"], maxResults, pageToken });
+        if (playlistItems.data.items && playlistItems.data.items.length > 0) {
+            pageToken = playlistItems.data.nextPageToken;
+            const response = playlistItems.data.items
+                .map(item => {
+                var _a;
+                if (item.id && ((_a = item.snippet) === null || _a === void 0 ? void 0 : _a.title)) {
+                    return {
+                        url: generateYouTubeURL(item.id),
+                        title: item.snippet.title
+                    };
+                }
+                else {
+                    return undefined;
+                }
+            })
+                .filter((item) => item !== undefined);
+            if (pageToken)
+                yield response;
+            else
+                return response;
+        }
+        else {
+            return undefined;
         }
     }
-    return response !== null && response !== void 0 ? response : `added ${localQueue.length - 1}) ${queueItem === null || queueItem === void 0 ? void 0 : queueItem.title}`;
-};
-exports.searchAndAddYoutube = searchAndAddYoutube;
+    catch (e) {
+        console.error(e);
+        return undefined;
+    }
+}
+async function* searchAndAddYoutubeGenerator(guildId, member, search) {
+    var _a;
+    const urlPrams = new URLSearchParams(search);
+    const listId = urlPrams.get("list");
+    let response;
+    const localQueue = (_a = playQueue.get(guildId)) !== null && _a !== void 0 ? _a : [];
+    if (listId) {
+        const playListResultGenerator = searchYoutubePlaylist(listId);
+        console.log(`got gen ${playListResultGenerator}`);
+        const nextValues = (await playListResultGenerator.next()).value;
+        console.log(`got value ${nextValues}`);
+        if (nextValues) {
+            localQueue.concat(nextValues);
+            response = `added ${nextValues.length} songs to the queue`;
+        }
+    }
+    else {
+        const queueItem = await searchYoutube(search);
+        if (queueItem) {
+            localQueue.push(queueItem);
+            response = `added ${localQueue.length - 1}) ${queueItem === null || queueItem === void 0 ? void 0 : queueItem.title}`;
+        }
+    }
+    playQueue.set(guildId, localQueue);
+    if (localQueue.length === 1) {
+        const playResponse = playYoutube(localQueue[0].url, localQueue[0].title, guildId, member);
+        if (typeof playResponse === 'string') {
+            response = playResponse;
+        }
+    }
+    yield response;
+}
 function checkAndIncrmentQueue(guildId) {
     const nextSong = getNextSong(guildId);
     if (nextSong) {
@@ -450,6 +503,6 @@ function checkAndUpdateBot(songName) {
     else {
         (0, discordLogIn_1.updateBotStatus)();
     }
-    ``;
 }
+const generateYouTubeURL = (id) => `https://www.youtube.com/watch?v=${id}`;
 //# sourceMappingURL=youtubeService.js.map
