@@ -395,16 +395,21 @@ function closeVoiceConnection(guildId: string, error?: Error) {
     checkAndUpdateBot();
 }
 
-//TODO get this to work
+
 function listQueue(guildId: string) {
     let response = `no songs in the queue, use ${BOT_PREFIX}play or /play to add songs`;
     const localPlayQueue = playQueue.get(guildId) ?? [];
     if (localPlayQueue.length > 0) {
         response = 'Songs in queue: ```';
-        for (let index = 0; index < localPlayQueue.length; index++) {
-            const item = localPlayQueue[index];
-            response += `${index}) ${item.title} \r\n\r\n`
-        }
+        let midAdded = false;
+        localPlayQueue.forEach((item, index) => {
+            if (index < 10 || index > localPlayQueue.length - 10) {
+                response += `${index}) ${item.title} \r\n\r\n`
+            } else if (!midAdded) {
+                response += `______skippping ${localPlayQueue.length - 20} for brevity______\r\n\r\n`;
+                midAdded = true;
+            }
+        })
         response += '```';
     }
     return response;

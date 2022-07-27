@@ -356,7 +356,6 @@ async function* searchYoutubePlaylistGenerator(listId) {
         return undefined;
     }
 }
-//TODO autoplay doesn't work
 async function* searchAndAddYoutubeGenerator(guildId, member, search) {
     var _a, _b, _c, _d, _e, _f;
     const urlPrams = new URLSearchParams(search);
@@ -391,7 +390,6 @@ async function* searchAndAddYoutubeGenerator(guildId, member, search) {
         }
     }
     const localQueue = (_f = playQueue.get(guildId)) !== null && _f !== void 0 ? _f : [];
-    //TODO autoplay doesn't work fix here
     console.log(`calling play? ${callPlay} and length : ${localQueue.length}`);
     if (callPlay && localQueue.length > 0) {
         const playResponse = playYoutube(localQueue[0].url, localQueue[0].title, guildId, member);
@@ -453,10 +451,16 @@ function listQueue(guildId) {
     const localPlayQueue = (_a = playQueue.get(guildId)) !== null && _a !== void 0 ? _a : [];
     if (localPlayQueue.length > 0) {
         response = 'Songs in queue: ```';
-        for (let index = 0; index < localPlayQueue.length; index++) {
-            const item = localPlayQueue[index];
-            response += `${index}) ${item.title} \r\n\r\n`;
-        }
+        let midAdded = false;
+        localPlayQueue.forEach((item, index) => {
+            if (index < 10 || index > localPlayQueue.length - 10) {
+                response += `${index}) ${item.title} \r\n\r\n`;
+            }
+            else if (!midAdded) {
+                response += `______skippping ${localPlayQueue.length - 20} for brevity______\r\n\r\n`;
+                midAdded = true;
+            }
+        });
         response += '```';
     }
     return response;
