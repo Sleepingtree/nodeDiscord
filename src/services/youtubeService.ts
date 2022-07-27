@@ -173,6 +173,7 @@ export function handleNotInGuild(msg: Message, cb: (guildId: string) => void) {
 
 function playYoutube(url: string, songName: string, guildId: string, member?: GuildMember) {
     const tempConnection = getConnection(guildId, member ?? null);
+    console.log(`playing song: ${songName} from URL: ${url}`)
     if (typeof tempConnection !== 'string') {
         const resource = getPlayerResource(url);
         resource.volume?.setVolume(0.1);
@@ -287,9 +288,9 @@ async function* searchYoutubePlaylistGenerator(listId: string) {
                 pageToken = playlistItems.data.nextPageToken;
                 yield playlistItems.data.items
                     .map(item => {
-                        if (item.id && item.snippet?.title) {
+                        if (item.snippet?.resourceId?.videoId && item.snippet?.title) {
                             return {
-                                url: generateYouTubeURL(item.id),
+                                url: generateYouTubeURL(item.snippet?.resourceId?.videoId),
                                 title: item.snippet.title
                             }
                         } else {
@@ -308,35 +309,46 @@ async function* searchYoutubePlaylistGenerator(listId: string) {
     }
 }
 
-//TODO autoplay doesn't work
 async function* searchAndAddYoutubeGenerator(guildId: string, member: GuildMember, search: string) {
     const urlPrams = new URLSearchParams(search)
     const listId = urlPrams.get("list")
-    const localQueue = playQueue.get(guildId) ?? [];
+    const queueDepth = playQueue.get(guildId)?.length;
+    const callPlay = queueDepth === undefined || queueDepth === 0
+    let retVal: string | undefined = undefined;
     if (listId) {
         const playListResultGenerator = searchYoutubePlaylistGenerator(listId)
         console.log(`got gen ${playListResultGenerator}`)
         let item = (await playListResultGenerator.next()).value
+        let count = item?.length ?? 0;
         do {
-            console.log(`got items ${item?.map(test => test.title).join('\n')}`)
-            yield `added ${item?.length} songs to the queue`
+            console.log(`got items\n---------\n${item?.map(test => test.title).join('\n')}`)
             item = (await playListResultGenerator.next()).value
+            count += item?.length ?? 0
+            if (item) {
+                let localQueue = playQueue.get(guildId) ?? [];
+                localQueue = localQueue.concat(item)
+                playQueue.set(guildId, localQueue);
+            }
+            yield `added ${count} songs to the queue`
         } while (item)
     } else {
         const queueItem = await searchYoutube(search);
         if (queueItem) {
+            const localQueue = playQueue.get(guildId) ?? [];
             localQueue.push(queueItem)
-            return `added ${localQueue.length - 1}) ${queueItem?.title}`
+            playQueue.set(guildId, localQueue);
+            retVal = `added ${localQueue.length - 1}) ${queueItem?.title}`
         }
     }
-    playQueue.set(guildId, localQueue);
-    //TODO autoplay doesn't work fix here
-    if (localQueue.length === 1) {
+    const localQueue = playQueue.get(guildId) ?? [];
+    console.log(`calling play? ${callPlay} and length : ${localQueue.length}`)
+    if (callPlay && localQueue.length > 0) {
         const playResponse = playYoutube(localQueue[0].url, localQueue[0].title, guildId, member);
         if (typeof playResponse === 'string') {
-            return playResponse;
+            retVal = playResponse;
         }
     }
+    return retVal;
 }
 
 export function checkAndIncrmentQueue(guildId: string) {
@@ -360,6 +372,7 @@ function getNextSong(guildId: string) {
         localQueue.shift();
         playQueue.set(guildId, localQueue);
         if (localQueue.length > 0) {
+            console.log(`playing song: ${localQueue[0].title} from URL: ${localQueue[0].url}`)
             return { resorce: getPlayerResource(localQueue[0].url), songname: localQueue[0].title };
         } else {
             closeVoiceConnection(guildId);
@@ -382,6 +395,7 @@ function closeVoiceConnection(guildId: string, error?: Error) {
     checkAndUpdateBot();
 }
 
+//TODO get this to work
 function listQueue(guildId: string) {
     let response = `no songs in the queue, use ${BOT_PREFIX}play or /play to add songs`;
     const localPlayQueue = playQueue.get(guildId) ?? [];

@@ -213,6 +213,7 @@ exports.handleNotInGuild = handleNotInGuild;
 function playYoutube(url, songName, guildId, member) {
     var _a;
     const tempConnection = getConnection(guildId, member !== null && member !== void 0 ? member : null);
+    console.log(`playing song: ${songName} from URL: ${url}`);
     if (typeof tempConnection !== 'string') {
         const resource = getPlayerResource(url);
         (_a = resource.volume) === null || _a === void 0 ? void 0 : _a.setVolume(0.1);
@@ -332,10 +333,10 @@ async function* searchYoutubePlaylistGenerator(listId) {
                 pageToken = playlistItems.data.nextPageToken;
                 yield playlistItems.data.items
                     .map(item => {
-                    var _a;
-                    if (item.id && ((_a = item.snippet) === null || _a === void 0 ? void 0 : _a.title)) {
+                    var _a, _b, _c, _d, _e;
+                    if (((_b = (_a = item.snippet) === null || _a === void 0 ? void 0 : _a.resourceId) === null || _b === void 0 ? void 0 : _b.videoId) && ((_c = item.snippet) === null || _c === void 0 ? void 0 : _c.title)) {
                         return {
-                            url: generateYouTubeURL(item.id),
+                            url: generateYouTubeURL((_e = (_d = item.snippet) === null || _d === void 0 ? void 0 : _d.resourceId) === null || _e === void 0 ? void 0 : _e.videoId),
                             title: item.snippet.title
                         };
                     }
@@ -355,36 +356,50 @@ async function* searchYoutubePlaylistGenerator(listId) {
         return undefined;
     }
 }
+//TODO autoplay doesn't work
 async function* searchAndAddYoutubeGenerator(guildId, member, search) {
-    var _a;
+    var _a, _b, _c, _d, _e, _f;
     const urlPrams = new URLSearchParams(search);
     const listId = urlPrams.get("list");
-    const localQueue = (_a = playQueue.get(guildId)) !== null && _a !== void 0 ? _a : [];
-    const oldLength = localQueue.length;
+    const queueDepth = (_a = playQueue.get(guildId)) === null || _a === void 0 ? void 0 : _a.length;
+    const callPlay = queueDepth === undefined || queueDepth === 0;
+    let retVal = undefined;
     if (listId) {
         const playListResultGenerator = searchYoutubePlaylistGenerator(listId);
         console.log(`got gen ${playListResultGenerator}`);
         let item = (await playListResultGenerator.next()).value;
+        let count = (_b = item === null || item === void 0 ? void 0 : item.length) !== null && _b !== void 0 ? _b : 0;
         do {
-            console.log(`got items ${item === null || item === void 0 ? void 0 : item.map(test => test.title).join('\n')}`);
-            yield `added ${item === null || item === void 0 ? void 0 : item.length} songs to the queue`;
+            console.log(`got items\n---------\n${item === null || item === void 0 ? void 0 : item.map(test => test.title).join('\n')}`);
             item = (await playListResultGenerator.next()).value;
+            count += (_c = item === null || item === void 0 ? void 0 : item.length) !== null && _c !== void 0 ? _c : 0;
+            if (item) {
+                let localQueue = (_d = playQueue.get(guildId)) !== null && _d !== void 0 ? _d : [];
+                localQueue = localQueue.concat(item);
+                playQueue.set(guildId, localQueue);
+            }
+            yield `added ${count} songs to the queue`;
         } while (item);
     }
     else {
         const queueItem = await searchYoutube(search);
         if (queueItem) {
+            const localQueue = (_e = playQueue.get(guildId)) !== null && _e !== void 0 ? _e : [];
             localQueue.push(queueItem);
-            return `added ${localQueue.length - 1}) ${queueItem === null || queueItem === void 0 ? void 0 : queueItem.title}`;
+            playQueue.set(guildId, localQueue);
+            retVal = `added ${localQueue.length - 1}) ${queueItem === null || queueItem === void 0 ? void 0 : queueItem.title}`;
         }
     }
-    playQueue.set(guildId, localQueue);
-    if (oldLength === 0) {
+    const localQueue = (_f = playQueue.get(guildId)) !== null && _f !== void 0 ? _f : [];
+    //TODO autoplay doesn't work fix here
+    console.log(`calling play? ${callPlay} and length : ${localQueue.length}`);
+    if (callPlay && localQueue.length > 0) {
         const playResponse = playYoutube(localQueue[0].url, localQueue[0].title, guildId, member);
         if (typeof playResponse === 'string') {
-            return playResponse;
+            retVal = playResponse;
         }
     }
+    return retVal;
 }
 function checkAndIncrmentQueue(guildId) {
     const nextSong = getNextSong(guildId);
@@ -409,6 +424,7 @@ function getNextSong(guildId) {
         localQueue.shift();
         playQueue.set(guildId, localQueue);
         if (localQueue.length > 0) {
+            console.log(`playing song: ${localQueue[0].title} from URL: ${localQueue[0].url}`);
             return { resorce: getPlayerResource(localQueue[0].url), songname: localQueue[0].title };
         }
         else {
