@@ -1,4 +1,4 @@
-import { CommandInteraction, GuildMember, Message } from "discord.js";
+import { CommandInteraction, Message } from "discord.js";
 export declare const songNameOption = "song";
 export declare const removeNameOption = "song-number";
 export declare const handlePlayCommand: (interaction: CommandInteraction) => Promise<void>;
@@ -10,5 +10,4 @@ export declare const handleResumeCommand: (interaction: CommandInteraction) => P
 export declare const handleClearQueue: (interaction: CommandInteraction) => Promise<void>;
 export declare const handleJoinCommand: (interaction: CommandInteraction) => Promise<void>;
 export declare function handleNotInGuild(msg: Message, cb: (guildId: string) => void): void;
-export declare const searchAndAddYoutube: (guildId: string, member: GuildMember, search: string) => Promise<string>;
 export declare function checkAndIncrmentQueue(guildId: string): void;
