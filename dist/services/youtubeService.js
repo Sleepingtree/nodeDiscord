@@ -370,7 +370,6 @@ async function* searchAndAddYoutubeGenerator(guildId, member, search) {
         let count = (_b = item === null || item === void 0 ? void 0 : item.length) !== null && _b !== void 0 ? _b : 0;
         do {
             console.log(`got items\n---------\n${item === null || item === void 0 ? void 0 : item.map(test => test.title).join('\n')}`);
-            item = (await playListResultGenerator.next()).value;
             count += (_c = item === null || item === void 0 ? void 0 : item.length) !== null && _c !== void 0 ? _c : 0;
             if (item) {
                 let localQueue = (_d = playQueue.get(guildId)) !== null && _d !== void 0 ? _d : [];
@@ -378,6 +377,7 @@ async function* searchAndAddYoutubeGenerator(guildId, member, search) {
                 playQueue.set(guildId, localQueue);
             }
             yield `added ${count} songs to the queue`;
+            item = (await playListResultGenerator.next()).value;
         } while (item);
     }
     else {

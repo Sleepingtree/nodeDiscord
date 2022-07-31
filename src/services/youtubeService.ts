@@ -322,7 +322,6 @@ async function* searchAndAddYoutubeGenerator(guildId: string, member: GuildMembe
         let count = item?.length ?? 0;
         do {
             console.log(`got items\n---------\n${item?.map(test => test.title).join('\n')}`)
-            item = (await playListResultGenerator.next()).value
             count += item?.length ?? 0
             if (item) {
                 let localQueue = playQueue.get(guildId) ?? [];
@@ -330,6 +329,7 @@ async function* searchAndAddYoutubeGenerator(guildId: string, member: GuildMembe
                 playQueue.set(guildId, localQueue);
             }
             yield `added ${count} songs to the queue`
+            item = (await playListResultGenerator.next()).value
         } while (item)
     } else {
         const queueItem = await searchYoutube(search);
