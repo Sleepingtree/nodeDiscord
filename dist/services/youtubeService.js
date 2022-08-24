@@ -289,7 +289,7 @@ async function searchYoutube(search) {
     try {
         if (search) {
             if (search.includes('youtube.com') && search.includes('v=')) {
-                const params = new URLSearchParams(search);
+                const params = new URL(search).searchParams;
                 search = (_a = params.get("v")) !== null && _a !== void 0 ? _a : search;
             }
             const searchResults = await service.search.list({
@@ -356,10 +356,9 @@ async function* searchYoutubePlaylistGenerator(listId) {
         return undefined;
     }
 }
-//TODO autoplay doesn't work
 async function* searchAndAddYoutubeGenerator(guildId, member, search) {
     var _a, _b, _c, _d, _e, _f;
-    const urlPrams = new URLSearchParams(search);
+    const urlPrams = new URL(search).searchParams;
     const listId = urlPrams.get("list");
     const queueDepth = (_a = playQueue.get(guildId)) === null || _a === void 0 ? void 0 : _a.length;
     const callPlay = queueDepth === undefined || queueDepth === 0;
@@ -391,7 +390,6 @@ async function* searchAndAddYoutubeGenerator(guildId, member, search) {
         }
     }
     const localQueue = (_f = playQueue.get(guildId)) !== null && _f !== void 0 ? _f : [];
-    //TODO autoplay doesn't work fix here
     console.log(`calling play? ${callPlay} and length : ${localQueue.length}`);
     if (callPlay && localQueue.length > 0) {
         const playResponse = playYoutube(localQueue[0].url, localQueue[0].title, guildId, member);
@@ -447,6 +445,7 @@ function closeVoiceConnection(guildId, error) {
     voicePlayerMap.delete(guildId);
     checkAndUpdateBot();
 }
+//TODO get this to work
 function listQueue(guildId) {
     var _a;
     let response = `no songs in the queue, use ${discordLogIn_1.BOT_PREFIX}play or /play to add songs`;
