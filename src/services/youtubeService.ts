@@ -245,7 +245,7 @@ async function searchYoutube(search: string): Promise<SongQueueItem | void> {
     try {
         if (search) {
             if (search.includes('youtube.com') && search.includes('v=')) {
-                const params = new URLSearchParams(search);
+                const params = new URL(search).searchParams;
                 search = params.get("v") ?? search;
             }
             const searchResults = await service.search.list({
@@ -310,7 +310,7 @@ async function* searchYoutubePlaylistGenerator(listId: string) {
 }
 
 async function* searchAndAddYoutubeGenerator(guildId: string, member: GuildMember, search: string) {
-    const urlPrams = new URLSearchParams(search)
+    const urlPrams = new URL(search).searchParams
     const listId = urlPrams.get("list")
     const queueDepth = playQueue.get(guildId)?.length;
     const callPlay = queueDepth === undefined || queueDepth === 0
