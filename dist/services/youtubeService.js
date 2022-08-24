@@ -370,7 +370,6 @@ async function* searchAndAddYoutubeGenerator(guildId, member, search) {
         let count = (_b = item === null || item === void 0 ? void 0 : item.length) !== null && _b !== void 0 ? _b : 0;
         do {
             console.log(`got items\n---------\n${item === null || item === void 0 ? void 0 : item.map(test => test.title).join('\n')}`);
-            item = (await playListResultGenerator.next()).value;
             count += (_c = item === null || item === void 0 ? void 0 : item.length) !== null && _c !== void 0 ? _c : 0;
             if (item) {
                 let localQueue = (_d = playQueue.get(guildId)) !== null && _d !== void 0 ? _d : [];
@@ -378,6 +377,7 @@ async function* searchAndAddYoutubeGenerator(guildId, member, search) {
                 playQueue.set(guildId, localQueue);
             }
             yield `added ${count} songs to the queue`;
+            item = (await playListResultGenerator.next()).value;
         } while (item);
     }
     else {
@@ -452,10 +452,16 @@ function listQueue(guildId) {
     const localPlayQueue = (_a = playQueue.get(guildId)) !== null && _a !== void 0 ? _a : [];
     if (localPlayQueue.length > 0) {
         response = 'Songs in queue: ```';
-        for (let index = 0; index < localPlayQueue.length; index++) {
-            const item = localPlayQueue[index];
-            response += `${index}) ${item.title} \r\n\r\n`;
-        }
+        let midAdded = false;
+        localPlayQueue.forEach((item, index) => {
+            if (index < 10 || index > localPlayQueue.length - 10) {
+                response += `${index}) ${item.title} \r\n\r\n`;
+            }
+            else if (!midAdded) {
+                response += `______skippping ${localPlayQueue.length - 20} for brevity______\r\n\r\n`;
+                midAdded = true;
+            }
+        });
         response += '```';
     }
     return response;
