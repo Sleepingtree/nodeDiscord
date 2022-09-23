@@ -358,8 +358,13 @@ async function* searchYoutubePlaylistGenerator(listId) {
 }
 async function* searchAndAddYoutubeGenerator(guildId, member, search) {
     var _a, _b, _c, _d, _e, _f;
-    const urlPrams = new URL(search).searchParams;
-    const listId = urlPrams.get("list");
+    let urlPrams;
+    try {
+        urlPrams = new URL(search).searchParams;
+    }
+    catch (e) {
+    }
+    const listId = urlPrams === null || urlPrams === void 0 ? void 0 : urlPrams.get("list");
     const queueDepth = (_a = playQueue.get(guildId)) === null || _a === void 0 ? void 0 : _a.length;
     const callPlay = queueDepth === undefined || queueDepth === 0;
     let retVal = undefined;
