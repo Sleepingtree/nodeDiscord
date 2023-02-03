@@ -314,7 +314,7 @@ async function searchYoutube(search) {
                 }
             }
             else {
-                console.error(`Search results status was ${searchResults.status} data ${searchResults.data.items}`);
+                console.error(`Search results status was ${searchResults.status} data ${JSON.stringify(searchResults.data.items)}`);
             }
         }
     }

@@ -269,7 +269,7 @@ async function searchYoutube(search: string): Promise<SongQueueItem | void> {
                     console.error(`Inner search items ${typeof innerSearch.data.items}`);
                 }
             } else {
-                console.error(`Search results status was ${searchResults.status} data ${searchResults.data.items}`);
+                console.error(`Search results status was ${searchResults.status} data ${JSON.stringify(searchResults.data.items)}`);
             }
         }
     } catch (error) {
