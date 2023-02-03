@@ -450,7 +450,6 @@ function closeVoiceConnection(guildId, error) {
     voicePlayerMap.delete(guildId);
     checkAndUpdateBot();
 }
-//TODO get this to work
 function listQueue(guildId) {
     var _a;
     let response = `no songs in the queue, use ${discordLogIn_1.BOT_PREFIX}play or /play to add songs`;
