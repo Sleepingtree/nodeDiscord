@@ -284,7 +284,7 @@ function getConnection(guildId, member, getNew) {
     }
 }
 async function searchYoutube(search) {
-    var _a, _b, _c, _d;
+    var _a, _b, _c, _d, _e;
     console.log(`Searching with value ${search}`);
     try {
         if (search) {
@@ -315,6 +315,7 @@ async function searchYoutube(search) {
                     }
                 }
                 if ((_d = searchResults.data.items[0].id) === null || _d === void 0 ? void 0 : _d.playlistId) {
+                    return (_e = searchResults.data.items[0].id) === null || _e === void 0 ? void 0 : _e.playlistId;
                 }
             }
             else {

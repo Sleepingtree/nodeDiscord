@@ -271,6 +271,7 @@ async function searchYoutube(search: string): Promise<SongQueueItem | string | v
                     }
                 }
                 if (searchResults.data.items[0].id?.playlistId) {
+                    return searchResults.data.items[0].id?.playlistId
                 }
             } else {
                 console.error(`Search results status was ${searchResults.status} data ${JSON.stringify(searchResults.data.items, null, 2)}`);
