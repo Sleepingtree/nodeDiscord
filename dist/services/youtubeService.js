@@ -374,7 +374,7 @@ async function* searchAndAddYoutubeGenerator(guildId, member, search) {
     const callPlay = queueDepth === undefined || queueDepth === 0;
     let retVal = undefined;
     if (listId) {
-        handlePlaylistGeneration(listId, guildId);
+        yield* handlePlaylistGeneration(listId, guildId);
     }
     else {
         const queueItemOrPlaylistId = await searchYoutube(search);
@@ -385,7 +385,7 @@ async function* searchAndAddYoutubeGenerator(guildId, member, search) {
             retVal = `added ${localQueue.length - 1}) ${queueItemOrPlaylistId === null || queueItemOrPlaylistId === void 0 ? void 0 : queueItemOrPlaylistId.title}`;
         }
         else if (typeof queueItemOrPlaylistId === 'string') {
-            handlePlaylistGeneration(queueItemOrPlaylistId, guildId);
+            yield* handlePlaylistGeneration(queueItemOrPlaylistId, guildId);
         }
     }
     const localQueue = (_c = playQueue.get(guildId)) !== null && _c !== void 0 ? _c : [];
