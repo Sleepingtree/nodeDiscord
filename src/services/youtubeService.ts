@@ -240,7 +240,7 @@ function getConnection(guildId: string, member: GuildMember | null, getNew?: boo
     }
 }
 
-async function searchYoutube(search: string): Promise<SongQueueItem | void> {
+async function searchYoutube(search: string): Promise<SongQueueItem | string | void> {
     console.log(`Searching with value ${search}`);
     try {
         if (search) {
@@ -253,23 +253,27 @@ async function searchYoutube(search: string): Promise<SongQueueItem | void> {
                 part: ['snippet'],
                 maxResults: 1
             });
-            if (searchResults.data.items && searchResults.data.items[0].id?.videoId) {
-                const innerSearch = await service.videos.list({
-                    id: [searchResults.data.items[0].id.videoId],
-                    part: ['snippet']
-                });
+            if (searchResults.data.items) {
+                if (searchResults.data.items[0].id?.videoId) {
+                    const innerSearch = await service.videos.list({
+                        id: [searchResults.data.items[0].id.videoId],
+                        part: ['snippet']
+                    });
 
-                if (innerSearch.data.items && innerSearch.data.items[0].snippet?.title) {
-                    const title = innerSearch.data.items[0].snippet.title;
-                    return {
-                        url: generateYouTubeURL(searchResults.data.items[0].id.videoId),
-                        title: title
-                    };
-                } else {
-                    console.error(`Inner search items ${typeof innerSearch.data.items}`);
+                    if (innerSearch.data.items && innerSearch.data.items[0].snippet?.title) {
+                        const title = innerSearch.data.items[0].snippet.title;
+                        return {
+                            url: generateYouTubeURL(searchResults.data.items[0].id.videoId),
+                            title: title
+                        };
+                    } else {
+                        console.error(`Inner search items ${typeof innerSearch.data.items}`);
+                    }
+                }
+                if (searchResults.data.items[0].id?.playlistId) {
                 }
             } else {
-                console.error(`Search results status was ${searchResults.status} data ${JSON.stringify(searchResults.data.items)}`);
+                console.error(`Search results status was ${searchResults.status} data ${JSON.stringify(searchResults.data.items, null, 2)}`);
             }
         }
     } catch (error) {
@@ -320,28 +324,16 @@ async function* searchAndAddYoutubeGenerator(guildId: string, member: GuildMembe
     const callPlay = queueDepth === undefined || queueDepth === 0
     let retVal: string | undefined = undefined;
     if (listId) {
-        const playListResultGenerator = searchYoutubePlaylistGenerator(listId)
-        console.log(`got gen ${playListResultGenerator}`)
-        let item = (await playListResultGenerator.next()).value
-        let count = item?.length ?? 0;
-        do {
-            console.log(`got items\n---------\n${item?.map(test => test.title).join('\n')}`)
-            count += item?.length ?? 0
-            if (item) {
-                let localQueue = playQueue.get(guildId) ?? [];
-                localQueue = localQueue.concat(item)
-                playQueue.set(guildId, localQueue);
-            }
-            yield `added ${count} songs to the queue`
-            item = (await playListResultGenerator.next()).value
-        } while (item)
+        handlePlaylistGeneration(listId, guildId);
     } else {
-        const queueItem = await searchYoutube(search);
-        if (queueItem) {
+        const queueItemOrPlaylistId = await searchYoutube(search);
+        if (typeof queueItemOrPlaylistId === 'object') {
             const localQueue = playQueue.get(guildId) ?? [];
-            localQueue.push(queueItem)
+            localQueue.push(queueItemOrPlaylistId)
             playQueue.set(guildId, localQueue);
-            retVal = `added ${localQueue.length - 1}) ${queueItem?.title}`
+            retVal = `added ${localQueue.length - 1}) ${queueItemOrPlaylistId?.title}`
+        } else if (typeof queueItemOrPlaylistId === 'string') {
+            handlePlaylistGeneration(queueItemOrPlaylistId, guildId);
         }
     }
     const localQueue = playQueue.get(guildId) ?? [];
@@ -353,6 +345,24 @@ async function* searchAndAddYoutubeGenerator(guildId: string, member: GuildMembe
         }
     }
     return retVal;
+}
+
+async function* handlePlaylistGeneration(listId: string, guildId: string) {
+    const playListResultGenerator = searchYoutubePlaylistGenerator(listId)
+    console.log(`got gen ${playListResultGenerator}`)
+    let item = (await playListResultGenerator.next()).value
+    let count = item?.length ?? 0;
+    do {
+        console.log(`got items\n---------\n${item?.map(test => test.title).join('\n')}`)
+        count += item?.length ?? 0
+        if (item) {
+            let localQueue = playQueue.get(guildId) ?? [];
+            localQueue = localQueue.concat(item)
+            playQueue.set(guildId, localQueue);
+        }
+        yield `added ${count} songs to the queue`
+        item = (await playListResultGenerator.next()).value
+    } while (item)
 }
 
 export function checkAndIncrmentQueue(guildId: string) {
