@@ -18,13 +18,9 @@
         "baseUrl": ".",
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        "paths": {
-            "*": [
-                "node_modules/*"
-            ]
-        }
+        "skipLibCheck": true
     },
     "include": [
         "src/**/*"
-    ]
+    ],
 }

@@ -157,7 +157,7 @@ const darwOrRedrawForUser = async (interaction: ButtonInteraction, guildGiveaway
             .then(async messages => {
                 const rawResponse = messages.first()?.content;
                 const numberResponse = Number(rawResponse?.trim());
-                if (numberResponse === NaN || numberResponse < 1 || numberResponse > guildGiveaway.numberOfItems) {
+                if (Number.isNaN(numberResponse) || numberResponse < 1 || numberResponse > guildGiveaway.numberOfItems) {
                     interaction.followUp({ content: `You did not enter a number, please join again with only a number`, ephemeral: true });
                 } else {
                     guildGiveaway.joinedUsers = guildGiveaway.joinedUsers.filter(user => user.userId !== interaction.user.id)
