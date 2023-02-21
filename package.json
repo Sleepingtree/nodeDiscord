@@ -27,7 +27,7 @@
     "debug": "~2.6.9",
     "discord.js": "^13.8.0",
     "dotenv": "^8.2.0",
-    "express": "~4.16.1",
+    "express": "~4.17.3",
     "ffmpeg-static": "^5.0.0",
     "googleapis": "^67.1.1",
     "http-errors": "~1.6.3",
