@@ -6,9 +6,6 @@
 
 import app from './app';
 import debug from 'debug';
-import https from 'https';
-import { Server } from 'http';
-import fs from 'fs';
 import { Server as SocketServer, Socket } from 'socket.io';
 import bot, { botStatusEmitter } from '../services/discordLogIn';
 import BotStatus from '../model/botStatus';
@@ -17,11 +14,6 @@ import { getBotStatus } from '../services/discordLogIn';
 /**
  * Get port from environment and store in Express.
  */
-
-const devlopment = process.env.DEVELOPMENT ? process.env.DEVELOPMENT == 'true' : false;
-
-
-
 const port = normalizePort(process.env.PORT || '3000');
 app.set('port', port);
 
@@ -29,19 +21,7 @@ app.set('port', port);
  * Create HTTP server.
  */
 
-let server: Server;
-
-if (devlopment) {
-  server = app.listen(port);
-} else {
-  const privateKey = fs.readFileSync('server.key', 'utf8');
-  const certificate = fs.readFileSync('server.cert', 'utf8');
-  server = https.createServer({
-    key: privateKey,
-    cert: certificate
-  }, app).listen(port);
-}
-
+const server = app.listen(port);
 
 /**
  * Listen on provided port, on all network interfaces.
@@ -127,7 +107,7 @@ io.listen(server);
 
 const handleShutdowns = () => {
   server.close(error => {
-    handleCloseEvent('http(s)', error);
+    handleCloseEvent('http', error);
   });
   io.close(error => {
     handleCloseEvent('socket', error);

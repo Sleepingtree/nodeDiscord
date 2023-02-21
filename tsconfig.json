@@ -2,8 +2,11 @@
     "compilerOptions": {
         "module": "commonjs",
         "esModuleInterop": true,
-        "target": "ES2019",
-        "lib": ["es2019", "es2020.promise", "es2020.bigint", "es2020.string"],
+        "target": "es2022",
+        "lib": [
+            "es2022",
+            "DOM"
+        ],
         "forceConsistentCasingInFileNames": true,
         "noImplicitAny": true,
         "moduleResolution": "node",
@@ -15,13 +18,9 @@
         "baseUrl": ".",
         "noUnusedLocals": true,
         "noUnusedParameters": true,
-        "paths": {
-            "*": [
-                "node_modules/*"
-            ]
-        }
+        "skipLibCheck": true
     },
     "include": [
         "src/**/*"
-    ]
+    ],
 }
