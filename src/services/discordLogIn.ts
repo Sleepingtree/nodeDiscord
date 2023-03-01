@@ -4,6 +4,9 @@ import { Presence } from 'discord.js';
 import BotStatusEmitter from '../model/botStatusEmitter';
 import BotStatus from '../model/botStatus';
 import throwIfNull from '../util/throwIfUndefinedOrNull';
+import { getDBConnection } from './surrealDBService';
+import { getRuntimeConfig } from './dbServiceAdapter';
+import { TreeUserId } from '../model/runtimeConfig';
 
 const bot = new discord.Client({
   intents:
@@ -24,8 +27,6 @@ const bot = new discord.Client({
 export const botStatusEmitter = new BotStatusEmitter();
 
 const deletedMessageFile = 'deletedMessageFile.json';
-const TOKEN = process.env.DISCORD_BOT_KEY;
-const TREE_USER_ID = process.env.TREE_USER_ID;
 const THE_FOREST_ID = process.env.THE_FOREST_ID ?? throwIfNull('Discord server ID is undefined');
 
 const WHISS_USER_ID = process.env.WHISS_USER_ID;
@@ -34,7 +35,19 @@ export const BOT_PREFIX = '!'
 
 const commands = [BOT_PREFIX + 'play', `${BOT_PREFIX}skip`, `${BOT_PREFIX}remove %number%`, `${BOT_PREFIX}queue`, `${BOT_PREFIX}pause`, `${BOT_PREFIX}clearQueue`, `${BOT_PREFIX}join`];
 
-bot.login(TOKEN);
+const login = async () => {
+  const db = await getDBConnection('ref');
+  console.log('got db connection');
+  const [botKeyResult] = await db.select('secrets:discord_bot');
+  if (botKeyResult && typeof botKeyResult === 'object'
+    && 'password' in botKeyResult
+    && typeof botKeyResult.password === 'string') {
+    bot.login(botKeyResult.password)
+  } else {
+    console.error(`result isn't a object with password in it ${JSON.stringify(botKeyResult, null, 2)}`)
+  }
+}
+login()
 
 bot.on('ready', () => {
   console.info(`Logged in as ${bot.user?.tag}!`);
@@ -89,8 +102,9 @@ export async function whosOnline(channelId?: Snowflake) {
   return usersOnline;
 }
 
-export function whoIs(msg: Message) {
-  if (msg.author.id == TREE_USER_ID) {
+export async function whoIs(msg: Message) {
+  const treeUserId = await getRuntimeConfig(TreeUserId)
+  if (msg.author.id == treeUserId.value) {
     const id = msg.content.split(" ")[1];
     const userPromise = bot.users.fetch(id);
     userPromise.then(user => {
@@ -99,6 +113,8 @@ export function whoIs(msg: Message) {
       } else {
         msg.channel.send("誰もいない");
       }
+    }).catch(reason => {
+      console.warn(`unable to get username from message ${msg}`, reason);
     });
   }
 }
@@ -177,9 +193,10 @@ export async function postMessageInChannel(message: string, channelName: string)
   }
 }
 
-bot.on('presenceUpdate', (oldSatus, newStatus) => {
+bot.on('presenceUpdate', async (oldSatus, newStatus) => {
   //Check if the user is me, and if there is a real staus change
-  if (newStatus.member?.id === TREE_USER_ID && newStatus.activities !== oldSatus?.activities) {
+  const treeUserId = await getRuntimeConfig(TreeUserId)
+  if (newStatus.member?.id === treeUserId.value && newStatus.guild?.id === THE_FOREST_ID && newStatus.activities !== oldSatus?.activities) {
     const botStatus = bot.user?.presence.activities[0];
     if (!botStatus || botStatus.type === 'WATCHING') {
       const treeStatus = newStatus.activities[0];
