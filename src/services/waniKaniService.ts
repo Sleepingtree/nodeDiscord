@@ -1,26 +1,26 @@
 import fetch, { FetchError } from 'node-fetch';
+import { TreeUserId, Wanikani } from '../model/runtimeConfig';
 import WaniKaniSummary from '../model/waniKaniSummary';
+import { getRuntimeConfig } from './dbServiceAdapter';
 import bot, { BOT_PREFIX } from './discordLogIn';
 
-const WANIKANI_API_KEY = process.env.WANIKANI_API_KEY;
-const TREE_USER_ID = process.env.TREE_USER_ID;
 let lastSummery: WaniKaniSummary | undefined;
-let reviewMessageSent: boolean = true;
+let reviewMessageSent = true;
 const checkWaniKaniInterval = 1000 * 60;
 const url = "https://api.wanikani.com/v2/summary";
 
 bot.on('messageCreate', msg => {
-
   if (msg.content.startsWith(BOT_PREFIX + 'wani')) {
     sendReviewcount();
   }
 });
 
 async function getSummery() {
+  const { apiKey } = await getRuntimeConfig(Wanikani)
   try {
     let res = await fetch(url, {
       method: 'get',
-      headers: { 'Authorization': `Bearer ${WANIKANI_API_KEY}` },
+      headers: { 'Authorization': `Bearer ${apiKey}` },
     });
     const summery = await res.json() as WaniKaniSummary;
     if (summery) {
@@ -51,7 +51,8 @@ async function checkReviewCount() {
   }
 }
 
-function sendReviewcount() {
+async function sendReviewcount() {
+  const { value: treeUserId } = await getRuntimeConfig(TreeUserId)
   let reviewCount = getReviewCount();
   let message: string;
   if (reviewCount && reviewCount > 0) {
@@ -62,8 +63,8 @@ function sendReviewcount() {
     reviewMessageSent = false;
     message = `何もない`;
   }
-  if (TREE_USER_ID) {
-    bot.users.fetch(TREE_USER_ID).then(user => user.send(message));
+  if (treeUserId) {
+    bot.users.fetch(treeUserId).then(user => user.send(message));
   }
 }
 

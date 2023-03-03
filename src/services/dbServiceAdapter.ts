@@ -1,10 +1,10 @@
-import { AnyConfig } from '../model/runtimeConfig'
+import ConfigToSurrealMaping from '../model/runtimeConfig'
 import { getDBConnection } from './surrealDBService'
 
 
-export const getRuntimeConfig = async<T extends AnyConfig>(key: new () => T) => {
-    const impl = new key()
+export const getRuntimeConfig = async<T extends ConfigToSurrealMaping>(key: new () => T) => {
     const db = await getDBConnection('ref');
+    const impl = new key()
     console.log(`loading config, ${key} with selector: ${impl.selector}`)
     const results = await db.select(impl.selector) as T["returnedValue"][];
     if (results.length > 1) {

@@ -3,10 +3,9 @@ import fs from 'fs';
 import { Presence } from 'discord.js';
 import BotStatusEmitter from '../model/botStatusEmitter';
 import BotStatus from '../model/botStatus';
-import throwIfNull from '../util/throwIfUndefinedOrNull';
 import { getDBConnection } from './surrealDBService';
 import { getRuntimeConfig } from './dbServiceAdapter';
-import { TreeUserId } from '../model/runtimeConfig';
+import { TheForest, TreeUserId, WhissUserId } from '../model/runtimeConfig';
 
 const bot = new discord.Client({
   intents:
@@ -27,9 +26,6 @@ const bot = new discord.Client({
 export const botStatusEmitter = new BotStatusEmitter();
 
 const deletedMessageFile = 'deletedMessageFile.json';
-const THE_FOREST_ID = process.env.THE_FOREST_ID ?? throwIfNull('Discord server ID is undefined');
-
-const WHISS_USER_ID = process.env.WHISS_USER_ID;
 
 export const BOT_PREFIX = '!'
 
@@ -69,13 +65,14 @@ bot.on('messageCreate', msg => {
 
 bot.on('messageDelete', async message => {
   console.log('in delete');
+  const { value: whissUserId } = await getRuntimeConfig(WhissUserId)
   const file = await fs.promises.readFile(deletedMessageFile, 'utf8');
   const jsonFile = JSON.parse(file);
   jsonFile[message.id] = message;
   const fileString = JSON.stringify(jsonFile, null, 2);
   const reply = `Message from ${message.member?.user.username} was deleted message was: \`${message.content}\` `;
-  if (WHISS_USER_ID) {
-    const whiss = await bot.users.fetch(WHISS_USER_ID)
+  if (whissUserId) {
+    const whiss = await bot.users.fetch(whissUserId)
     whiss.send(reply);
     fs.promises.writeFile(deletedMessageFile, fileString);
   }
@@ -90,7 +87,8 @@ export async function getChannelNameFromId(channelId: Snowflake) {
 
 export async function whosOnline(channelId?: Snowflake) {
   let usersOnline: string[] = [];
-  const theForrest = await bot.guilds.fetch(THE_FOREST_ID);
+  const { value: theForestId } = await getRuntimeConfig(TheForest)
+  const theForrest = await bot.guilds.fetch(theForestId);
   const channels = await theForrest.channels.fetch();
   channels
     .filter(channel => typeof channelId === 'undefined' || channel.id === channelId)
@@ -184,7 +182,8 @@ export function updateBotStatus(status?: string, options?: ActivityOptions) {
 }
 
 export async function postMessageInChannel(message: string, channelName: string) {
-  const theForest = await bot.guilds.fetch(THE_FOREST_ID);
+  const { value: theForestId } = await getRuntimeConfig(TheForest)
+  const theForest = await bot.guilds.fetch(theForestId);
   const channel = theForest.channels.cache
     .filter(channel => channel.name.replace('-', ' ').toLowerCase() === channelName)
     .first();
@@ -196,7 +195,8 @@ export async function postMessageInChannel(message: string, channelName: string)
 bot.on('presenceUpdate', async (oldSatus, newStatus) => {
   //Check if the user is me, and if there is a real staus change
   const treeUserId = await getRuntimeConfig(TreeUserId)
-  if (newStatus.member?.id === treeUserId.value && newStatus.guild?.id === THE_FOREST_ID && newStatus.activities !== oldSatus?.activities) {
+  const { value: theForestId } = await getRuntimeConfig(TheForest)
+  if (newStatus.member?.id === treeUserId.value && newStatus.guild?.id === theForestId && newStatus.activities !== oldSatus?.activities) {
     const botStatus = bot.user?.presence.activities[0];
     if (!botStatus || botStatus.type === 'WATCHING') {
       const treeStatus = newStatus.activities[0];

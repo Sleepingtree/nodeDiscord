@@ -1,11 +1,10 @@
 import { GuildChannel, Snowflake, VoiceState } from "discord.js";
 
 import bot, { whosOnline, getChannelNameFromId } from './discordLogIn';
-import throwIfNull from '../util/throwIfUndefinedOrNull';
+import { getRuntimeConfig } from "./dbServiceAdapter";
+import { GeneralVoiceChannel, NotifyMe, TheForest } from "../model/runtimeConfig";
 
-const NOTIFY_ME_KEY = process.env.NOTIFY_ME_KEY;
-const VOICE_CHANNEL_ID = process.env.GENERAL_VOICE_CHANNEL;
-const THE_FOREST_ID = process.env.THE_FOREST_ID ?? throwIfNull('Forest sever ID is not defined');
+
 const maxResendTime = 1000 * 60 * 60 * 6; //6hours
 
 const urlBase = 'https://api.notifymyecho.com/v1/NotifyMe';
@@ -16,7 +15,9 @@ bot.on('voiceStateUpdate', (_oldState, newState) => {
 });
 
 export async function getAndRespondWhosOnline(channelId?: Snowflake) {
-    const channelIdToUse = channelId == null ? VOICE_CHANNEL_ID : channelId;
+    const { value: voiceChannelId } = await getRuntimeConfig(GeneralVoiceChannel)
+    const { apiKey } = await getRuntimeConfig(NotifyMe)
+    const channelIdToUse = channelId == null ? voiceChannelId : channelId;
     const users = await whosOnline(channelIdToUse);
     let notification = `users online are ${users}`;
     if (users.length == 0) {
@@ -28,7 +29,7 @@ export async function getAndRespondWhosOnline(channelId?: Snowflake) {
     }
     const body = {
         "notification": notification,
-        "accessCode": NOTIFY_ME_KEY
+        "accessCode": apiKey
     };
     fetch(urlBase, {
         method: 'post',
@@ -42,7 +43,8 @@ export async function getAndRespondWhosOnline(channelId?: Snowflake) {
 }
 
 async function checkToSendWhosOnline(channelId: Snowflake) {
-    const users = await whosOnline(channelId != null ? channelId : VOICE_CHANNEL_ID);
+    const { value: voiceChannelId } = await getRuntimeConfig(GeneralVoiceChannel)
+    const users = await whosOnline(channelId != null ? channelId : voiceChannelId);
     if (!users.includes('sleepingtree') && (lastSent == null || lastSent + maxResendTime < Date.now())) {
         lastSent = Date.now();
         return getAndRespondWhosOnline(channelId)
@@ -55,7 +57,8 @@ async function checkToSendWhosOnline(channelId: Snowflake) {
 }
 
 async function checkIfSateIsSame(oldState: VoiceState) {
-    if (oldState.channelId && oldState.guild != null && oldState.guild.id == THE_FOREST_ID) {
+    const { value: theForestId } = await getRuntimeConfig(TheForest)
+    if (oldState.channelId && oldState.guild != null && oldState.guild.id == theForestId) {
         const channel = await bot.channels.fetch(oldState.channelId);
         if (channel instanceof GuildChannel) {
             if (oldState.member) {

@@ -9,8 +9,7 @@
   },
   "private": true,
   "scripts": {
-    "start": "node ./dist/app/www",
-    "prestart": "npm run build",
+    "start": "nodemon  ./src/app/www.ts",
     "build": "tsc",
     "sb": "nohup node ./dist/app/www > output.log &",
     "test": "jest --detectOpenHandles"
@@ -50,7 +49,9 @@
     "@types/tmi.js": "^1.7.1",
     "@types/ws": "^7.4.0",
     "jest": "^26.6.3",
+    "nodemon": "^2.0.21",
     "ts-jest": "^26.5.5",
+    "ts-node": "^10.9.1",
     "typescript": "^4.9.5"
   }
 }

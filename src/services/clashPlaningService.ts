@@ -1,8 +1,8 @@
 import { Message, TextChannel } from "discord.js";
+import { ClashPlaningTextChannel, TreeUserId } from "../model/runtimeConfig";
+import { getRuntimeConfig } from "./dbServiceAdapter";
 import bot, { BOT_PREFIX } from './discordLogIn';
 
-const CLASH_PLANING_TEXT_CHANNEL = process.env.CLASH_PLANING_TEXT_CHANNEL;
-const TREE_USER_ID = process.env.TREE_USER_ID;
 
 bot.on('messageCreate', msg => {
   if (msg.content.startsWith(BOT_PREFIX + 'clashMessage')) {
@@ -12,9 +12,10 @@ bot.on('messageCreate', msg => {
 
 async function addClashTime(msg: Message) {
   const message = msg.content.split("-payload ")[1];
-
-  if (CLASH_PLANING_TEXT_CHANNEL && TREE_USER_ID && msg.author.id.toString() === TREE_USER_ID) {
-    const channel = <TextChannel>await bot.channels.fetch(CLASH_PLANING_TEXT_CHANNEL);
+  const { value: treeUserId } = await getRuntimeConfig(TreeUserId);
+  const { value: clashPlaningTextChannel } = await getRuntimeConfig(ClashPlaningTextChannel)
+  if (clashPlaningTextChannel && treeUserId && msg.author.id.toString() === treeUserId) {
+    const channel = <TextChannel>await bot.channels.fetch(clashPlaningTextChannel);
     const post = await channel.send(message);
     await post.react('✅');
     //yellow square
@@ -23,7 +24,7 @@ async function addClashTime(msg: Message) {
     await post.react('❌');
   } else {
     console.warn(`didn't post the meesage because one of thise is false 
-    CLASH_PLANING_TEXT_CHANNEL:${typeof CLASH_PLANING_TEXT_CHANNEL === "undefined"}, TREE_USER_ID:${TREE_USER_ID}
-    or auther == tree? ${msg.author.id.toString() === TREE_USER_ID}`);
+    CLASH_PLANING_TEXT_CHANNEL:${typeof clashPlaningTextChannel === "undefined"}, TREE_USER_ID:${treeUserId}
+    or auther == tree? ${msg.author.id.toString() === treeUserId}`);
   }
 }

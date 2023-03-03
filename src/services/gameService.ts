@@ -4,10 +4,10 @@ import fs from 'fs';
 import { Client, Message, VoiceChannel } from 'discord.js';
 import bot, { BOT_PREFIX } from './discordLogIn';
 import MMRFile from '../model/mmrFile';
+import { BlueVoiceChannel, RedTeamVoiceChannel, TreeUserId } from '../model/runtimeConfig';
+import { getRuntimeConfig } from './dbServiceAdapter';
 
-const TREE_USER_ID = process.env.TREE_USER_ID;
-const RED_TEAM_VOICE_CHANNEL_ID = process.env.RED_TEAM_VOICE_CHANNEL;
-const BLUE_TEAM_VOICE_CHANNEL_ID = process.env.BLUE_TEAM_VOICE_CHANNEL;
+
 const MMR_CHANGE_WEIGHT = 100;
 const RANK_GAP = 100;
 //This defualts gold to default mmr
@@ -58,8 +58,9 @@ async function startGame(msg: Message) {
             console.warn(`mmrFile in path ${mmrFileNme} does not exist making new file`);
             jsonFile = new MMRFile();
         }
+        const { value: treeUserId } = await getRuntimeConfig(TreeUserId)
 
-        const useMoonRunes = msg.member.id === TREE_USER_ID;
+        const useMoonRunes = msg.member.id === treeUserId;
 
         if (GAME_NAME != null) {
             msg.channel.send(`game already started call !cancelGame first or !redWins !blueWins if done`);
@@ -212,51 +213,55 @@ function convertUserMMRtoDisplayMMR(trueMMR: number) {
     return retVal;
 }
 
-function moveUsers(redTeamUser: string[], channel: VoiceChannel) {
-    if (!RED_TEAM_VOICE_CHANNEL_ID) {
+async function moveUsers(redTeamUser: string[], channel: VoiceChannel) {
+    const { value: redTeamVoiceChannelId } = await getRuntimeConfig(RedTeamVoiceChannel)
+    if (!redTeamVoiceChannelId) {
         console.log("RED_TEAM_VOICE_CHANNEL_ID not defined!")
         return;
     }
-    if (!BLUE_TEAM_VOICE_CHANNEL_ID) {
+    const { value: blueTeamVoiceChannelId } = await getRuntimeConfig(BlueVoiceChannel)
+    if (!blueTeamVoiceChannelId) {
         console.log("BLUE_TEAM_VOICE_CHANNEL_ID not defined!")
         return;
     }
     channel.members
         .each(member => {
             if (redTeamUser.filter(id => id == member.id).length > 0) {
-                member.voice.setChannel(RED_TEAM_VOICE_CHANNEL_ID);
+                member.voice.setChannel(redTeamVoiceChannelId);
             } else {
-                member.voice.setChannel(BLUE_TEAM_VOICE_CHANNEL_ID);
+                member.voice.setChannel(blueTeamVoiceChannelId);
             }
         });
 }
 
 async function moveUsersBack(bot: Client) {
-    if (!RED_TEAM_VOICE_CHANNEL_ID) {
+    const { value: redTeamVoiceChannelId } = await getRuntimeConfig(RedTeamVoiceChannel)
+    if (!redTeamVoiceChannelId) {
         console.log("RED_TEAM_VOICE_CHANNEL_ID not defined!")
         return;
     }
-    if (!BLUE_TEAM_VOICE_CHANNEL_ID) {
+    const { value: blueTeamVoiceChannelId } = await getRuntimeConfig(BlueVoiceChannel)
+    if (!blueTeamVoiceChannelId) {
         console.log("BLUE_TEAM_VOICE_CHANNEL_ID not defined!")
         return;
     }
 
-    const blueTeamChannel = await bot.channels.fetch(BLUE_TEAM_VOICE_CHANNEL_ID);
+    const blueTeamChannel = await bot.channels.fetch(blueTeamVoiceChannelId);
     if (blueTeamChannel instanceof VoiceChannel) {
         blueTeamChannel.members.each(member => {
             member.voice.setChannel(startingChannel);
         });
     } else {
-        console.error(`BLUE_TEAM_VOICE_CHANNEL_ID:${BLUE_TEAM_VOICE_CHANNEL_ID} is not a voice channel`);
+        console.error(`BLUE_TEAM_VOICE_CHANNEL_ID:${blueTeamVoiceChannelId} is not a voice channel`);
     }
 
-    const redTeamChannel = await bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID);
+    const redTeamChannel = await bot.channels.fetch(redTeamVoiceChannelId);
     if (redTeamChannel instanceof VoiceChannel) {
         redTeamChannel.members.each(member => {
             member.voice.setChannel(startingChannel);
         });
     } else {
-        console.error(`RED_TEAM_VOICE_CHANNEL_ID:${RED_TEAM_VOICE_CHANNEL_ID} is not a voice channel`);
+        console.error(`RED_TEAM_VOICE_CHANNEL_ID:${redTeamVoiceChannelId} is not a voice channel`);
     }
 
     startingChannel = null;
@@ -281,8 +286,9 @@ function makeTeams(gameName: string) {
 }
 
 async function makeTeamsManual(bot: Client, gameName: string) {
-    if (RED_TEAM_VOICE_CHANNEL_ID) {
-        const channel = await bot.channels.fetch(RED_TEAM_VOICE_CHANNEL_ID);
+    const { value: redTeamVoiceChannelId } = await getRuntimeConfig(RedTeamVoiceChannel)
+    if (redTeamVoiceChannelId) {
+        const channel = await bot.channels.fetch(redTeamVoiceChannelId);
         if (channel instanceof VoiceChannel) {
             channel.members
                 .each(member => {
@@ -295,8 +301,9 @@ async function makeTeamsManual(bot: Client, gameName: string) {
         }
     }
 
-    if (BLUE_TEAM_VOICE_CHANNEL_ID) {
-        const channel = await bot.channels.fetch(BLUE_TEAM_VOICE_CHANNEL_ID);
+    const { value: blueTeamVoiceChannelId } = await getRuntimeConfig(BlueVoiceChannel)
+    if (blueTeamVoiceChannelId) {
+        const channel = await bot.channels.fetch(blueTeamVoiceChannelId);
         if (channel instanceof VoiceChannel) {
             channel.members
                 .each(member => {

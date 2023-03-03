@@ -1,8 +1,9 @@
 import { Guild, GuildMember, Message } from "discord.js";
+import { TheForest } from "../model/runtimeConfig";
+import { getRuntimeConfig } from "./dbServiceAdapter";
 import bot, { BOT_PREFIX } from './discordLogIn';
 
 const roles = process.env.DISCORD_BOT_ROLES ? process.env.DISCORD_BOT_ROLES.split('|') : [];
-const THE_FOREST_ID = process.env.THE_FOREST_ID;
 const joinCommand = `${BOT_PREFIX}join -`;
 
 bot.on('messageCreate', msg => {
@@ -13,8 +14,9 @@ bot.on('messageCreate', msg => {
     }
 });
 
-bot.on('presenceUpdate', (_oldPresence, presence) => {
-    if (presence.guild?.id === THE_FOREST_ID) {
+bot.on('presenceUpdate', async (_oldPresence, presence) => {
+    const { value: theForestId } = await getRuntimeConfig(TheForest)
+    if (presence.guild?.id === theForestId) {
         presence.activities
             .filter(activity => {
                 return roles.includes(activity.name) && activity.type === 'PLAYING';
@@ -32,14 +34,15 @@ function roleNotEmpty<Role>(value: Role | null | undefined): value is Role {
     return !(value === null || value === undefined);
 }
 
-function joinRole(msg: Message) {
+async function joinRole(msg: Message) {
+    const { value: theForestId } = await getRuntimeConfig(TheForest)
     const roleName = msg.content.split(" -")[1];
     if (roleName == null) {
         msg.channel.send("must be in in the form: ` !join -roleName`");
         return;
     }
-    if (roles.includes(roleName) && THE_FOREST_ID) {
-        bot.guilds.fetch(THE_FOREST_ID)
+    if (roles.includes(roleName) && theForestId) {
+        bot.guilds.fetch(theForestId)
             .then(sever =>
                 sever.members.fetch(msg.author.id)
                     .then(member =>
@@ -47,7 +50,7 @@ function joinRole(msg: Message) {
             ).catch(console.log);
         msg.channel.send("Added role" + roleName);
     } else {
-        msg.channel.send(`Can't add role ${roleName} for server ${THE_FOREST_ID}`);
+        msg.channel.send(`Can't add role ${roleName} for server ${theForestId}`);
     }
 }
 
