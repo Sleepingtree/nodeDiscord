@@ -176,7 +176,6 @@ function playYoutube(url: string, songName: string, guildId: string, member?: Gu
     console.log(`playing song: ${songName} from URL: ${url}`)
     if (typeof tempConnection !== 'string') {
         const resource = getPlayerResource(url);
-        resource.volume?.setVolume(0.1);
         const player = createAudioPlayer();
         player.play(resource);
         player.on(AudioPlayerStatus.Idle, () => {
@@ -204,8 +203,8 @@ function playYoutube(url: string, songName: string, guildId: string, member?: Gu
 }
 
 function getPlayerResource(url: string) {
-    const resource = createAudioResource(ytdl(url, { quality: 'highestaudio', filter: (video) => video.hasAudio, highWaterMark: 1 << 25 }), { inlineVolume: true });
-    resource.volume?.setVolume(0.2);
+    const resource = createAudioResource(ytdl(url, { quality: 'highestaudio', filter: (video) => video.hasAudio }), { inlineVolume: true });
+    resource.volume?.setVolume(0.1);
     return resource;
 }
 

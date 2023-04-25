@@ -6,7 +6,7 @@ export const getRuntimeConfig = async<T extends ConfigToSurrealMaping>(key: new 
     const db = await getDBConnection('ref');
     const impl = new key()
     console.log(`loading config, ${key} with selector: ${impl.selector}`)
-    const results = await db.select(impl.selector) as T["returnedValue"][];
+    const results = await db.select<T["returnedValue"]>(impl.selector);
     if (results.length > 1) {
         console.warn(`got ${results.length} results for config. ${key}`)
     }
