@@ -28,7 +28,7 @@
     "discord.js": "^14.9.0",
     "dotenv": "^8.2.0",
     "express": "~4.16.1",
-    "ffmpeg-static": "^5.0.0",
+    "ffmpeg-static": "^5.1.0",
     "googleapis": "^67.1.1",
     "http-errors": "~1.6.3",
     "libsodium-wrappers": "^0.7.9",
