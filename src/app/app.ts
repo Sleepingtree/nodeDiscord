@@ -14,7 +14,6 @@ import botStatusRouter from '../routes/botStatus';
 
 //start up discord bot services
 import '../services/discordRoleService';
-import '../services/waniKaniService';
 import '../services/alexaService';
 import '../services/gameService'
 import '../services/slashcomandUpdater'

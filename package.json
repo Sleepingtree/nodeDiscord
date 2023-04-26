@@ -18,7 +18,7 @@
   "dependencies": {
     "@discordjs/builders": "^0.15.0",
     "@discordjs/opus": "^0.7.0",
-    "@discordjs/voice": "^0.10.0",
+    "@discordjs/voice": "^0.16.0",
     "ask-sdk-core": "^2.10.2",
     "ask-sdk-express-adapter": "^2.10.2",
     "ask-sdk-model": "^1.35.1",
