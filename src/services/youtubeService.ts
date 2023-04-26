@@ -1,5 +1,5 @@
 import ytdl from "ytdl-core";
-import { CommandInteraction, GuildMember, Message } from "discord.js";
+import { ActivityType, CommandInteraction, GuildMember, Message } from "discord.js";
 import { joinVoiceChannel, AudioPlayer, createAudioResource, getVoiceConnection, AudioPlayerStatus, createAudioPlayer } from '@discordjs/voice'
 import bot, { BOT_PREFIX, updateBotStatus } from './discordLogIn';
 import { google } from 'googleapis';
@@ -21,7 +21,7 @@ const service = google.youtube({
 bot.on('messageCreate', msg => {
     if (msg.content.startsWith(BOT_PREFIX + 'play ')) {
         const tempMember = msg.member;
-        if (msg.channel.isText() && tempMember) {
+        if (msg.channel && tempMember) {
             handleNotInGuild(msg, (guildId) => searchAndAddYoutubeGenerator(guildId, tempMember, msg.content.split(BOT_PREFIX + 'play ')[1]));
         }
     } else if (msg.content.startsWith(BOT_PREFIX + 'play')) {
@@ -60,8 +60,8 @@ export const removeNameOption = 'song-number';
 const notInGuildMessage = 'You must send messages in a server channel';
 
 export const handlePlayCommand = async (interaction: CommandInteraction) => {
-    const songName = interaction.options.getString(songNameOption);
-    if (interaction.guildId && interaction.channel?.isText()) {
+    if (interaction.guildId && interaction.channel && interaction.isChatInputCommand()) {
+        const songName = interaction.options.getString(songNameOption);
         if (songName) {
             if (interaction.member instanceof GuildMember) {
                 await interaction.deferReply();
@@ -100,8 +100,8 @@ export const handleSkipCommand = async (interaction: CommandInteraction) => {
 }
 
 export const handleRemoveCommand = (interaction: CommandInteraction) => {
-    const itemToRemove = interaction.options.getNumber(removeNameOption);
-    if (interaction.guildId) {
+    if (interaction.isChatInputCommand() && interaction.guildId) {
+        const itemToRemove = interaction.options.getNumber(removeNameOption);
         const response = removeItemFromQueue(interaction.guildId, itemToRemove?.toString())
         interaction.reply(response);
     } else {
@@ -145,7 +145,7 @@ export const handleClearQueue = async (interaction: CommandInteraction) => {
 }
 
 export const handleJoinCommand = async (interaction: CommandInteraction) => {
-    if (interaction.guildId && interaction.channel?.isText()) {
+    if (interaction.guildId && interaction.channel) {
         if (interaction.member instanceof GuildMember) {
             const connectionOrMessage = getConnection(interaction.guildId, interaction.member, true);
             if (typeof connectionOrMessage === 'string') {
@@ -220,9 +220,7 @@ function getConnection(guildId: string, member: GuildMember | null, getNew?: boo
             closeVoiceConnection(guildId);
             return 'you must be in a voice channel!';
         } else {
-            if (voiceChannel.type === 'GUILD_STAGE_VOICE') {
-                return 'You need to be in one server for this to work!';
-            } else if (voiceChannel.joinable) {
+            if (voiceChannel.joinable) {
                 return joinVoiceChannel({
                     guildId: guildId,
                     channelId: voiceChannel.id,
@@ -478,9 +476,9 @@ function checkAndUpdateBot(songName?: string) {
     const newSeverCountMessage = MULTI_SERVER_STATUS.replace(MULTI_SERVER_PLACE_HOLDER, `${serversListening}`);
 
     if (serversListening === 1 && songName) {
-        updateBotStatus(songName, { type: "LISTENING" });
+        updateBotStatus(songName, { type: ActivityType.Listening });
     } else if (serversListening > 1 && botStatus !== newSeverCountMessage) {
-        updateBotStatus(newSeverCountMessage, { type: "LISTENING" });
+        updateBotStatus(newSeverCountMessage, { type: ActivityType.Listening });
     } else {
         updateBotStatus();
     }

@@ -3,7 +3,7 @@ import { ButtonInteraction, CommandInteraction } from "discord.js";
 
 type commandType = {
     slashCommand: SlashCommandBuilder | SlashCommandSubcommandsOnlyBuilder;
-    cb: (interaction: CommandInteraction) => Promise<void> | void;
+    cb: (interaction: CommandInteraction) => any;
     needsUpdate?: boolean
 }
 

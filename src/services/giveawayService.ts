@@ -1,6 +1,7 @@
-import { ButtonInteraction, CommandInteraction, Message, MessageActionRow, MessageButton } from "discord.js";
+import { ActionRowBuilder, ButtonInteraction, CommandInteraction, Message, ButtonBuilder, ButtonStyle, BaseGuildTextChannel, ChatInputCommandInteraction } from "discord.js";
 import bot from '../services/discordLogIn';
 import fs from 'fs';
+
 
 export const startCommand = 'start';
 export const restartCommand = 'restart';
@@ -47,21 +48,23 @@ type Giveaway = {
 const notInGuildMesage = { ephemeral: true, content: 'You must be in a discord server to use this!' };
 
 export const handleGiveAwayCommand = async (interaction: CommandInteraction) => {
-    const realCommand = interaction.options.getSubcommand();
-    if (realCommand === startCommand) {
-        handleStart(interaction);
-    } else if (realCommand === restartCommand) {
-        handleRestartCommand(interaction);
-    } else if (realCommand === addingMoreItemsCommand) {
-        handleAddOrRemoveItems(interaction, true);
-    } else if (realCommand === subtractingItemsCommnad) {
-        handleAddOrRemoveItems(interaction, false);
-    } else {
-        console.log('Unhandled giveAway command');
+    if (interaction.isChatInputCommand()) {
+        const realCommand = interaction.options.getSubcommand();
+        if (realCommand === startCommand) {
+            handleStart(interaction);
+        } else if (realCommand === restartCommand) {
+            handleRestartCommand(interaction);
+        } else if (realCommand === addingMoreItemsCommand) {
+            handleAddOrRemoveItems(interaction, true);
+        } else if (realCommand === subtractingItemsCommnad) {
+            handleAddOrRemoveItems(interaction, false);
+        } else {
+            console.log('Unhandled giveAway command');
+        }
     }
 }
 
-const handleStart = async (interaction: CommandInteraction) => {
+const handleStart = async (interaction: ChatInputCommandInteraction) => {
     const guildId = interaction.guildId;
     const startingItemCount = interaction.options.getNumber(numberOfItemsToGiveAway);
     if (!guildId || !startingItemCount) {
@@ -71,15 +74,15 @@ const handleStart = async (interaction: CommandInteraction) => {
     await interaction.deferReply()
     const file = fs.readFileSync(giveawayFile, 'utf8');
     const convertedFile = JSON.parse(file) as GiveawayFile;
-    const messageActionRow = new MessageActionRow().addComponents(
-        new MessageButton().setCustomId(joinGiveawayButton)
+    const messageActionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+        new ButtonBuilder().setCustomId(joinGiveawayButton)
             .setLabel('Join giveaway')
-            .setStyle('PRIMARY')
+            .setStyle(ButtonStyle.Primary)
             .setEmoji('🎉')
     ).addComponents(
-        new MessageButton().setCustomId(endGiveawayButton)
+        new ButtonBuilder().setCustomId(endGiveawayButton)
             .setLabel('end giveaway')
-            .setStyle('DANGER')
+            .setStyle(ButtonStyle.Danger)
     )
     convertedFile[guildId] = {
         startedUser: interaction.user.id,
@@ -164,15 +167,15 @@ const darwOrRedrawForUser = async (interaction: ButtonInteraction, guildGiveaway
                     guildGiveaway.joinedUsers.push({ userId: interaction.user.id, won: false, requestSlot: numberResponse });
 
                     fs.writeFileSync(giveawayFile, JSON.stringify(convertedFile, null, 2));
-                    const messageActionRow = new MessageActionRow().addComponents(
-                        new MessageButton().setCustomId(giveGiveawayPrize)
+                    const messageActionRow = new ActionRowBuilder<ButtonBuilder>().addComponents(
+                        new ButtonBuilder().setCustomId(giveGiveawayPrize)
                             .setLabel(`I gave ${interaction.user.username} a prize!`)
-                            .setStyle('PRIMARY')
+                            .setStyle(ButtonStyle.Primary)
                             .setEmoji('🎉')
                     ).addComponents(
-                        new MessageButton().setCustomId(noPrize)
+                        new ButtonBuilder().setCustomId(noPrize)
                             .setLabel('No prize')
-                            .setStyle('DANGER')
+                            .setStyle(ButtonStyle.Danger)
                             .setEmoji('😔')
                     )
                     officers.forEach(async officer => {
@@ -297,7 +300,7 @@ export const handlePrize = async (interaction: ButtonInteraction) => {
                     if (message.dmChannelId !== interaction.channelId) {
                         bot.channels.fetch(message.dmChannelId)
                             .then(async channel => {
-                                if (channel?.isText()) {
+                                if (channel instanceof BaseGuildTextChannel) {
                                     const officerMessage = await channel.messages.fetch(message.messageId);
                                     if (officerMessage.editable) {
                                         officerMessage.edit({ content: `Some other officer gave <@${winnerId}> a gift`, components: [] });
@@ -331,30 +334,35 @@ export const handleNoPrize = async (interaction: ButtonInteraction) => {
 
 const handleAddOrRemoveItems = async (interaction: CommandInteraction, adding: boolean) => {
     await interaction.deferReply({ ephemeral: true });
-    const removedItems = interaction.options.getNumber(numberOfItemsAdded);
-    const guildId = interaction.guildId;
-    if (!guildId) {
-        interaction.reply(notInGuildMesage);
-        return;
-    } else if (!removedItems) {
-        interaction.reply('You didn\'t add items');
-        return;
-    }
-    const file = fs.readFileSync(giveawayFile, 'utf-8');
-    const convertedFile = JSON.parse(file) as GiveawayFile;
-    const giveaway = convertedFile[guildId];
-    const officers = (await bot.guilds.fetch(guildId))
-        .members.cache.filter(member => member.roles.cache.filter(role => role.name === officerRoleName).size > 0);
-    if (interaction.user.id !== giveaway?.startedUser || officers.get(interaction.user.id)) {
-        interaction.editReply(`That's not up to you I'm telling!`);
-        console.log(`${interaction.user.username} tried to remove the items!`);
-        return;
-    } if (adding) {
-        giveaway.numberOfItems += removedItems;
+    if (interaction.isChatInputCommand()) {
+        const removedItems = interaction.options.getNumber(numberOfItemsAdded);
+        const guildId = interaction.guildId;
+        if (!guildId) {
+            interaction.reply(notInGuildMesage);
+            return;
+        } else if (!removedItems) {
+            interaction.reply('You didn\'t add items');
+            return;
+        }
+        const file = fs.readFileSync(giveawayFile, 'utf-8');
+        const convertedFile = JSON.parse(file) as GiveawayFile;
+        const giveaway = convertedFile[guildId];
+        const officers = (await bot.guilds.fetch(guildId))
+            .members.cache.filter(member => member.roles.cache.filter(role => role.name === officerRoleName).size > 0);
+        if (interaction.user.id !== giveaway?.startedUser || officers.get(interaction.user.id)) {
+            interaction.editReply(`That's not up to you I'm telling!`);
+            console.log(`${interaction.user.username} tried to remove the items!`);
+            return;
+        } if (adding) {
+            giveaway.numberOfItems += removedItems;
+        } else {
+            giveaway.numberOfItems -= removedItems;
+        }
+        const newItemsInBank = giveaway.numberOfItems;
+        fs.writeFileSync(giveawayFile, JSON.stringify(convertedFile, null, 2));
+        interaction.editReply({ content: `${adding ? 'Added' : 'Removed'} ${removedItems} total items ${newItemsInBank}`, components: [] });
     } else {
-        giveaway.numberOfItems -= removedItems;
+        interaction.editReply({ content: 'idk bro' })
     }
-    const newItemsInBank = giveaway.numberOfItems;
-    fs.writeFileSync(giveawayFile, JSON.stringify(convertedFile, null, 2));
-    interaction.editReply({ content: `${adding ? 'Added' : 'Removed'} ${removedItems} total items ${newItemsInBank}`, components: [] });
+
 }

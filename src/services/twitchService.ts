@@ -1,6 +1,7 @@
 import * as tmi from 'tmi.js';
 import * as gameService from './gameService';
 import bot from './discordLogIn';
+import { ActivityType } from 'discord.js';
 const TWITCH_USER_NAME = process.env.TWITCH_USER_NAME;
 const TWITCH_PASSWORD = process.env.TWITCH_PASSWORD;
 const TWITCH_CHANNEL_NAME = process.env.TWITCH_CHANNEL_NAME ?? "";
@@ -73,7 +74,7 @@ const handleSongCommand = () => {
   const botUser = bot.user;
   if (botUser) {
     const botStatus = botUser.presence.activities[0];
-    if (botStatus?.type === 'LISTENING') {
+    if (botStatus?.type === ActivityType.Listening) {
       sendMessage(botStatus.name);
     } else {
       sendMessage('Tree isn\'t listening to anything');

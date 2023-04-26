@@ -1,4 +1,4 @@
-import discord, { ActivityOptions, ActivityType, GuildChannel, Intents, Message, Snowflake } from 'discord.js';
+import discord, { ActivityOptions, ActivityType, BaseGuildTextChannel, BaseGuildVoiceChannel, GuildChannel, Message, Partials, Snowflake } from 'discord.js';
 import fs from 'fs';
 import { Presence } from 'discord.js';
 import BotStatusEmitter from '../model/botStatusEmitter';
@@ -6,19 +6,9 @@ import BotStatus from '../model/botStatus';
 import throwIfNull from '../util/throwIfUndefinedOrNull';
 
 const bot = new discord.Client({
-  intents:
-    [
-      Intents.FLAGS.GUILDS,
-      Intents.FLAGS.GUILD_MEMBERS,
-      Intents.FLAGS.GUILD_MESSAGES,
-      Intents.FLAGS.GUILD_MESSAGE_REACTIONS,
-      Intents.FLAGS.GUILD_PRESENCES,
-      Intents.FLAGS.GUILD_INTEGRATIONS,
-      Intents.FLAGS.GUILD_VOICE_STATES,
-      Intents.FLAGS.DIRECT_MESSAGES,
-      Intents.FLAGS.DIRECT_MESSAGE_REACTIONS,
-    ],
-  partials: ["CHANNEL"]
+  //idk man calc that shit
+  intents: 14227,
+  partials: [Partials.Channel]
 });
 
 export const botStatusEmitter = new BotStatusEmitter();
@@ -80,9 +70,9 @@ export async function whosOnline(channelId?: Snowflake) {
   const theForrest = await bot.guilds.fetch(THE_FOREST_ID);
   const channels = await theForrest.channels.fetch();
   channels
-    .filter(channel => typeof channelId === 'undefined' || channel.id === channelId)
+    .filter(channel => typeof channelId === 'undefined' || channel?.id === channelId)
     .forEach(channel => {
-      if (channel.isVoice()) {
+      if (channel instanceof BaseGuildVoiceChannel) {
         channel.members.forEach(member => usersOnline.push(member.user.username))
       }
     });
@@ -112,14 +102,14 @@ export function getBotStatus<T extends Presence>(botStatus?: T): BotStatusOrUnde
   } else {
     const activity = botStatus ? botStatus.activities[0] : botUser.presence.activities[0];
     if (activity) {
-      if (activity.type === 'CUSTOM') {
+      if (activity.type === ActivityType.Custom) {
         return {
           message: `${botUser.username}'s status is: ${activity.name}`,
           avatarURL: `${botUser.avatarURL()}`
         } as BotStatusOrUndefined<T>
       } else {
         return {
-          message: `${botUser.username} is ${activity.type.toLowerCase()}${addedWordToBotStatus(activity.type)}${activity.name}`,
+          message: `${botUser.username} is ${activity.type.toString().toLowerCase()}${addedWordToBotStatus(activity.type)}${activity.name}`,
           avatarURL: `${botUser.avatarURL()}`
         } as BotStatusOrUndefined<T>
       }
@@ -134,9 +124,9 @@ export function getBotStatus<T extends Presence>(botStatus?: T): BotStatusOrUnde
 
 function addedWordToBotStatus(activityType: ActivityType) {
   switch (activityType) {
-    case 'LISTENING':
+    case ActivityType.Listening:
       return ' to ';
-    case 'COMPETING':
+    case ActivityType.Competing:
       return ' in ';
     default:
       return ' ';
@@ -145,10 +135,10 @@ function addedWordToBotStatus(activityType: ActivityType) {
 
 function treeDisplayType(activityType: ActivityType) {
   switch (activityType) {
-    case 'CUSTOM':
+    case ActivityType.Custom:
       return '';
     default:
-      return activityType.toLocaleLowerCase().replace('ing', '');
+      return activityType.toString().toLocaleLowerCase().replace('ing', '');
   }
 }
 
@@ -172,7 +162,7 @@ export async function postMessageInChannel(message: string, channelName: string)
   const channel = theForest.channels.cache
     .filter(channel => channel.name.replace('-', ' ').toLowerCase() === channelName)
     .first();
-  if (channel?.isText()) {
+  if (channel instanceof BaseGuildTextChannel) {
     channel.send(message);
   }
 }
@@ -181,7 +171,7 @@ bot.on('presenceUpdate', (oldSatus, newStatus) => {
   //Check if the user is me, and if there is a real staus change
   if (newStatus.member?.id === TREE_USER_ID && newStatus.activities !== oldSatus?.activities) {
     const botStatus = bot.user?.presence.activities[0];
-    if (!botStatus || botStatus.type === 'WATCHING') {
+    if (!botStatus || botStatus.type === ActivityType.Watching) {
       const treeStatus = newStatus.activities[0];
       if (treeStatus) {
         let statusMessage = `Tree ${treeDisplayType(treeStatus.type)}${addedWordToBotStatus(treeStatus.type)}`;
@@ -192,7 +182,7 @@ bot.on('presenceUpdate', (oldSatus, newStatus) => {
         } else {
           statusMessage += `${treeStatus.name}`;
         }
-        updateBotStatus(statusMessage, { type: 'WATCHING' });
+        updateBotStatus(statusMessage, { type: ActivityType.Watching });
       } else {
         updateBotStatus();
       }

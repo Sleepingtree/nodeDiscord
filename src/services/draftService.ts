@@ -1,5 +1,4 @@
 import { Client, Collection, CollectorFilter, Message, MessageReaction, User } from "discord.js";
-import fetch from 'node-fetch';
 
 import bot, { BOT_PREFIX } from './discordLogIn';
 

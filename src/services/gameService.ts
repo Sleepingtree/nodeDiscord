@@ -1,7 +1,7 @@
 import * as twitchService from './twitchService';
 
 import fs from 'fs';
-import { Client, Message, VoiceChannel } from 'discord.js';
+import { ActivityType, Client, Message, VoiceBasedChannel, VoiceChannel } from 'discord.js';
 import bot, { BOT_PREFIX } from './discordLogIn';
 import MMRFile from '../model/mmrFile';
 
@@ -22,7 +22,7 @@ let GAME_NAME: string | null;
 let jsonFile: MMRFile;
 let redTeamMmr = 0;
 let blueTeamMmr = 0;
-let startingChannel: VoiceChannel | null;
+let startingChannel: VoiceBasedChannel | null;
 
 bot.on('messageCreate', msg => {
     if (msg.content.startsWith(BOT_PREFIX + 'startGame')) {
@@ -45,7 +45,7 @@ bot.on('messageCreate', msg => {
 async function startGame(msg: Message) {
     if (msg.member) {
         const voiceChannel = msg.member.voice.channel;
-        if (!voiceChannel || voiceChannel?.type === "GUILD_STAGE_VOICE") {
+        if (!voiceChannel) {
             msg.channel.send(`Must be in a voice channel to start a game`);
             return;
         } else {
@@ -66,7 +66,7 @@ async function startGame(msg: Message) {
             return;
         }
 
-        const userGameName = msg.member.presence?.activities.find(activity => activity.type === 'PLAYING')?.name;
+        const userGameName = msg.member.presence?.activities.find(activity => activity.type === ActivityType.Playing)?.name;
 
         if (userGameName) {
             GAME_NAME = userGameName;
@@ -212,7 +212,7 @@ function convertUserMMRtoDisplayMMR(trueMMR: number) {
     return retVal;
 }
 
-function moveUsers(redTeamUser: string[], channel: VoiceChannel) {
+function moveUsers(redTeamUser: string[], channel: VoiceBasedChannel) {
     if (!RED_TEAM_VOICE_CHANNEL_ID) {
         console.log("RED_TEAM_VOICE_CHANNEL_ID not defined!")
         return;

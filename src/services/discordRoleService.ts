@@ -1,4 +1,4 @@
-import { Guild, GuildMember, Message } from "discord.js";
+import { ActivityType, Guild, GuildMember, Message } from "discord.js";
 import bot, { BOT_PREFIX } from './discordLogIn';
 
 const roles = process.env.DISCORD_BOT_ROLES ? process.env.DISCORD_BOT_ROLES.split('|') : [];
@@ -17,7 +17,7 @@ bot.on('presenceUpdate', (_oldPresence, presence) => {
     if (presence.guild?.id === THE_FOREST_ID) {
         presence.activities
             .filter(activity => {
-                return roles.includes(activity.name) && activity.type === 'PLAYING';
+                return roles.includes(activity.name) && activity.type === ActivityType.Playing;
             }).map(activity => presence.guild?.roles.cache.find(role => role.name === activity.name))
             .filter(roleNotEmpty)
             .filter(role => !presence.member?.roles.cache.has(role.id))

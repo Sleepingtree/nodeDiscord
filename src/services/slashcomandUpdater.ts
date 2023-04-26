@@ -1,4 +1,3 @@
-import fetch from 'node-fetch'
 import fs from 'fs/promises'
 import throwIfNull from '../util/throwIfUndefinedOrNull';
 import bot from './discordLogIn'
